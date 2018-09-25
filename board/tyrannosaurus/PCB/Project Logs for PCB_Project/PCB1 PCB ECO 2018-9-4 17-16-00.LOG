@@ -1,0 +1,4 @@
+Added Pin To Net: NetName=DMA_A0 Pin=U6-31
+Added Pin To Net: NetName=DMA_DACK3 Pin=U6-32
+Added Pin To Net: NetName=DMA_DREQ2 Pin=U6-34
+Added Member To Class: ClassName=i386 Member=Component U6 SN74TVC16222A

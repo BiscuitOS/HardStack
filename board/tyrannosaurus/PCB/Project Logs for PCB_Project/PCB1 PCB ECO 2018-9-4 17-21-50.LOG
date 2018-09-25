@@ -1,0 +1,22 @@
+Removed Pin From Net: NetName=DMA_A1 Pin=U6-25
+Removed Pin From Net: NetName=DMA_A0 Pin=U6-31
+Removed Pin From Net: NetName=DMA_DACK3 Pin=U6-32
+Removed Pin From Net: NetName=DMA_DREQ2 Pin=U6-34
+Added Pin To Net: NetName=DMA_DREQ2 Pin=U6-25
+Added Pin To Net: NetName=DMA_A0 Pin=U6-26
+Added Pin To Net: NetName=DMA_DACK3 Pin=U6-27
+Added Pin To Net: NetName=DMA_A1 Pin=U6-28
+Added Pin To Net: NetName=DMA_A3 Pin=U6-31
+Added Pin To Net: NetName=DMA_A4 Pin=U6-32
+Added Pin To Net: NetName=DMA_A5 Pin=U6-34
+Added Member To Class: ClassName=i386 Member=Component R66 Res1
+Added Member To Class: ClassName=i386 Member=Component R73 Res1
+Added Member To Class: ClassName=i386 Member=Component R79 Res1
+Added Member To Class: ClassName=i386 Member=Component R85 Res1
+Added Member To Class: ClassName=i386 Member=Component R91 Res1
+Added Member To Class: ClassName=i386 Member=Component R97 Res1
+Added Member To Class: ClassName=i386 Member=Component R103 Res1
+Added Member To Class: ClassName=i386 Member=Component R109 Res1
+Added Member To Class: ClassName=i386 Member=Component R115 Res1
+Added Member To Class: ClassName=i386 Member=Component R121 Res1
+Added Member To Class: ClassName=i386 Member=Component R126 Res1

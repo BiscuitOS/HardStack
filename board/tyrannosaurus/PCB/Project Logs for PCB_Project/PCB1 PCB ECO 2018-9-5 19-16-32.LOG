@@ -1,0 +1,16 @@
+Removed Pin From Net: NetName=SPI_CLK Pin=U4-122
+Removed Pin From Net: NetName=SPI_CLK Pin=U4-122
+Removed Pin From Net: NetName=SPI_CLK Pin=U4-122
+Removed Pin From Net: NetName=SPI_CLK Pin=U4-122
+Removed Pin From Net: NetName=SPI_CS Pin=U4-123
+Removed Pin From Net: NetName=SPI_CS Pin=U4-123
+Removed Pin From Net: NetName=SPI_CS Pin=U4-123
+Removed Pin From Net: NetName=SPI_CS Pin=U4-123
+Added Pin To Net: NetName=SPI_CS Pin=U4-122
+Added Pin To Net: NetName=SPI_CS Pin=U4-122
+Added Pin To Net: NetName=SPI_CS Pin=U4-122
+Added Pin To Net: NetName=SPI_CS Pin=U4-122
+Added Pin To Net: NetName=SPI_CLK Pin=U4-123
+Added Pin To Net: NetName=SPI_CLK Pin=U4-123
+Added Pin To Net: NetName=SPI_CLK Pin=U4-123
+Added Pin To Net: NetName=SPI_CLK Pin=U4-123

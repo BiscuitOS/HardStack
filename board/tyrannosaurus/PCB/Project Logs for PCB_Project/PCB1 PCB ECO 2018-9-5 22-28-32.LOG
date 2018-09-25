@@ -1,0 +1,8 @@
+Removed Pin From Net: NetName=PIC_IR3 Pin=R85-1
+Removed Pin From Net: NetName=PIC_IR4 Pin=R88-1
+Removed Pin From Net: NetName=PIC_IR4 Pin=U6-38
+Removed Pin From Net: NetName=PIC_IR3 Pin=U6-39
+Added Pin To Net: NetName=PIC_IR4 Pin=R85-1
+Added Pin To Net: NetName=PIC_IR3 Pin=R88-1
+Added Pin To Net: NetName=PIC_IR3 Pin=U6-38
+Added Pin To Net: NetName=PIC_IR4 Pin=U6-39

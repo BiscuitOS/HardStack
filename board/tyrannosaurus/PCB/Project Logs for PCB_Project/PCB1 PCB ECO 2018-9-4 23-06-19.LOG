@@ -1,0 +1,2 @@
+Removed Pin From Net: NetName=GPIO1_11 Pin=U5-24
+Added Pin To Net: NetName=CONF_DONE Pin=U5-24

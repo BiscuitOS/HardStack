@@ -1,0 +1,79 @@
+Removed Pin From Net: NetName=GPIO1_11 Pin=U5-5
+Removed Pin From Net: NetName=GPIO1_10 Pin=U5-6
+Removed Pin From Net: NetName=GPIO1_9 Pin=U5-7
+Removed Pin From Net: NetName=GPIO1_8 Pin=U5-8
+Removed Pin From Net: NetName=GPIO1_7 Pin=U5-9
+Removed Pin From Net: NetName=GPIO1_6 Pin=U5-10
+Removed Pin From Net: NetName=GPIO1_5 Pin=U5-11
+Removed Pin From Net: NetName=GPIO1_4 Pin=U5-12
+Removed Pin From Net: NetName=GPIO1_3 Pin=U5-13
+Removed Pin From Net: NetName=GPIO1_2 Pin=U5-14
+Removed Pin From Net: NetName=GPIO1_1 Pin=U5-15
+Removed Pin From Net: NetName=GPIO1_0 Pin=U5-16
+Removed Pin From Net: NetName=GPIO3_8 Pin=U5-17
+Removed Pin From Net: NetName=GPIO3_7 Pin=U5-18
+Removed Pin From Net: NetName=GPIO3_11 Pin=U5-19
+Removed Pin From Net: NetName=GPIO3_14 Pin=U5-20
+Removed Pin From Net: NetName=GPIO3_13 Pin=U5-21
+Removed Pin From Net: NetName=GPIO3_16 Pin=U5-22
+Removed Pin From Net: NetName=GPIO3_15 Pin=U5-23
+Removed Pin From Net: NetName=GPIO3_18 Pin=U5-24
+Added Pin To Net: NetName=GPIO3_18 Pin=U5-5
+Added Pin To Net: NetName=GPIO3_15 Pin=U5-6
+Added Pin To Net: NetName=GPIO3_16 Pin=U5-7
+Added Pin To Net: NetName=GPIO3_13 Pin=U5-8
+Added Pin To Net: NetName=GPIO3_14 Pin=U5-9
+Added Pin To Net: NetName=GPIO3_11 Pin=U5-10
+Added Pin To Net: NetName=GPIO3_7 Pin=U5-11
+Added Pin To Net: NetName=GPIO3_8 Pin=U5-12
+Added Pin To Net: NetName=GPIO1_0 Pin=U5-13
+Added Pin To Net: NetName=GPIO1_1 Pin=U5-14
+Added Pin To Net: NetName=GPIO1_2 Pin=U5-15
+Added Pin To Net: NetName=GPIO1_3 Pin=U5-16
+Added Pin To Net: NetName=GPIO1_4 Pin=U5-17
+Added Pin To Net: NetName=GPIO1_5 Pin=U5-18
+Added Pin To Net: NetName=GPIO1_6 Pin=U5-19
+Added Pin To Net: NetName=GPIO1_7 Pin=U5-20
+Added Pin To Net: NetName=GPIO1_8 Pin=U5-21
+Added Pin To Net: NetName=GPIO1_9 Pin=U5-22
+Added Pin To Net: NetName=GPIO1_10 Pin=U5-23
+Added Pin To Net: NetName=GPIO1_11 Pin=U5-24
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Blue New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default
+Change Net Color : Old Net Color=Lime New Net Color=Default

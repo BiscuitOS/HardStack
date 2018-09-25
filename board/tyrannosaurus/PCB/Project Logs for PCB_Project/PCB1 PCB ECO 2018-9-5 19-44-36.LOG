@@ -1,0 +1,20 @@
+Removed Pin From Net: NetName=VCC5 Pin=C32-1
+Removed Pin From Net: NetName=VCC5 Pin=C34-2
+Removed Pin From Net: NetName=VCC5 Pin=J2-1
+Added Component: Designator=LED2(LED-0402)
+Added Component: Designator=R140(0402)
+Added Component: Designator=S1(DPDT-6)
+Added Pin To Net: NetName=GND Pin=LED2-2
+Added Pin To Net: NetName=VDD3.3 Pin=R140-1
+Added Pin To Net: NetName=VCC5 Pin=S1-3
+Added Pin To Net: NetName=NetLED2_1 Pin=LED2-1
+Added Pin To Net: NetName=NetLED2_1 Pin=R140-2
+Added Net: Name=NetLED2_1
+Added Pin To Net: NetName=VCC5_IN Pin=C32-1
+Added Pin To Net: NetName=VCC5_IN Pin=C34-2
+Added Pin To Net: NetName=VCC5_IN Pin=J2-1
+Added Pin To Net: NetName=VCC5_IN Pin=S1-1
+Added Net: Name=VCC5_IN
+Added Member To Class: ClassName=i386 Member=Component LED2 LED0
+Added Member To Class: ClassName=i386 Member=Component R140 Res1
+Added Member To Class: ClassName=i386 Member=Component S1 SW-DPDT

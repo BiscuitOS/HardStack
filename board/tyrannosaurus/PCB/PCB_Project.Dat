@@ -1,0 +1,22 @@
+﻿Field=#~Integer~#~50|Field=Comment~String~Comment~100|Field=Description~String~Description~100|Field=Designator~String~Designator~100|Field=Footprint~String~Footprint~100|Field=LibRef~String~LibRef~100|Field=Quantity~Integer~Quantity~100|ReportField=Currency~<none>|ReportField=ProductionQuantity~1|ReportField=ProjectFileName~PCB_Project.PrjPcb|ReportField=ProjectFullPath~D:\project\fpga\i386\PCB_Project\PCB_Project.PrjPcb|ReportField=Title~Bill of Materials For Project [PCB_Project.PrjPcb] (No PCB Document Selected)|ReportField=ReportTime~10:37:25|ReportField=ReportDate~2018/9/10|ReportField=ReportDateTime~2018/9/10 10:37:25|ReportField=OutputName~Bill of Materials|ReportField=OutputType~BOM_PartType|ReportField=GeneratorName~BOM|ReportField=GeneratorDescription~Bill of Materials|ReportField=VariantName~None|ReportField=TotalQuantity~201|ReportField=TotalActualPrice~0|ReportField=TotalTargetPrice~0|ReportField=VersionControl_RevNumber~|ReportField=VersionControl_ProjFolderRevNumber~|ReportField=Address1~|ReportField=Address2~|ReportField=Address3~|ReportField=Address4~|ReportField=Application_BuildNumber~|ReportField=ApprovedBy~|ReportField=Author~|ReportField=CheckedBy~|ReportField=CompanyName~|ReportField=CurrentDate~2018/9/10|ReportField=CurrentTime~10:36:33|ReportField=Date~|ReportField=DocumentFullPathAndName~D:\project\fpga\i386\PCB_Project\i386.SchDoc|ReportField=DocumentName~i386.SchDoc|ReportField=DocumentNumber~|ReportField=DrawnBy~|ReportField=Engineer~|ReportField=ImagePath~|ReportField=ModifiedDate~2018/9/6|ReportField=Organization~|ReportField=ProjectName~PCB_Project.PrjPcb|ReportField=Revision~|ReportField=Rule~|ReportField=SheetNumber~|ReportField=SheetTotal~|ReportField=Time~|ReportField=Title~|ReportField=DataSourceFileName~PCB_Project.PrjPcb|ReportField=DataSourceFullPath~D:\project\fpga\i386\PCB_Project\PCB_Project.PrjPcb|ReportField=PCBConfigurationName~Default Configuration|ReportField=Item~|ReportField=ItemRevision~|ReportField=ItemAndRevision~|ReportField=ItemRevisionBase~|ReportField=ItemRevisionLevel1~|ReportField=ItemRevisionLevel2~|ReportField=ItemRevisionLevel1AndBase~|ReportField=ItemRevisionLevel2AndLevel1~
+1|104|Capacitor|C3, C5, C6, C9, C11, C12, C16, C17, C18, C22, C23, C24, C25, C28, C29, C30, C31, C34, C35, C37, C39, C42, C43, C44, C45, C46, C47, C48, C49, C50, C51|C0805|Cap|31
+2|Cap Pol|极性电解电容|C26, C27, C36, C38, C40, C41|CAP-3528|Cap Pol|6
+3|Cap Pol1|Polarized Capacitor (Radial)|C32, C33|C-RB-S8|Cap Pol1|2
+4|Micro SD|Micro SD卡座|CN1|SDCARD-M|Micro SD卡座|1
+5|JTAG||J1|HDR5X2_B1|JTAG-10_Dup1|1
+6|USB_M|MicroUSB接口|J2|USB_MICRO|USB_M|1
+7|LED0|发光二极管|LED1, LED2|LED-0402|LED0|2
+8|Header 4|Header, 4-Pin|P1|HDR1X4|Header 4|1
+9|Res1|Resistor, 贴片电阻|R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30, R31, R32, R33, R34, R35, R36, R37, R38, R39, R40, R41, R42, R43, R44, R45, R46, R47, R48, R49, R50, R51, R52, R53, R54, R55, R56, R57, R58, R59, R60, R61, R62, R63, R65, R66, R67, R68, R69, R70, R71, R72, R73, R74, R75, R76, R77, R78, R79, R80, R81, R82, R83, R84, R85, R86, R87, R88, R89, R90, R91, R92, R93, R94, R95, R96, R97, R98, R99, R100, R101, R102, R103, R104, R105, R106, R107, R108, R109, R110, R111, R112, R113, R114, R115, R116, R117, R118, R119, R120, R121, R122, R123, R124, R125, R126, R127, R128, R129, R130, R131, R132, R133, R134, R135, R136, R137, R138, R139, R140|0402|Res1|139
+10||Resistor|R64|0402|Res1|1
+11|SW-PB|Switch|RST_n1|SPST-2|SW-PB|1
+12|SW-DPDT|Double-Pole, Double-Throw Switch|S1|DPDT-6|SW-DPDT|1
+13|SN74TVC16222A||U1, U2, U3, U5, U6, U7|TSSOP50P810X120-48N|SN74TVC16222A|6
+14|EP4CE6/10_FPGACore||U4|EP4CE6/10_FPGACore|EP4CE6/10_FPGACore|1
+15|W25QXX|SPI FLASH|U8|SOIC8_W|W25QXX|1
+16|Intel386sx|CPU-80386|U9|BQFP-i386-SX|Intel386sx|1
+17|IS82C37A|DMA控制器|U10|PLCC-44-IC-SOCKET|IS82C37A|1
+18|AS6C8016||U11|TSOP80P1160X120-44N|AS6C8016|1
+19|ASM1117|3.3V稳压芯片|U12|SOT-223|ASM1117|1
+20|P8259A|中断控制器|U13|DIP28|P8259A|1
+21|CS82C54|Timer 定时器|U14|PLCC-28-IC-SOCKET|CS82C54|1
