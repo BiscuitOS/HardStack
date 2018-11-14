@@ -1,0 +1,36 @@
+/*
+ * Interrupt dts
+ */
+/ {
+	gic: interrupt-controller@d000 {
+		compatible = "arm,cortex-a9-gic";
+		#interrupt-cells = <3>;
+		#size-cells = <0>;
+		interrupt-controller;
+		reg = <0xd000 0x1000>,
+		<0xc100 0x100>;
+	};
+
+	gpio0: gpio@18100 {
+		compatible = "marvell,orion-gpio";
+		reg = <0x18100 0x40>;
+		ngpios = <32>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>;
+	};
+
+	demo: demo2@2 {
+		compatible = "demo,demo_intr";
+		reg = <2>;
+		interrupt-parent = <&gpio0>;
+		interrupts = <11 2>;
+		status = "okay";
+	};
+
+};
