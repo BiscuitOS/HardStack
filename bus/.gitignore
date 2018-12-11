@@ -1,0 +1,16 @@
+*.o
+*.o.d
+*~ 
+.depend 
+.*.cmd 
+*.ko
+*.ko.unsigned
+*.mod.c
+.tmp_versions
+*.symvers
+*.save
+*.bak
+Modules.*
+modules.order
+Module.markers
+*.bin
