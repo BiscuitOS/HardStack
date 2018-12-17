@@ -111,3 +111,7 @@ ZynqMP> i2c mw 0x50 0x1 0x12
 ZynqMP> i2c md 0x50 0x1                                                         
 0001: 12    .
 ```
+
+# Use I2C on SRC
+
+detail see **i2c.c**.
