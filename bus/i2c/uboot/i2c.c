@@ -1,7 +1,7 @@
 /*
  * I2C read/write on Uboot
  *
- * (C) 2018.11.12 BiscuitOS <buddy.zhang@aliyun.com>
+ * (C) 2018.11.17 BiscuitOS <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as

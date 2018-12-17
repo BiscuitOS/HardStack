@@ -129,6 +129,6 @@ the offset of register on slave device is 0x40.
 
 The common interface for I²C bus on userspace is **/dev/i2cx**, e.g. 
 "/dev/i2c0" or "/dev/i2c1", the application can read and write data on I²C
-bus via **/dev/i2cx**.
+bus via **/dev/i2cx**. Details see i2c.c
 
 
