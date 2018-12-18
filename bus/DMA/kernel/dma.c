@@ -23,6 +23,7 @@
 #include <linux/init.h>
 #include <asm/uaccess.h>
 #include <linux/dmaengine.h>
+#include <linux/module.h>
  
 #include <linux/kernel.h>
 #include <linux/uaccess.h>
@@ -239,4 +240,14 @@ static int __init axidma_init(void)
  
     return 0;
 }
-device_initcall(axidma_init);
+
+static void __exit axidma_exit(void)
+{
+    misc_deregister(&axidma_miscdev);
+}
+
+module_init(axidma_init);
+module_exit(axidma_exit);
+
+MODULE_DESCRIPTION("dma demo");
+MODULE_LICENSE("GPL v2");
