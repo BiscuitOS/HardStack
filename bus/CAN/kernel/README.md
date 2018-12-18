@@ -30,19 +30,19 @@ make menuconfig ARCH=arm64
 
 **Networking support -->**
 
-![Alt text](https://github.com/EmulateSpace/PictureSet/blob/master/BiscuitOS/kernel/DEV00065.png)
+![Alt text](https://github.com/EmulateSpace/PictureSet/blob/master/BiscuitOS/kernel/DEV000065.png)
 
 **CAN bus subsystem support -->**
 
-![Alt text](https://github.com/EmulateSpace/PictureSet/blob/master/BiscuitOS/kernel/DEV00066.png)
+![Alt text](https://github.com/EmulateSpace/PictureSet/blob/master/BiscuitOS/kernel/DEV000066.png)
 
 Select all and enter **CAN Device Drivers -->**
 
-![Alt text](https://github.com/EmulateSpace/PictureSet/blob/master/BiscuitOS/kernel/DEV00067.png)
+![Alt text](https://github.com/EmulateSpace/PictureSet/blob/master/BiscuitOS/kernel/DEV000067.png)
 
 Select **CAN bit-timing calculation**
 
-![Alt text](https://github.com/EmulateSpace/PictureSet/blob/master/BiscuitOS/kernel/DEV00068.png)
+![Alt text](https://github.com/EmulateSpace/PictureSet/blob/master/BiscuitOS/kernel/DEV000068.png)
 
 Then compile source code as follow:
 
