@@ -12,7 +12,7 @@ sudo insmod spi.ko
 On newest mainstream linux, the SPI device information describe on DTS, 
 Here offer the way to describe on DTS.
 
-``
+```
 &spi0 {
     status = "okay";
     
@@ -25,6 +25,7 @@ Here offer the way to describe on DTS.
     };
 };
 ```
+
 The reg describe CS for I2C slave device, and compatible must be same on 
 driver code.
 
