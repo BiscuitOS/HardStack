@@ -16,16 +16,10 @@ Accordingly, modern I²C systems incorporate some policies and rules from
 SMBus, sometimes supporting both I²C and SMBus, requiring only minimal 
 reconfiguration either by commanding or output pin use.
 
-## I2C on Uboot
+## Usage
 
-Details see uboot/README.md
+* Usage on uboot: uboot/README.md
 
-## I2C on Kernel
+* Usage on kernel: kernel/README.md
 
-Details see kernel/README.md
-
-## I2C on Userland
-
-Details see user/README.md
-
-# External Link
+* Usage on userspace: user/README.md
