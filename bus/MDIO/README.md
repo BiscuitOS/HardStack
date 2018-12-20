@@ -133,13 +133,15 @@ while Clause 45 uses frame format with "Start of Frame" code of `00`.
 
 # Usage of MDIO
 
-MDIO is utilized on Uboot, kernel, and userspace, details see:
+MDIO is utilized on Uboot, kernel, userspace, and Ariduino. Details see:
 
 * Usage on uboot: uboot/README.md
 
 * Usage on kernel: kernel/README.md
 
 * Usage on userspace: user/README.md
+
+* Usage on Arduino: arduino/README.md
 
 ## Reference
 
