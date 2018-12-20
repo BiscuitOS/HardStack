@@ -26,7 +26,7 @@ Here offer the way to describe on DTS.
 };
 ```
 
-The reg describe CS for I2C slave device, and compatible must be same on 
+The `reg` describe CS for I2C slave device, and compatible must be same on 
 driver code.
 
 ### SPI Transfer
