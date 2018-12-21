@@ -1,4 +1,4 @@
-I2C
+I2C  [中文](https://biscuitos.github.io/blog/I2CBus/)
 -------------------------------------------------
 
 ![i2c_timing](https://github.com/EmulateSpace/PictureSet/blob/master/i2c/i2cdebug.png)

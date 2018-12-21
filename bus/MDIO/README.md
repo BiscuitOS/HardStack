@@ -1,4 +1,4 @@
-MDIO (SMI/MIIM)
+MDIO (SMI/MIIM) [中文](https://biscuitos.github.io/blog/MDIO/)
 --------------------------------
 
 ## Term

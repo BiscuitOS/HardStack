@@ -1,4 +1,4 @@
-CMA Usage
+CMA     [中文](https://biscuitos.github.io/blog/CMA/)
 -----------------------------------------
 
 In order to use CMA memory, we need offer a CMA driver and CMA application,

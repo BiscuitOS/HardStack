@@ -1,4 +1,4 @@
-CAN (Control Area Network)
+CAN (Control Area Network) [中文](https://biscuitos.github.io/blog/CAN/)
 ---------------------------------------
 
 A controller Area NetWork (CAN bus) is a robust vehicle bus standard designed

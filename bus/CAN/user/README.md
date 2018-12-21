@@ -58,6 +58,6 @@ reference this code on your application to sent or receive CAN frame.
 
 #### Usage
 
-* Send CAN frame: can_tx.c
+* Send CAN frame: can-tx.c
 
-* Receive CAN frame: can_rx.c
+* Receive CAN frame: can-rx.c

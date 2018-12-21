@@ -1,4 +1,4 @@
-DMA Usage
+DMA [中文](https://biscuitos.github.io/blog/DMA/)
 -----------------------------------------
 
 In order to use DMA, we need offer a DMA driver and DMA application,

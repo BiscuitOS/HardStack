@@ -1,4 +1,4 @@
-SPI (Serial Peripheral Interface)
+SPI (Serial Peripheral Interface) [中文](https://biscuitos.github.io/blog/SPI/)
 -----------------------------------
 
 The Serial Peripheral Interface (SPI) is a synchronous serial communication 
