@@ -1,0 +1,31 @@
+obj-m += phy.o
+
+KERNELDIR ?= /lib/modules/$(shell uname -r)/build
+
+PWD       := $(shell pwd)
+
+ROOT := $(dir $(M))
+DEMOINCLUDE := -I$(ROOT)../include -I$(ROOT)/include
+
+GCCVERSION = $(shell gcc -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
+
+GCC49 := $(shell expr $(GCCVERSION) \>= 40900)
+
+all:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+
+install: all
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
+	depmod -a
+
+clean:
+	rm -rf *.o *.o.d *~ core .depend .*.cmd *.ko *.ko.unsigned *.mod.c .tmp_versions *.symvers \
+        .cache.mk *.save *.bak Modules.* modules.order Module.markers *.bin
+
+CFLAGS_phy.o := -Wall $(DEMOINCLUDE)
+
+ifeq ($(GCC49),1)
+	CFLAGS_phy.o += -Wno-error=date-time
+endif
+
+CFLAGS_phy.o := $(DEMOINCLUDE)
