@@ -13,12 +13,16 @@
  * Private DTS file: DTS_demo.dtsi
  *
  * / {
- *        BiscuitOS-int = <0x10203040>;
- *        BiscuitOS-name = "BiscuitOS";
- * 
  *        DTS_demo {
  *                compatible = "DTS_demo, BiscuitOS";
  *                status = "okay";
+ *                DTS_demo_sub0 {
+ *                        sub_level = <0x1>;
+ *
+ *                        DTS_demo_sub1 {
+ *                                sub_level = <0x2>;
+ *                        };
+ *                };
  *        };
  * };
  *
@@ -35,6 +39,24 @@
 /* define name for device and driver */
 #define DEV_NAME "DTS_demo"
 
+/* Parse specify device-tree structure node */
+static int DTS_demo_dt_scan_node(unsigned long node, const char *uname,
+                                        int depth, void *data)
+{
+    /* Filter father node */
+    if ((depth == 1) && (strcmp(uname, "DTS_demo") == 0)) {
+        printk("Father node: %s\n", uname);
+    } else if ((depth == 2) && (strcmp(uname, "DTS_demo_sub0") == 0)) {
+        /* Sub-level 1 Child node */
+        printk("Sub-0 node: %s\n", uname);
+    } else if ((depth == 3) && (strcmp(uname, "DTS_demo_sub1") == 0 )) {
+        /* Sub-level 2 Child node */
+        printk("Sub-1 node: %s\n", uname);
+    }
+
+    return 0;
+}
+
 /* probe platform driver */
 static int DTS_demo_probe(struct platform_device *pdev)
 {
@@ -45,19 +67,8 @@ static int DTS_demo_probe(struct platform_device *pdev)
     
     printk("DTS demo probe entence\n");
 
-    /* find the root node in the flat blob */
-    dt_root = of_get_flat_dt_root();
-
-    /* Obtain int property */
-    dt_int = of_get_flat_dt_prop(dt_root, "BiscuitOS-int", NULL);
-    /* Obtain char * property */
-    dt_char = of_get_flat_dt_prop(dt_root, "BiscuitOS-name", NULL);
-
-    if (dt_int > 0)
-        printk("BiscuitOS-int property: %#x\n", *dt_int);
-
-    if (dt_char)
-        printk("BiscuitOS-name property: %s\n", dt_char);
+    /* Rettrieve various infomation from the all node */
+    of_scan_flat_dt(DTS_demo_dt_scan_node, NULL);
 
     return 0;
 }
