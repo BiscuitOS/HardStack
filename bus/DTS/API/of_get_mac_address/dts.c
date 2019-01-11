@@ -18,7 +18,8 @@
  *                compatible = "DTS_demo, BiscuitOS";
  *                status = "okay";
  *                mac-address = [00 00 00 00 00 00];
- *                local-mac-address = [00 0a 35 00 b4 c0];
+ *                local-mac-address = [01 00 5e 0f 64 c5];
+ *                address = [00 0a 35 00 b4 c0];
  *        };
  * };
  *
@@ -47,7 +48,7 @@ static int DTS_demo_probe(struct platform_device *pdev)
     mac = of_get_mac_address(np);
     if (mac)
         printk("MAC Address: %02x %02x %02x %02x %02x %02x\n", 
-                 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+                 mac[0], mac[1], mac[2], mac[3], mac[4], mac[8]);
 
     return 0;
 }
