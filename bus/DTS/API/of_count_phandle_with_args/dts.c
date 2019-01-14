@@ -1,9 +1,8 @@
 /*
- * DTS: of_parse_phandle_with_args
+ * DTS: of_count_phandle_with_args
  *
- * int of_parse_phandle_with_args(const struct device_node *np, 
- *                    const char *list_name, const char *cells_name,
- *                    int index, struct of_phandle_args *out_args)
+ * int of_count_phandle_with_args(const struct device_node *np, 
+ *                    const char *list_name, const char *cells_name)
  *
  * (C) 2019.01.11 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -57,35 +56,13 @@ static int DTS_demo_probe(struct platform_device *pdev)
     printk("DTS demo probe entence.\n");
 
     /* Read first phandle argument */
-    rc = of_parse_phandle_with_args(np, "phy-handle", "#phy-cells",
-                                        0, &args);
+    rc = of_count_phandle_with_args(np, "phy-handle", "#phy-cells");
     if (rc < 0) {
         printk("Unable to parse phandle.\n");
         return -1;
     }
+    printk("Number phandle: %#x\n", rc);
     
-    comp = of_get_property(args.np, "compatible", NULL);
-    if (comp)
-        printk("%s compatible: %s\n", args.np->name, comp);
-
-    for (index = 0; index < args.args_count; index++)
-        printk("Args %d: %#x\n", index, args.args[index]);
-
-    /* Read second phandle argument */
-    rc = of_parse_phandle_with_args(np, "phy-handle", "#phy-cells",
-                                        1, &args);
-    if (rc < 0) {
-        printk("Unable to parse phandle.\n");
-        return -1;
-    }
-    
-    comp = of_get_property(args.np, "compatible", NULL);
-    if (comp)
-        printk("%s compatible: %s\n", args.np->name, comp);
-
-    for (index = 0; index < args.args_count; index++)
-        printk("Args %d: %#x\n", index, args.args[index]);
-
     return 0;
 }
 
