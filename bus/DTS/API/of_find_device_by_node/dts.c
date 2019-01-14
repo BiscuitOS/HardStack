@@ -1,21 +1,19 @@
 /*
- * DTS: 
- *    of_get_flat_dt_root()
- *    of_get_flat_dt_prop()
+ * DTS: of_find_device_by_node
  *
- * (C) 2018.11.14 <buddy.zhang@aliyun.com>
+ * struct platform_device *of_find_device_by_node(struct device_node *np)
+ *
+ * (C) 2019.01.11 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+
 /*
  * Private DTS file: DTS_demo.dtsi
  *
  * / {
- *        BiscuitOS-int = <0x10203040>;
- *        BiscuitOS-name = "BiscuitOS";
- * 
  *        DTS_demo {
  *                compatible = "DTS_demo, BiscuitOS";
  *                status = "okay";
@@ -30,7 +28,6 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/of_platform.h>
-#include <linux/of_fdt.h>
 
 /* define name for device and driver */
 #define DEV_NAME "DTS_demo"
@@ -39,30 +36,14 @@
 static int DTS_demo_probe(struct platform_device *pdev)
 {
     struct device_node *np = pdev->dev.of_node;
-    unsigned long dt_root;
-    const __be32 *dt_int;
-    const char *dt_char;
-    u64 value;
-    int len;
-    
-    printk("DTS demo probe entence\n");
+    struct platform_device *dev;
 
-    /* find the root node in the flat blob */
-    dt_root = of_get_flat_dt_root();
+    printk("DTS demo probe entence.\n");
 
-    /* Obtain int property */
-    dt_int = of_get_flat_dt_prop(dt_root, "BiscuitOS-int", &len);
-    /* Obtain char * property */
-    dt_char = of_get_flat_dt_prop(dt_root, "BiscuitOS-name", NULL);
-
-    if (dt_int > 0) {
-        value = of_read_number(dt_int, len / 4);
-        printk("BiscuitOS-int property: %#llx\n", (unsigned long long)value);
-    }
-
-    if (dt_char)
-        printk("BiscuitOS-name property: %s\n", dt_char);
-
+    dev = of_find_device_by_node(np);
+    if (dev)
+        printk("Platform device: %s\n", dev_name(&dev->dev));
+  
     return 0;
 }
 

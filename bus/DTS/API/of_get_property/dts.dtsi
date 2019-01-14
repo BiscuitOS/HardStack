@@ -1,0 +1,21 @@
+/*
+ * DTS Demo Code
+ *
+ * (C) 2019.01.06 <buddy.zhang@aliyun.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+/ {
+	DTS_demo {
+		compatible = "DTS_demo, BiscuitOS";
+		status = "okay";
+		BiscuitOS_name = "BiscuitOS";
+		BiscuitOS_int  = <0x10203040>;
+		BiscuitOS_mult = <0x10203040 0x50607080
+                                  0x90a0b0c0 0xd0e0f000>;
+		BiscuitOS_leg;
+	};
+
+};
