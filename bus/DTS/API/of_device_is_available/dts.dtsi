@@ -12,9 +12,4 @@
 		compatible = "DTS_demo, BiscuitOS";
 		status = "okay";
 	};
-
-	phy1: phy@1 {
-		compatible = "PHY, BiscuitOS";
-	};
-
 };
