@@ -1,9 +1,8 @@
 /*
- * DTS: of_property_read_u16_array
+ * DTS: of_property_read_u64_array
  *
- * int of_property_read_u16_array(const struct device_node *np, 
- *              const char *propname, u16 *out_value,
- *              size_t sz)
+ * int of_property_read_u64_array(const struct device_node *np, 
+ *              const char *propname, u16 *out_value)
  *
  * (C) 2019.01.11 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -40,19 +39,18 @@
 static int DTS_demo_probe(struct platform_device *pdev)
 {
     struct device_node *np = pdev->dev.of_node;
-    u16 array[5]; 
+    u64 array; 
     int ret;
 
     printk("DTS demo probe entence.\n");
 
     /* Read array from device_node */
-    ret = of_property_read_u16_array(np, "BiscuitOS-array", array, 5);
+    ret = of_property_read_u64(np, "BiscuitOS-array", &array);
     if (ret != 0) {
-        printk("Unable to read array from device node\n");
+        printk("Unable to read u64 from device node\n");
         return -1;
     }
-    printk("Arary: %#x %#x %#x %#x %#x\n", array[0], array[1], array[2],
-                       array[3], array[4]);
+    printk("U64: %#llx\n", array);
 
     return 0;
 }
