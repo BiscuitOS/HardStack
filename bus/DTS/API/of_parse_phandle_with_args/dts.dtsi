@@ -12,6 +12,7 @@
 		compatible = "DTS_demo, BiscuitOS";
 		status = "okay";
 		phy-handle = <&phy0 1 2 3 &phy1 4 5>;
+		reset-gpio = <&gpio0 25 0>;
 	};
 
 	phy0: phy@0 {
@@ -22,5 +23,10 @@
 	phy1: phy@1 {
 		#phy-cells = <2>;
 		compatible = "PHY1, BiscuitOS";
+	};
+
+	gpio0: gpio@0 {
+		#gpio-cells = <2>;
+		compatible = "gpio, BiscuitOS";
 	};
 };

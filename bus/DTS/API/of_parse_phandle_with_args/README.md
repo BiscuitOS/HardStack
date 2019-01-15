@@ -1,7 +1,7 @@
 of_parse_phandle_with_args
 ----------------------------------
 
-Find device_node by phandle list.
+Find device_node by phandle list with args.
 
 Context:
 
