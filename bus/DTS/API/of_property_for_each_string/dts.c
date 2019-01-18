@@ -1,7 +1,11 @@
 /*
- * DTS: of_prop_next_string
+ * DTS: of_property_for_each_string
  *
- * const char *of_prop_next_string(struct property *prop, const char *cur)
+ * #define of_property_for_each_string(np, propname, prop, s) \
+ *     for(prop = of_find_property(np, propname, NULL), \
+ *         s = of_prop_next_string(prop, NULL); \
+ *         s; \
+ *         s = of_prop_next_string(prop, s))
  *
  * (C) 2019.01.11 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -44,9 +48,7 @@ static int DTS_demo_probe(struct platform_device *pdev)
   
     printk("DTS probe entence...\n");
    
-    prop = of_find_property(np, "BiscuitOS-strings", NULL);
-    for (lane = of_prop_next_string(prop, NULL); lane; 
-                lane = of_prop_next_string(prop, lane))
+    of_property_for_each_string(np, "BiscuitOS-strings", prop, lane)
         printk("String value: %s\n", lane);
 
     return 0;
