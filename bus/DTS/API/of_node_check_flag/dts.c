@@ -1,7 +1,7 @@
 /*
- * DTS: of_node_set_flag
+ * DTS: of_node_check_flag
  *
- * static inline void of_node_set_flag(struct device_node *n, 
+ * static inline int of_node_check_flag(struct device_node *n, 
  *                                                 unsigned long flag)
  *
  * (C) 2019.01.11 BuddyZhang1 <buddy.zhang@aliyun.com>
