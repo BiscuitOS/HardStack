@@ -1,7 +1,7 @@
-for_each_available_child_of_node
+for_each_available_child_of_node [中文教程](https://biscuitos.github.io/blog/DTS-for_each_available_child_of_node/)
 ----------------------------------
 
-Retrva all available child node on current device node.
+Traverse all available child node on current device node.
 
 Context:
 
