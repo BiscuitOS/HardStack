@@ -1,7 +1,7 @@
-for_each_child_of_node
+for_each_child_of_node [中文教程](https://biscuitos.github.io/blog/DTS-for_each_child_of_node/)
 ----------------------------------
 
-Retrave all child device node for current device node.
+Traverse all child device node for current device node.
 
 Context:
 
