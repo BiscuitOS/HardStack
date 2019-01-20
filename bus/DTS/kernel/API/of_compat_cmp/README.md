@@ -1,4 +1,4 @@
-of_compat_cmp
+of_compat_cmp [中文教程](https://biscuitos.github.io/blog/DTS-of_compat_cmp/)
 ----------------------------------
 
 Compare 'compatible' property value with special strings.
