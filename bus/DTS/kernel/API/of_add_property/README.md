@@ -1,4 +1,4 @@
-of_add_property
+of_add_property [中文教程](https://biscuitos.github.io/blog/DTS-of_add_property/)
 ----------------------------------
 
 Read a new property into device node.
