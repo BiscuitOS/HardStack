@@ -14,24 +14,28 @@ HEIGH=180
 NAME=ASCII
 TIME=1
 START=00:00:00
+SPEED=0.06
 
 help_func() {
 	echo "Welcome to Image to ASCII"
-	echo "./movice.sh [-rwh] <-i INPUT_FILE> <-o OUTPUT_DIR>" 
+	echo "./movice.sh [-rwhtsb] <-i INPUT_FILE> <-o OUTPUT_DIR>" 
 	echo ""
-	echo "  -i <...>   : Input image file path"
+	echo "  -i <...>   : Input MP4 file path"
 	echo "  -o <...>   : Output directory"
-	echo "  -r <...>   : Movie frequency"
-	echo "  -w <...>   : Movie width"
-	echo "  -h <...>   : Movie heigh"
-	echo "  -t <...>   : Movie time"
-	echo "  -s <...>   : Movie start time"
+	echo "  -r <...>   : Animation frame rate"
+	echo "  -w <...>   : Animation weight"
+	echo "  -h <...>   : Animation heigh"
+	echo "  -t <...>   : Animation time length"
+	echo "  -s <...>   : Animation start time"
+	echo "  -b <...>   : Animation speed"
 	echo ""
 	echo "e.g."
-	echo "./movice.sh -i temp.mp4 -o temp"
+	echo "./M2A.sh -i temp.mp4 -o anim"
+	echo "Advantage:"
+	echo "./M2A.sh -i temp.mp4 -o anim -r 30 -w 400 -h 600 -t 10 -s 00:01:00"
 }
 
-while getopts ":i:o:t:s:r:w:h:" opt
+while getopts ":i:o:t:s:r:w:h:b:" opt
 do
 	case $opt in
 		o)
@@ -54,6 +58,9 @@ do
 		;;
 		s)
 			START=$OPTARG
+		;;
+		b)
+			SPEED=$OPTARG
 		;;
 		?)
 			help_func
@@ -120,20 +127,5 @@ do
 	SUB_NAME=`expr 100000 + $INDEX`
 	filename=$ROOT/$OUTPUT_DIR/${NAME}${SUB_NAME}.batB
 	cat $filename
-	sleep 0.06
+	sleep $SPEED
 done
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
