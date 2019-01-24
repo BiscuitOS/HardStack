@@ -15,6 +15,7 @@ NAME=ASCII
 TIME=1
 START=00:00:00
 SPEED=0.06
+DEPTH=30
 
 help_func() {
 	echo "Welcome to Image to ASCII"
@@ -28,6 +29,7 @@ help_func() {
 	echo "  -t <...>   : Animation time length"
 	echo "  -s <...>   : Animation start time"
 	echo "  -b <...>   : Animation speed"
+	echo "  -d <...>   : Animation depth"
 	echo ""
 	echo "e.g."
 	echo "./M2A.sh -i temp.mp4 -o anim"
@@ -35,7 +37,7 @@ help_func() {
 	echo "./M2A.sh -i temp.mp4 -o anim -r 30 -w 400 -h 600 -t 10 -s 00:01:00"
 }
 
-while getopts ":i:o:t:s:r:w:h:b:" opt
+while getopts ":i:o:t:s:r:w:h:b:d:" opt
 do
 	case $opt in
 		o)
@@ -61,6 +63,9 @@ do
 		;;
 		b)
 			SPEED=$OPTARG
+		;;
+		d)
+			DEPTH=$OPTARG
 		;;
 		?)
 			help_func
@@ -103,6 +108,7 @@ fi
 mkdir -p ${ROOT}/.tmp
 
 ffmpeg -i $INPUT_FILE -f image2 -r $FREQUEN -ss $START -t $TIME -s ${WIDTH}X${HEIGH} ${ROOT}/.tmp/${NAME}1%5d.jpeg
+#ffmpeg -i $INPUT_FILE -f image2 -r $FREQUEN -ss $START -t $TIME ${ROOT}/.tmp/${NAME}1%5d.jpeg
 
 # Cover image to ASCII
 COUNT_IMAGE=`ls -l ${ROOT}/.tmp | grep "^-"|wc -l`
@@ -114,7 +120,7 @@ do
 	SUB_NAME=`expr 100000 + $INDEX`
 	filename=${ROOT}/.tmp/${NAME}${SUB_NAME}.jpeg
 	outfile=$ROOT/$OUTPUT_DIR/${NAME}${SUB_NAME}.batB
-	jp2a $filename > $outfile
+	jp2a --width=$DEPTH $filename > $outfile
 done
 
 INDEX=0
@@ -126,6 +132,7 @@ do
 	INDEX=`expr ${INDEX} + 1`
 	SUB_NAME=`expr 100000 + $INDEX`
 	filename=$ROOT/$OUTPUT_DIR/${NAME}${SUB_NAME}.batB
+	clear
 	cat $filename
 	sleep $SPEED
 done
