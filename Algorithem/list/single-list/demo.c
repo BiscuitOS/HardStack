@@ -1,3 +1,12 @@
+/*
+ * Single list demo code 0.
+ *
+ * (C) 2019.01.25 BuddyZhang1 <buddy.zhang@aliyun.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 
