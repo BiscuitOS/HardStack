@@ -3,9 +3,6 @@
  *
  * void klist_iter_exit(struct klist_iter *i)
  *
- * void klist_iter_init_node(struct klist *k, struct klist_iter *i,
- *                                struct klist_node *n)
- *
  * struct klist_node {
  *     void             *n_klist;
  *     struct list_head n_node;
