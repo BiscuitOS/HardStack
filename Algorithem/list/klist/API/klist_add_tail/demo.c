@@ -1,8 +1,7 @@
 /*
- * klist: klist_init
+ * klist: klist_add_tail
  *
- * void klist_init(struct klist *k, void (*get)(struct klist_node *),
- *                                  void (*put)(struct klist_node *))
+ * void klist_add_tail(struct klist_node *n, struct klist *k)
  *
  * struct klist_node {
  *     void             *n_klist;
