@@ -1,7 +1,7 @@
-klist_add_head [中文教程](https://biscuitos.github.io/blog//)
+LIST_HEAD [中文教程](https://biscuitos.github.io/blog//)
 ----------------------------------
 
-Initialize a klist_node and add it to head.
+Declare and implement a bindirect-list.
 
 Context:
 
