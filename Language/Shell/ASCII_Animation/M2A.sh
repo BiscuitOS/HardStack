@@ -25,7 +25,7 @@ DEPTH=30
 
 help_func() {
 	echo "Welcome to Image to ASCII"
-	echo "./movice.sh [-rwhtsb] <-i INPUT_FILE> <-o OUTPUT_DIR>" 
+	echo "./M2A.sh [-rtsbd] <-i INPUT_FILE> <-o OUTPUT_DIR>" 
 	echo ""
 	echo "  -i <...>   : Input MP4 file path"
 	echo "  -o <...>   : Output directory"
