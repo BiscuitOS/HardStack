@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+# ASCII Animation
+#
+# (C) 2019.01.11 BuddyZhang1 <buddy.zhang@aliyun.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
 
 ###
 # Argument list 
@@ -9,8 +17,6 @@ COLOR=0
 INPUT_FILE=
 OUTPUT_DIR=
 FREQUEN=10
-WIDTH=280
-HEIGH=180
 NAME=ASCII
 TIME=1
 START=00:00:00
@@ -24,8 +30,6 @@ help_func() {
 	echo "  -i <...>   : Input MP4 file path"
 	echo "  -o <...>   : Output directory"
 	echo "  -r <...>   : Animation frame rate"
-	echo "  -w <...>   : Animation weight"
-	echo "  -h <...>   : Animation heigh"
 	echo "  -t <...>   : Animation time length"
 	echo "  -s <...>   : Animation start time"
 	echo "  -b <...>   : Animation speed"
@@ -34,10 +38,10 @@ help_func() {
 	echo "e.g."
 	echo "./M2A.sh -i temp.mp4 -o anim"
 	echo "Advantage:"
-	echo "./M2A.sh -i temp.mp4 -o anim -r 30 -w 400 -h 600 -t 10 -s 00:01:00"
+	echo "./M2A.sh -i temp.mp4 -o anim -r 30 -t 10 -s 00:01:00"
 }
 
-while getopts ":i:o:t:s:r:w:h:b:d:" opt
+while getopts ":i:o:t:s:r:b:d:" opt
 do
 	case $opt in
 		o)
@@ -48,12 +52,6 @@ do
 		;;
 		r)
 			FREQUEN=$OPTARG
-		;;
-		w)
-			WIDTH=$OPTARG
-		;;
-		h)
-			HEIGH=$OPTARG
 		;;
 		t)
 			TIME=$OPTARG
@@ -107,8 +105,7 @@ if [ -d ${ROOT}/.tmp ]; then
 fi
 mkdir -p ${ROOT}/.tmp
 
-ffmpeg -i $INPUT_FILE -f image2 -r $FREQUEN -ss $START -t $TIME -s ${WIDTH}X${HEIGH} ${ROOT}/.tmp/${NAME}1%5d.jpeg
-#ffmpeg -i $INPUT_FILE -f image2 -r $FREQUEN -ss $START -t $TIME ${ROOT}/.tmp/${NAME}1%5d.jpeg
+ffmpeg -i $INPUT_FILE -f image2 -r $FREQUEN -ss $START -t $TIME ${ROOT}/.tmp/${NAME}1%5d.jpeg
 
 # Cover image to ASCII
 COUNT_IMAGE=`ls -l ${ROOT}/.tmp | grep "^-"|wc -l`
@@ -132,7 +129,6 @@ do
 	INDEX=`expr ${INDEX} + 1`
 	SUB_NAME=`expr 100000 + $INDEX`
 	filename=$ROOT/$OUTPUT_DIR/${NAME}${SUB_NAME}.batB
-	clear
 	cat $filename
 	sleep $SPEED
 done
