@@ -1,25 +1,31 @@
 /*
-* DTS Demo Code
-*
-* (C) 2018.11.14 <buddy.zhang@aliyun.com>
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License version 2 as
-* published by the Free Software Foundation.
-*/
+ * Device-Tree: of_can_translate_address
+ *
+ * bool of_can_translate_address(struct device_node *dev)
+ *
+ * (C) 2019.01.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
 /*
-* Private DTS file: DTS_demo.dtsi
-*
-* &DTS_demo: DTS_demo2@2 {
-*     compatible = "DTS_demo, BiscuitOS";
-*     reg = <2>;
-*     status = "okay";
-* };
-*/
+ * Private DTS file: DTS_demo.dtsi
+ *
+ * / {
+ *        DTS_demo {
+ *                compatible = "DTS_demo, BiscuitOS";
+ *                status = "okay";
+ *        };
+ * };
+ */
 
 #include <linux/init.h>
 #include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/of_platform.h>
+#include <linux/of_address.h>
 
 /* define name for device and driver */
 #define DEV_NAME "DTS_demo"
@@ -28,8 +34,15 @@
 static int DTS_demo_probe(struct platform_device *pdev)
 {
     struct device_node *np = pdev->dev.of_node;
+    bool ret;
     
     printk("DTS demo probe entence.\n");
+
+    /* Check address whether can be translate on special bus */
+    ret = of_can_translate_address(np);
+    if (ret)
+        printk("%s's address can be translate.\n", np->name);
+
     return 0;
 }
 
