@@ -17,10 +17,15 @@
  *        DTS_demo {
  *                compatible = "DTS_demo, BiscuitOS";
  *                status = "okay";
- *                reg = <0x11223344 0x55667788
- *                       0x10203040 0x50607080
- *                       0x99aabbcc 0xddeeff00
- *                       0x90a0b0c0 0xd0e0f000>;
+ *                #address-cells = <1>;
+ *                #size-cells = <1>;
+ *                ranges = <0x78000000 0x00000000 0x90000000 0x10000000>;
+ *
+ *                child0 {
+ *                        reg = <0x80000000 0x20000000
+ *                               0x30000000 0x40000000>;
+ *                };
+ *
  *        };
  * };
  */
@@ -38,20 +43,24 @@
 static int DTS_demo_probe(struct platform_device *pdev)
 {
     struct device_node *np = pdev->dev.of_node;
+    struct device_node *child;
     const u32 *regaddr_p;
     u64 addr, regaddr;
     
     printk("DTS demo probe entence.\n");
 
-    /* get first address from 'reg' property */
-    regaddr_p = of_get_address(np, 0, &addr, NULL);
-    if (regaddr_p)
-        printk("%s's address[0]: %#llx\n", np->name, addr);
+    /* get child deviec node which named "child0" */
+    child = of_get_child_by_name(np, "child0");
 
-    /* Translate address to value */
-    regaddr = of_translate_address(np, regaddr_p);
+    /* get first address from 'reg' property */
+    regaddr_p = of_get_address(child, 0, &addr, NULL);
+    if (regaddr_p)
+        printk("%s's address[0]: %#llx\n", child->name, addr);
+
+    /* Translate address to Physical address */
+    regaddr = of_translate_address(child, regaddr_p);
     if (regaddr)
-        printk("%s's translate address: %#llx\n", np->name, regaddr);
+        printk("%s's Physical address: %#llx\n", child->name, regaddr);
 
     return 0;
 }

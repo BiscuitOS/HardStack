@@ -1,7 +1,7 @@
 of_translate_address
 ----------------------------------
 
-Translate address to value.
+Translate address to Physcial address.
 
 Context:
 

@@ -11,9 +11,13 @@
 	DTS_demo {
 		compatible = "DTS_demo, BiscuitOS";
 		status = "okay";
-		reg = <0x11223344 0x55667788
-		       0x10203040 0x50607080
-                       0x99aabbcc 0xddeeff00
-		       0x90a0b0c0 0xd0e0f000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x78000000 0x00000000 0x90000000 0x10000000>;
+
+		child0 {
+			reg = <0x80000000 0x20000000
+			       0x30000000 0x40000000>;
+		};
 	};
 };
