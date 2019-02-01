@@ -1,4 +1,4 @@
-of_device_is_available
+of_device_is_available [中文教程](https://biscuitos.github.io/blog/DTS-of_device_is_available/)
 ----------------------------------
 
 Check current device node is availabe.
