@@ -1,4 +1,4 @@
-of_device_is_compatible
+of_device_is_compatible [中文教程](https://biscuitos.github.io/blog/DTS-of_device_is_compatible/)
 ----------------------------------
 
 Check device compatible is equal to device node.
