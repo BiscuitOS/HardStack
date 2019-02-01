@@ -1,4 +1,4 @@
-of_count_phandle_with_args
+of_count_phandle_with_args [中文教程](https://biscuitos.github.io/blog/DTS-of_count_phandle_with_args/)
 ----------------------------------
 
 Count phandle on phandle list for current device node.
