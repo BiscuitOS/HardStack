@@ -1,4 +1,4 @@
-of_find_device_by_node
+of_find_device_by_node [中文教程](https://biscuitos.github.io/blog/DTS-of_find_device_by_node/)
 ----------------------------------
 
 Obtain platform device by device node.
