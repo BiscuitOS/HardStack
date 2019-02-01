@@ -1,4 +1,4 @@
-of_get_property
+of_get_property [中文教程](https://biscuitos.github.io/blog/DTS-of_get_property/)
 ----------------------------------
 
 Obtain property value on special device_node
