@@ -1,4 +1,4 @@
-of_find_node_by_path
+of_find_node_by_path [中文教程](https://biscuitos.github.io/blog/DTS-of_find_node_by_path/)
 ----------------------------------
 
 Search and get a device node by path.
