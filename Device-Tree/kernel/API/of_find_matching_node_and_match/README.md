@@ -1,4 +1,4 @@
-of_find_matching_node_and_match
+of_find_matching_node_and_match [中文教程](https://biscuitos.github.io/blog/DTS-of_find_matching_node_and_match/)
 ----------------------------------
 
 Find a device node and device id via a device id list.
