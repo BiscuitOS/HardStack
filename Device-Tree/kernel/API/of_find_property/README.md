@@ -1,4 +1,4 @@
-of_find_property
+of_find_property [中文教程](https://biscuitos.github.io/blog/DTS-of_find_property/)
 ----------------------------------
 
 Find a property by name on special device_node.
