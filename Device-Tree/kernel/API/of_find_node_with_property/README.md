@@ -1,4 +1,4 @@
-of_find_node_with_property
+of_find_node_with_property [中文教程](https://biscuitos.github.io/blog/DTS-of_find_node_with_property/)
 ----------------------------------
 
 Find a device node via property name.
