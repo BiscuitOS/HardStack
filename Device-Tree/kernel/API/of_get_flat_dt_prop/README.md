@@ -1,4 +1,4 @@
-of_get_flat_dt_root
+of_get_flat_dt_root [中文教程](https://biscuitos.github.io/blog/DTS-of_get_flat_dt_root/)
 ----------------------------------
 
 Context:

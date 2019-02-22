@@ -1,4 +1,4 @@
-of_have_populated_dt
+of_have_populated_dt [中文教程](https://biscuitos.github.io/blog/DTS-of_have_populated_dt/)
 ----------------------------------
 
 Check DTB is validate.

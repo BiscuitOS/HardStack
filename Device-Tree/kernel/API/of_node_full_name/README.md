@@ -1,4 +1,4 @@
-of_node_full_name
+of_node_full_name [中文教程](https://biscuitos.github.io/blog/DTS-of_node_full_name/)
 ----------------------------------
 
 Get device node full name.

@@ -1,4 +1,4 @@
-of_parse_phandle_with_args
+of_parse_phandle_with_args [中文教程](https://biscuitos.github.io/blog/DTS-of_parse_phandle_with_args/)
 ----------------------------------
 
 Find device_node by phandle list with args.

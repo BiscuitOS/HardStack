@@ -1,4 +1,4 @@
-of_property_read_string_array
+of_property_read_string_array [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_string_array/)
 ----------------------------------
 
 Read a serial string from string-list property.

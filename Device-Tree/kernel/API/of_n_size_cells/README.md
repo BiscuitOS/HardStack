@@ -1,4 +1,4 @@
-of_n_size_cells
+of_n_size_cells [中文教程](https://biscuitos.github.io/blog/DTS-of_n_size_cells/)
 ----------------------------------
 
 Obtain #size-cells property value for current device node.

@@ -1,4 +1,4 @@
-of_node_get
+of_node_get [中文教程](https://biscuitos.github.io/blog/DTS-of_node_get/)
 ----------------------------------
 
 Add reference for current device node.

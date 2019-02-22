@@ -1,4 +1,4 @@
-of_node_set_flag
+of_node_set_flag [中文教程](https://biscuitos.github.io/blog/DTS-of_node_set_flag/)
 ----------------------------------
 
 Set flag for current device node.

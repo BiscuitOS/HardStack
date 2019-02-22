@@ -1,4 +1,4 @@
-of_property_for_each_u32
+of_property_for_each_u32 [中文教程](https://biscuitos.github.io/blog/DTS-of_property_for_each_u32/)
 ----------------------------------
 
 Retrve all u32 value on property.

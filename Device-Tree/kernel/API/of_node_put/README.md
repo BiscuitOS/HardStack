@@ -1,4 +1,4 @@
-of_node_put
+of_node_put [中文教程](https://biscuitos.github.io/blog/DTS-of_node_put/)
 ----------------------------------
 
 Decrease reference for current device node.

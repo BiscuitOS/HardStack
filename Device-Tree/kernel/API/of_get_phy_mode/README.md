@@ -1,4 +1,4 @@
-of_get_phy_mode
+of_get_phy_mode [中文教程](https://biscuitos.github.io/blog/DTS-of_get_phy_mode/)
 ----------------------------------
 
 Obtain PHY mode on special device_node.

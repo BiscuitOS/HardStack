@@ -1,4 +1,4 @@
-of_property_read_bool
+of_property_read_bool [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_bool/)
 ----------------------------------
 
 Read a bool data from current device node.

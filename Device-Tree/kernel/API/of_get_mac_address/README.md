@@ -1,4 +1,4 @@
-of_get_mac_address
+of_get_mac_address [中文教程](https://biscuitos.github.io/blog/DTS-of_get_mac_address/)
 ----------------------------------
 
 Obtain MAC address on special device_node

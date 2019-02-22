@@ -1,4 +1,4 @@
-of_machine_is_compatible
+of_machine_is_compatible [中文教程](https://biscuitos.github.io/blog/DTS-of_machine_is_compatible/)
 ----------------------------------
 
 Test root of device tree for a given compatible value.

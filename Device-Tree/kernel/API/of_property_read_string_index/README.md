@@ -1,4 +1,4 @@
-of_property_read_string_index
+of_property_read_string_index [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_string_index/)
 ----------------------------------
 
 Read a string with index from string-list property.

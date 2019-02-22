@@ -1,4 +1,4 @@
-of_get_next_available_child
+of_get_next_available_child [中文教程](https://biscuitos.github.io/blog/DTS-of_get_next_available_child/)
 ----------------------------------
 
 Get child device node for current device node.

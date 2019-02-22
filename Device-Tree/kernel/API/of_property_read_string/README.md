@@ -1,4 +1,4 @@
-of_property_read_string
+of_property_read_string [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_string/)
 ----------------------------------
 
 Read string from property on special device node.

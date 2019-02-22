@@ -1,4 +1,4 @@
-of_n_addr_cells
+of_n_addr_cells [中文教程](https://biscuitos.github.io/blog/DTS-of_n_addr_cells/)
 ----------------------------------
 
 Obtain #address-cells property value for current device node.

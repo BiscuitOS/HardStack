@@ -1,4 +1,4 @@
-of_property_for_each_string
+of_property_for_each_string [中文教程](https://biscuitos.github.io/blog/DTS-of_property_for_each_string/)
 ----------------------------------
 
 Read all string from string-list property.

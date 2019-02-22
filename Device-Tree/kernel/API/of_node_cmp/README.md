@@ -1,4 +1,4 @@
-of_node_cmp
+of_node_cmp [中文教程](https://biscuitos.github.io/blog/DTS-of_node_cmp/)
 ----------------------------------
 
 Compare node name with special strings.

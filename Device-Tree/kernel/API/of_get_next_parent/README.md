@@ -1,4 +1,4 @@
-of_get_next_parent
+of_get_next_parent [中文教程](https://biscuitos.github.io/blog/DTS-of_get_next_parent/)
 ----------------------------------
 
 Get parent device node for current device node.

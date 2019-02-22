@@ -1,4 +1,4 @@
-of_node_check_flag
+of_node_check_flag [中文教程](https://biscuitos.github.io/blog/DTS-of_node_check_flag/)
 ----------------------------------
 
 Check flag for current device node.

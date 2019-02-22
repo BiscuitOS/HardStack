@@ -1,4 +1,4 @@
-of_property_read_string_helper
+of_property_read_string_helper [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_string_helper/)
 ----------------------------------
 
 The helper function which read string from string-list property.

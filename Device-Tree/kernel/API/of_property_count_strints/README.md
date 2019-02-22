@@ -1,4 +1,4 @@
-of_property_count_strings
+of_property_count_strings [中文教程](https://biscuitos.github.io/blog/DTS-of_property_count_strings/)
 ----------------------------------
 
 Count string number on string-list proerpty.

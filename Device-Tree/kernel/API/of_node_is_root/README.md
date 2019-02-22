@@ -1,4 +1,4 @@
-of_node_is_root
+of_node_is_root [中文教程](https://biscuitos.github.io/blog/DTS-of_node_is_root/)
 ----------------------------------
 
 Check current device node is root node.

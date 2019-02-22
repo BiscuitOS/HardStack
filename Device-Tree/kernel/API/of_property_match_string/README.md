@@ -1,4 +1,4 @@
-of_property_match_string
+of_property_match_string [中文教程](https://biscuitos.github.io/blog/DTS-of_property_match_string/)
 ----------------------------------
 
 Verify string-list proprety whether contains special string.

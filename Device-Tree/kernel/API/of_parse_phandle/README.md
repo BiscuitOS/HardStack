@@ -1,4 +1,4 @@
-of_parse_phandle
+of_parse_phandle [中文教程](https://biscuitos.github.io/blog/DTS-of_parse_phandle/)
 ----------------------------------
 
 Find a device node by phandle property on current device_node.
