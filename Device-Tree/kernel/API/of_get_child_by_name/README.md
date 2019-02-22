@@ -1,4 +1,4 @@
-of_get_child_by_name
+of_get_child_by_name [中文教程](https://biscuitos.github.io/blog/DTS-of_get_child_by_name/)
 ----------------------------------
 
 Get child device node by name for current device node.
