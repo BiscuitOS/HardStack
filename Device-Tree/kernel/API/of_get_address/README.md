@@ -1,4 +1,4 @@
-of_get_address
+of_get_address [中文教程](https://biscuitos.github.io/blog/DTS-of_get_address/)
 ----------------------------------
 
 Get address value from 'reg' or 'assigned-addresses' property.
