@@ -1,4 +1,4 @@
-of_get_child_count
+of_get_child_count [中文教程](https://biscuitos.github.io/blog/DTS-of_get_child_count/)
 ----------------------------------
 
 Count child device node number for current device node.
