@@ -1,4 +1,4 @@
-of_get_cpu_node
+of_get_cpu_node [中文教程](https://biscuitos.github.io/blog/DTS-of_get_cpu_node/)
 ----------------------------------
 
 Get local cpu device node by index.
