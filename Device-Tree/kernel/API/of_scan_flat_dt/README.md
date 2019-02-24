@@ -1,4 +1,4 @@
-of_scan_flat_dt
+of_scan_flat_dt [中文教程](https://biscuitos.github.io/blog/DTS-of_scan_flat_dt/)
 ----------------------------------
 
 Scan all node on flat device tree.

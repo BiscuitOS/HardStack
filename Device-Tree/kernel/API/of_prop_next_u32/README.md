@@ -1,4 +1,4 @@
-of_prop_next_u32
+of_prop_next_u32 [中文教程](https://biscuitos.github.io/blog/DTS-of_prop_next_u32/)
 ----------------------------------
 
 Read next u32 value on property.

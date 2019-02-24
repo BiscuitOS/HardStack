@@ -1,4 +1,4 @@
-of_translate_address
+of_translate_address [中文教程](https://biscuitos.github.io/blog/DTS-of_translate_address/)
 ----------------------------------
 
 Translate address to Physcial address.

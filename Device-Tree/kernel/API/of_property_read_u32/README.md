@@ -1,4 +1,4 @@
-of_property_read_u32
+of_property_read_u32 [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_u32/)
 ----------------------------------
 
 Read a u32 data from current device node.

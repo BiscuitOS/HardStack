@@ -1,4 +1,4 @@
-of_read_number
+of_read_number [中文教程](https://biscuitos.github.io/blog/DTS-of_read_number/)
 ----------------------------------
 
 Helper to rad a big number; size is in cells (not bytes).

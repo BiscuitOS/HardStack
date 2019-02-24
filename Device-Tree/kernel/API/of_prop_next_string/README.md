@@ -1,4 +1,4 @@
-of_prop_next_string
+of_prop_next_string [中文教程](https://biscuitos.github.io/blog/DTS-of_prop_next_string/)
 ----------------------------------
 
 Read a string from string-list property.

@@ -1,4 +1,4 @@
-of_read_ulong
+of_read_ulong [中文教程](https://biscuitos.github.io/blog/DTS-of_read_ulong/)
 ----------------------------------
 
 Read a unsigned long data from property.

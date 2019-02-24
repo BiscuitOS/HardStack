@@ -1,4 +1,4 @@
-of_property_read_u64
+of_property_read_u64 [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_u64/)
 ----------------------------------
 
 Read a u64 data from current device node.

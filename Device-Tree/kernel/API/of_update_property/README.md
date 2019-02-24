@@ -1,4 +1,4 @@
-of_update_property
+of_update_property [中文教程](https://biscuitos.github.io/blog/DTS-of_update_property/)
 ----------------------------------
 
 Update a property into device node.

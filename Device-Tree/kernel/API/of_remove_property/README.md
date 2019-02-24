@@ -1,4 +1,4 @@
-of_remove_property
+of_remove_property [中文教程](https://biscuitos.github.io/blog/DTS-of_remove_property/)
 ----------------------------------
 
 Remove a property from current device node.

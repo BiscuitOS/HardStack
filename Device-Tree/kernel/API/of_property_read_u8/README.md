@@ -1,4 +1,4 @@
-of_property_read_u8
+of_property_read_u8 [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_u8/)
 ----------------------------------
 
 Read a u8 data from current device node.

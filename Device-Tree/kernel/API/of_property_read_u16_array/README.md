@@ -1,4 +1,4 @@
-of_property_read_u32_array
+of_property_read_u32_array [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_u32_array/)
 ----------------------------------
 
 Read u16 array from current device node.

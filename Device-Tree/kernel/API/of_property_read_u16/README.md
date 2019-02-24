@@ -1,4 +1,4 @@
-of_property_read_u16
+of_property_read_u16 [中文教程](https://biscuitos.github.io/blog/DTS-of_property_read_u16/)
 ----------------------------------
 
 Read a u16 data from current device node.
