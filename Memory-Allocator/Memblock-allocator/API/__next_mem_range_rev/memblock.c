@@ -132,8 +132,9 @@ int debug__next_mem_range_rev(void)
 	 *                                                    | <--> |
 	 *                                                 Searching area
 	 *
-	 * Reserved 0: [0x64000000, 0x64100000] index = 0
-	 * Reserved 1: [0x64300000, 0x64400000] index = 1
+         * Memory:     [0x60000000, 0x64000000] index = 0
+         * Reserved 0: [0x64000000, 0x64100000] index = 1
+         * Reserved 1: [0x64300000, 0x64400000] index = 2
 	 */
 	idx = (u64)ULLONG_MAX & ((u64)1 << 32);
 	__next_mem_range_rev(&idx, NUMA_NO_NODE, flags,

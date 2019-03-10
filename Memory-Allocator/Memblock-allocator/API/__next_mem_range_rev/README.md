@@ -1,4 +1,4 @@
-__next_mem_range_rev
+__next_mem_range_rev [中文教程](https://biscuitos.github.io/blog/MMU-ARM32-MEMBLOCK-__next_mem_range_rev/)
 --------------------------------------------
 
 * function: generia next function for for_each_*_range_rev
@@ -8,10 +8,15 @@ __next_mem_range_rev
 
 * patch file
 
-* driver file
-
 ```
 git am *.patch kernel_src/
 ```
 
-Then add driver file into kernel source tree.
+* driver file
+
+```
+Device Driver--->
+    [*]BiscuitOS Driver--->
+        [*]Memblock allocator
+            [*]__next_mem_range_rev()
+```
