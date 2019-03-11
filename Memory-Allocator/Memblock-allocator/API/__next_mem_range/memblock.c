@@ -6,6 +6,33 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
+ *
+ * MEMBLOCK
+ *
+ *                                         
+ *                                         struct memblock_region
+ *                       struct            +------+------+--------+------+
+ *                       memblock_type     |      |      |        |      |
+ *                       +----------+      | Reg0 | Reg1 | ...    | Regn |
+ *                       |          |      |      |      |        |      |
+ *                       | regions -|----->+------+------+--------+------+
+ *                       | cnt      |      [memblock_memory_init_regions]
+ *                       |          |
+ * struct           o--->+----------+
+ * memblock         |
+ * +-----------+    |
+ * |           |    |
+ * | memory   -|----o
+ * | reserved -|----o
+ * |           |    |                      struct memblock_region
+ * +-----------+    |    struct            +------+------+--------+------+
+ *                  |    memblock_type     |      |      |        |      |
+ *                  o--->+----------+      | Reg0 | Reg1 | ...    | Regn |
+ *                       |          |      |      |      |        |      |
+ *                       | regions -|----->+------+------+--------+------+
+ *                       | cnt      |      [memblock_reserved_init_regions]
+ *                       |          |
+ *                       +----------+
  */
 
 #include <linux/init.h>
