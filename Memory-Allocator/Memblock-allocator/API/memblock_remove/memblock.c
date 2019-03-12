@@ -306,7 +306,7 @@ int debug_memblock_remove(void)
 	 * Real Memory:   [0x60000000, 0xa0000000]
 	 */
 	memblock_remove(0xb0000000, 0xd000000);
-	pr_info("Remove in Pseudo Region:\n");
+	pr_info("Remove equal to Pseudo Region:\n");
 	/* Dump all memory region */
 	for_each_memblock(memory, reg)
 		pr_info("Memory-Region: %#x - %#x\n", reg->base, 
