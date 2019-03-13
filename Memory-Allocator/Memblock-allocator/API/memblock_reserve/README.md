@@ -13,5 +13,9 @@ memblock_reserve()
 ```
 git am *.patch kernel_src/
 ```
-
-Then add driver file into kernel source tree.
+```
+Device Driver--->
+    [*]BiscuitOS Driver--->
+        [*]Memblock allocator
+            [*]memblock_reserve()
+```

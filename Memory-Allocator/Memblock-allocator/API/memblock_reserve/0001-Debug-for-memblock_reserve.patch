@@ -17,7 +17,7 @@ index 375b13f..d36d824 100644
  {
  	const struct machine_desc *mdesc;
  
-+#ifdef CONFIG_BISCUITOS_MEMBLOCK_RESERVE
++#ifdef CONFIG_DEBUG_MEMBLOCK_RESERVE
 +	extern int debug_memblock_reserve(void);
 +#endif
 +
@@ -28,7 +28,7 @@ index 375b13f..d36d824 100644
  	strlcpy(cmd_line, boot_command_line, COMMAND_LINE_SIZE);
  	*cmdline_p = cmd_line;
  
-+#ifdef CONFIG_BISCUITOS_MEMBLOCK_RESERVE
++#ifdef CONFIG_DEBUG_MEMBLOCK_RESERVE
 +	debug_memblock_reserve();
 +#endif
 +
@@ -48,7 +48,7 @@ index 4edc5a5..1a9abee 100644
 +
 +if BISCUITOS_MEMBLOCK
 +
-+config BISCUITOS_MEMBLOCK_RESERVE
++config DEBUG_MEMBLOCK_RESERVE
 +	bool "memblock_reserve()"
 +
 +endif # BISCUITOS_MEMBLOCK

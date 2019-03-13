@@ -39,7 +39,7 @@
 #include <linux/kernel.h>
 #include <linux/memblock.h>
 
-#ifdef CONFIG_BISCUITOS_MEMBLOCK_RESERVE
+#ifdef CONFIG_DEBUG_MEMBLOCK_RESERVE
 /*
  * Mark memory as reserved on memblock.reserved regions.
  */
