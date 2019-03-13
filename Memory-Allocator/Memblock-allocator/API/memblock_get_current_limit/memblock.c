@@ -44,36 +44,7 @@ int bs_debug = 0;
 #ifdef CONFIG_DEBUG_MEMBLOCK_GET_CURRENT_LIMIT
 int __init debug_memblock_get_current_limit(void)
 {
-	struct memblock_region *reg;
 	phys_addr_t limit;
-
-	/*
-	 * Emulate memory
-	 *
-	 *                      memblock.memory
-	 * 0     | <----------------------------------------> |
-	 * +-----+---------+-------+----------+-------+-------+----+
-	 * |     |         |       |          |       |       |    |
-	 * |     |         |       |          |       |       |    |
-	 * |     |         |       |          |       |       |    |
-	 * +-----+---------+-------+----------+-------+-------+----+
-	 *                 | <---> |          | <---> |
-	 *                 Reserved 0         Reserved 1
-	 *
-	 * Memroy Region:   [0x60000000, 0xa0000000]
-	 * Reserved Region: [0x80000000, 0x8d000000]
-	 * Reserved Region: [0x90000000, 0x92000000]
-	 */
-	memblock_reserve(0x80000000, 0xd000000);
-	memblock_reserve(0x90000000, 0x2000000);
-	pr_info("Memory Regions:\n");
-	for_each_memblock(memory, reg)
-		pr_info("Region: %#x - %#x\n", reg->base, 
-					reg->base + reg->size);
-	pr_info("Reserved Regions:\n");
-	for_each_memblock(reserved, reg)
-		pr_info("Region: %#x - %#x\n", reg->base, 
-					reg->base + reg->size);
 
 	/* Obtain current limit for memblock */
 	limit = memblock_get_current_limit();
