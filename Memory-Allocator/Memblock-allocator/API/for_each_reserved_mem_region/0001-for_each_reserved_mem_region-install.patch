@@ -1,0 +1,66 @@
+From 72553b4b9aa73125dc1a0d465a2ee8671768ffa0 Mon Sep 17 00:00:00 2001
+From: BuddyZhang1 <buddy.d.zhang@gmail.com>
+Date: Sun, 10 Mar 2019 11:29:23 +0800
+Subject: [PATCH 1/1] for_each_reserved_mem_region() install
+
+---
+ arch/arm/kernel/setup.c    |  8 ++++++++
+ drivers/BiscuitOS/Kconfig  | 10 ++++++++++
+ drivers/BiscuitOS/Makefile |  1 +
+ 3 files changed, 19 insertions(+)
+
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index 375b13f7e..fec6919a9 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -1073,6 +1073,10 @@ void __init hyp_mode_check(void)
+ void __init setup_arch(char **cmdline_p)
+ {
+ 	const struct machine_desc *mdesc;
++#ifdef CONFIG_DEBUG_FOR_EACH_RESERVED_MEM_REGION
++	extern int bs_debug;
++	extern int debug_for_each_reserved_mem_region(void);
++#endif
+ 
+ 	setup_processor();
+ 	mdesc = setup_machine_fdt(__atags_pointer);
+@@ -1104,6 +1108,10 @@ void __init setup_arch(char **cmdline_p)
+ 	strlcpy(cmd_line, boot_command_line, COMMAND_LINE_SIZE);
+ 	*cmdline_p = cmd_line;
+ 
++#ifdef CONFIG_DEBUG_FOR_EACH_RESERVED_MEM_REGION
++	debug_for_each_reserved_mem_region();
++#endif
++
+ 	early_fixmap_init();
+ 	early_ioremap_init();
+ 
+diff --git a/drivers/BiscuitOS/Kconfig b/drivers/BiscuitOS/Kconfig
+index cca538e38..c4c2edcab 100644
+--- a/drivers/BiscuitOS/Kconfig
++++ b/drivers/BiscuitOS/Kconfig
+@@ -6,4 +6,14 @@ if BISCUITOS_DRV
+ config BISCUITOS_MISC
+     bool "BiscuitOS misc driver"
+ 
++config MEMBLOCK_ALLOCATOR
++	bool "MEMBLOCK allocator"
++
++if MEMBLOCK_ALLOCATOR
++
++config DEBUG_FOR_EACH_RESERVED_MEM_REGION
++	bool "for_each_reserved_mem_region()"
++
++endif # MEMBLOCK_ALLOCATOR
++
+ endif # BISCUITOS_DRV
+diff --git a/drivers/BiscuitOS/Makefile b/drivers/BiscuitOS/Makefile
+index 82004c9a2..1e4052a4b 100644
+--- a/drivers/BiscuitOS/Makefile
++++ b/drivers/BiscuitOS/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_BISCUITOS_MISC)     += BiscuitOS_drv.o
++obj-$(CONFIG_MEMBLOCK_ALLOCATOR) += memblock.o
+-- 
+2.17.1
+
