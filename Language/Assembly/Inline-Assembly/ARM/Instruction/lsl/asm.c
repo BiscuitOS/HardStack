@@ -20,7 +20,7 @@
  * RX, LSL Rn
  */
 
-int debug_lsl(void)
+static int debug_lsl(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x1;

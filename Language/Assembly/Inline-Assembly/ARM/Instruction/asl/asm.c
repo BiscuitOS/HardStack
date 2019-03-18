@@ -20,7 +20,7 @@
  * RX, ASL Rn
  */
 
-int debug_asl(void)
+static int debug_asl(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x1;

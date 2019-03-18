@@ -20,7 +20,7 @@
  * RX, ROR Rn
  */
 
-int debug_ror(void)
+static int debug_ror(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x1;

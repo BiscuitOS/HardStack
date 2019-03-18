@@ -31,7 +31,7 @@
  *       SBC R5,R1,R3
  */
 
-int debug_sbc(void)
+static int debug_sbc(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0xa;

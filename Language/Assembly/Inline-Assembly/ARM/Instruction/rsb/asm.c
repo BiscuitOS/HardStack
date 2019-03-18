@@ -31,7 +31,7 @@
  *       RSB Rd, Rx, Rx, LSL #n
  */
 
-int debug_rsb(void)
+static int debug_rsb(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x2;

@@ -33,7 +33,7 @@
  *   ADD instruction itself plus 8 bytes.
  */
 
-int debug_add(void)
+static int debug_add(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 2;

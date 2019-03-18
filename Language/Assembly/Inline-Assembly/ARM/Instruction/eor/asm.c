@@ -21,7 +21,7 @@
  *   EOR{<cond>} {S} <Rd>, <Rn>, <shifter_operand>
  */
 
-int debug_eor(void)
+static int debug_eor(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0xFFFF;

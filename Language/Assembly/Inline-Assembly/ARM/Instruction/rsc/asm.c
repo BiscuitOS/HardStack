@@ -21,7 +21,7 @@
  *   RSC{<cond>} {S} <Rd>, <Rn>, <shifter_operand>
  */
 
-int debug_rsc(void)
+static int debug_rsc(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x2;

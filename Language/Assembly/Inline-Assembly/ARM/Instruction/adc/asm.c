@@ -20,7 +20,7 @@
  * ADC {<cond>} {S} <Rd>, <Rn>, <shifter_operand>
  */
 
-int debug_adc(void)
+static int debug_adc(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 2;

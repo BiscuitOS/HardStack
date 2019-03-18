@@ -21,7 +21,7 @@
  *   BIC{<cond>} {S} <Rd>, <Rn>, <shifter_operand>
  */
 
-int debug_bic(void)
+static int debug_bic(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0xFFFF;

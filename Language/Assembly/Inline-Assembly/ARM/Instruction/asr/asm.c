@@ -20,7 +20,7 @@
  * RX, ASR Rn
  */
 
-int debug_asr(void)
+static int debug_asr(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x8;

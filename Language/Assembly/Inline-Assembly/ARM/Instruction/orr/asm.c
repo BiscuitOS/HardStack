@@ -21,7 +21,7 @@
  *   ORR{<cond>} {S} <Rd>, <Rn>, <shifter_operand>
  */
 
-int debug_orr(void)
+static int debug_orr(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x00ff;

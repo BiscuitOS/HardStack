@@ -35,7 +35,7 @@
  *   exception. See Exceptions on page A2-16 for more details.
  */
 
-int debug_sub(void)
+static int debug_sub(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x8;

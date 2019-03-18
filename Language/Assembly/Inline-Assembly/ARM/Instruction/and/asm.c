@@ -20,7 +20,7 @@
  *  AND{<cond>} {S} <Rd>, <Rn>, <shifter_operand>
  */
 
-int debug_and(void)
+static int debug_and(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0x23;

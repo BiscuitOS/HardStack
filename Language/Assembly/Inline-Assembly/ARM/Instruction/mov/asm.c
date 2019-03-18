@@ -42,7 +42,7 @@
  *   some types of exception (see Exceptions on page A2-16).
  */
 
-int debug_mov(void)
+static int debug_mov(void)
 {
 	unsigned long reg;
 	unsigned long val = 0x3;

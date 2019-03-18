@@ -20,7 +20,7 @@
  *   MVN{<cond>} {S} <Rd>, <shifter_operand>
  */
 
-int debug_mvn(void)
+static int debug_mvn(void)
 {
 	unsigned long a0 = 0;
 	unsigned long a1 = 0xb;
