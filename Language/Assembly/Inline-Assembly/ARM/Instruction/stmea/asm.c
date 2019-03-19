@@ -10,8 +10,10 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 
+#include <linux/mm.h>
+
 /*
- * STMIB (Store Multiple) stores a non-empty subset (or possibly all) 
+ * STMEA (Store Multiple) stores a non-empty subset (or possibly all) 
  * of the general-purpose registers to sequential memory locations.
  *
  * Syntax
@@ -20,7 +22,7 @@
 
 static unsigned long R0[10];
 
-static int debug_stmib(void)
+static int debug_stmea(void)
 {
 	unsigned long R1 = 0x11;
 	unsigned long R2 = 0x22;
@@ -28,7 +30,7 @@ static int debug_stmib(void)
 	int i;
 	
 	/*
-	 * STMIB: Store Register into memory, and Increment Before
+	 * STMIA: Store Register into memory, and empty ascending stack
 	 *
 	 *
 	 *             +-------------+
@@ -38,22 +40,22 @@ static int debug_stmib(void)
 	 *             +-------------+
 	 *             |             |
 	 *             +-------------+
-	 *             |             |<------ R1
+	 *             |             |
 	 *    R0[5]--> +-------------+
-	 *             |             |<------ R2
+	 *             |             |<----------- R1
 	 *             +-------------+
-	 *             |             |<------ R3
+	 *             |             |<----------- R2
 	 *             +-------------+
-	 *             |             |
+	 *             |             |<----------- R3
 	 *             +-------------+
 	 *             |             |
 	 *             +-------------+
 	 *             |             |
 	 *    R0[0]--> +-------------+
 	 *
-	 * Push register into stack.
+	 * Push register into empty ascending stack.
 	 */
-	__asm__ volatile ("stmib %0!, {%3, %2, %1}"
+	__asm__ volatile ("stmea %0!, {%3, %2, %1}"
 			:: "r" (&R0[5]), "r" (R1), "r" (R2), "r" (R3));
 
 	/* Emulate Stack */
@@ -62,4 +64,4 @@ static int debug_stmib(void)
 
 	return 0;
 }
-device_initcall(debug_stmib);
+device_initcall(debug_stmea);

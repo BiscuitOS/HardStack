@@ -18,42 +18,47 @@
  *   STM{<cond>}<addressing_mode> <Rn>{!}, <registers>
  */
 
+static unsigned long R0[10];
+
 static int debug_stmda(void)
 {
-	unsigned long B0[] = {0x55, 0x66, 0x77, 0x88};
-	unsigned long R0[] = {0x11, 0x22, 0x33, 0x44};
-	unsigned long R1;
-	unsigned long R2;
-	unsigned long R3;
-
+	unsigned long R1 = 0x11;
+	unsigned long R2 = 0x22;
+	unsigned long R3 = 0x33;
+	int i;
+	
 	/*
-	 * STMDA: pre-increment load
+	 * STMIA: Store Register into memory, and Decrement After
 	 *
-	 *  STMDA R0! {R1, R2, R3}
 	 *
-	 *          +--------------+
-	 *          |     0x44     |
-	 *          +--------------+
-	 *          |     0x33     |
-	 *          +--------------+        
-	 *          |     0x22     |
-	 *          +--------------+      
-	 *          |     0x11     |       +--------------+
-	 *  R0[]--->+--------------+       |   R3: 0x88   |
-	 *          |     0x88    -|------>+--------------+
-	 *          +--------------+       |   R2: 0x77   |
-	 *          |     0x77    -|------>+--------------+
-	 *          +--------------+       |   R1: 0x66   |
-	 *          |     0x66    -|------>+--------------+
-	 *          +--------------+
-	 *          |     0x55     |
-	 *  B0[]--->+--------------+
+	 *             +-------------+
+	 *             |             |<-------- R1
+	 *             +-------------+
+	 *             |             |<-------- R2
+	 *             +-------------+
+	 *             |             |<-------- R3
+	 *             +-------------+
+	 *             |             |
+	 *    R0[5]--> +-------------+
+	 *             |             |
+	 *             +-------------+
+	 *             |             |
+	 *             +-------------+
+	 *             |             |
+	 *             +-------------+
+	 *             |             |
+	 *             +-------------+
+	 *             |             |
+	 *    R0[0]--> +-------------+
+	 *
+	 * Push register into stack.
 	 */
-	__asm__ volatile ("stmda %3!, {%0, %1, %2}"
-			: "=r" (R1), "=r" (R2), "=r" (R3)
-			: "r" (R0));
+	__asm__ volatile ("stmda %0!, {%3, %2, %1}"
+			:: "r" (&R0[5]), "r" (R1), "r" (R2), "r" (R3));
 
-	printk("STMDA: R1: %#lx R2: %#lx R3: %#lx\n", R1, R2, R3);
+	/* Emulate Stack */
+	for (i = 0; i < 10; i++)
+		printk("R0[%d] %#lx\n", i, R0[i]);
 
 	return 0;
 }
