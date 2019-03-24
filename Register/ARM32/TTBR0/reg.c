@@ -59,7 +59,7 @@
  *   In an implementation that does not include the Multiprocessing 
  *   Extensions, the 32-bit TTBR0 bit assignments are:
  *
- *   31                                  x               6  5    3  2  1  0
+ *   32                                  x               6  5    3  2  1  0
  *   +-----------------------------------+---------------+--+----+--+--+--+
  *   |                                   |   Reserved    |  |    |  |  |  |
  *   | Translation table base 0 address  |   UNK/SBZP    |  |RGN |  |S |C |
