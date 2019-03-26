@@ -7,7 +7,8 @@ Syntax: .align alignment[, [fill][, max]]
 
 Pad the location counter (in the current subsection) to a particular storage boundary. alignment (which must be absolute) is the alignment required, as described below.
 
-fill (also absolute) gives the fill value to be stored in the padding bytes. It (and the comma) may be omitted. If it is omitted, the padding bytes are normally zero. However, on some systems, if the section is marked as containing code and the fill value is omitted, the space is filled with no-op instructions (I didn't checked whether this is the case in TIGCC).
+fill (also absolute) gives the fill value to be stored in the padding bytes. 
+It (and the comma) may be omitted. If it is omitted, the padding bytes are normally zero. However, on some systems, if the section is marked as containing code and the fill value is omitted, the space is filled with no-op instructions (I didn't checked whether this is the case in TIGCC).
 
 max is also absolute, and is also optional. If it is present, it is the maximum number of bytes that should be skipped by this alignment directive. If doing the alignment would require skipping more bytes than the specified maximum, then the alignment is not done at all. You can omit the fill value (the second argument) entirely by simply using two commas after the required alignment; this can be useful if you want the alignment to be filled with no-op instructions when appropriate.
 
