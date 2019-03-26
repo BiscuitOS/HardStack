@@ -47,6 +47,22 @@ index e1ce029..7c057e3 100644
  obj-$(CONFIG_SIOX)		+= siox/
  obj-$(CONFIG_GNSS)		+= gnss/
 +obj-$(CONFIG_BISCUITOS_DRV)     += BiscuitOS/
+diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
+index 6c7ccb4..64ec5c4 100644
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -177,6 +177,8 @@ start:
+
+                __EFI_HEADER
+ 1:
++ENTRY(BS_debug)
++               bl BS_func
+  ARM_BE8(      setend  be              )       @ go BE8 if compiled for BE8
+  AR_CLASS(     mrs     r9, cpsr        )
+ #ifdef CONFIG_ARM_VIRT_EXT
+@@ -185,6 +187,7 @@ start:
+                mov     r7, r1                  @ save architecture ID
+                mov     r8, r2                  @ save atags pointer
 -- 
 2.7.4
 
