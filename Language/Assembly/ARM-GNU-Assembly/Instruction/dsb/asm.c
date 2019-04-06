@@ -1,5 +1,5 @@
 /*
- * CP15DSB, Data Synchronization Barrier 
+ * DSB, Data Synchronization Barrier 
  *
  * (C) 2019.04.01 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -99,7 +99,7 @@ int debug_DSB(void)
  *               SY       Full system is the required shareability domain, 
  *                        reads and writes are the required access types. 
  *                        Can be omitted. This option is referred to as the 
- *                        full system DSB. Encoded as option = 0b1111.
+ *                        full system DMB. Encoded as option = 0b1111.
  *               ST       Full system is the required shareability domain, 
  *                        writes are the required access type. SYST is a 
  *                        synonym for ST . Encoded as option = 0b1110.
