@@ -337,6 +337,145 @@ of one subsystem are not transparent to the accesses from the other
 subsystem, this system has two Outer Shareable shareability domains.
 ```
 
+However, for a Normal memory region that is Non-cacheable, the only 
+significance of the Shareability attribute is the behavior of Load-Exclusive
+and Store-Exclusive instructions. Having two levels of shareability attribute
+means system designers can reduce the performance and power overhead for 
+shared memory regions that do not need to be part of the Outer Shareability
+domain.
+
+In a VMSA implementation, for Shareable Normal memory, whether there is a 
+distinction between Inner Shareable and Outer Shareable is IMPLEMENTATION
+DEFINED.
+
+For Shareable Normal memory, the Load-Exclusive and Store-Exclusive 
+sychronization primitives take account of the possibility of accesses by
+more than one observer in the same Shareability domain.
+
+```
+---Note---
+•    System designers can use the Shareable concept to specify the locations
+     in Normal memory that must have coherency requirements. However, to
+     facilitate porting of software, software developers must not assume that
+     specifying a memory region as Non-Shareable permits software to make
+     assumptions about the incoherency of memory locations between different
+     processors in a shared memory system. Such assumptions are not portable
+     between different multiprocessing implementations that make use of the
+     Shareable concept. Any multiprocessing implementation might implement
+     caches that, inherently, are shared between different processing elements.
+
+•    This architecture is written with an expectation that all processor using
+     the same operation system or hypervisor are in the same Inner Shareable
+     shareability domain.
+```
+
+##### Write-Through Cacheable, Write-Back Cacheable and Non-cacheable Normal memory
+
+In addition to being Outer Shareable or Normal-Shareable, each region of 
+Normal memory is assigned a cacheability attribute that is one of:
+
+```
+•    Write-Through Cacheable
+
+•    Write-Back Cacheable
+
+•    Non-cacheable
+```
+
+Also, for cacheable Normal memory region:
+
+```
+•    a region might be assigned a cache allocation hint.
+
+•    in an ARMv7-A implementation that include the Large Physical Address
+     Extension, it is IMPLEMENTATION DEFINE whether the Write-Through 
+     Cacheable and Write-Back Cacheable attributes can have an additional 
+     attribute of Transient or Non-transient.
+```
+
+A memory location can be marked as having different cacheability attribute,
+for example when using aliases in a virtual to physical address mapping:
+
+```
+•    if the attributes differ only in the cache allocation hint this does
+     not affect the behavior of accesses to that location.
+
+•    for other cases see Mismatched memory attribute.
+```
+
+The cacheability attributes provide a mechanism of coherency control with
+observers that lie outside the shareability domain of a region of memory. 
+In some cases, the use of Write-Through Cacheable or Non-cacheable regions
+of memory might provide a better mechanism for controlling coherency than
+the use of hardware coherency mechanisms or the use of cache maintenance 
+routines. To this end, the architecture requires the following properties
+for Non-cacheable or Write-Through Cacheable memory:
+
+```
+•    a completed write to a memory location that is Non-cacheable or 
+     Write-Through Cacheable for a level of cache made by an observer
+     accessing the memory system inside the level of cache is visible
+     to all observers accessing the memory system outside the level of
+     cache without the need of explicit cache maintenance
+
+•    a completed write to a memory location that is Non-cacheable for a
+     level of cache made by an observer accessing the memory system outside
+     the level of cache is visible to all observers accessing the memory
+     system inside the level of cache without the need of explicit cache
+     maintenance.
+```
+
+The ARM architecture provides independent cacheability for Normal memory
+for two conceptual levels of cache, the inner and the outer cache. The 
+relationship between these conceptual levels of cache and the implemented
+physical levels of cache is IMPLEMENTATION DEFINED, and can differ form 
+the boundaries between the Inner and Outer Shaeability domain. However:
+
+```
+•    inner refers to the innermost caches, and always includes the lowest
+     level of cache.
+
+•    no cache controlled by the Inner cacheability attribute can lie outside
+     a cache controlled by the Outer cacheability attributes.
+
+•    an implementation might not have any outer cache.
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
