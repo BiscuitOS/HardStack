@@ -11,6 +11,7 @@
 #include <linux/kernel.h>
 
 #include <asm/cputype.h>
+
 /*
  * ID_MMFR0, Memory Model Feature Register 0, VMSA
  *
@@ -20,6 +21,7 @@
  *
  * - ID_MMFR0 provides information about the implemented memory model and 
  *   memory management support.
+ *
  * - This register is a CPUID register, and is part of the Identification 
  *   registers functional group.
  *
