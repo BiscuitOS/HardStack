@@ -64,7 +64,7 @@
  *   In an implementation that includes the Security Extensions and is using
  *   the Short-descriptor translation table format, the TTBCR bit assignments
  *   are:
- *   31 30                                               5  4  3  2    0
+ *   32 31                                               5  4  3  2    0
  *   +--+------------------------------------------------+--+--+--+----+
  *   |  |                                                |  |  |  |    |
  *   |  |       Reserved. UNK/SBZP                       |  |  | 0| N  |
