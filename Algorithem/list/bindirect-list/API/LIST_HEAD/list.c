@@ -1,10 +1,7 @@
 /*
- * bindirect-list: LIST_HEAD
+ * bindirect-list: 
  *
- * #define LIST_HEAD(name) \
- *     struct list_head name = LIST_HEAD_INIT(name)
- *
- * (C) 20179.01.25 <buddy.zhang@aliyun.com>
+ * (C) 20179.04.25 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -13,7 +10,7 @@
 
 /*
  * bidirect-list
- *
+*
  * +-----------+<--o    +-----------+<--o    +-----------+<--o    +-----------+
  * |           |   |    |           |   |    |           |   |    |           |
  * |      prev |   o----| prev      |   o----| prev      |   o----| prev      |
@@ -46,7 +43,7 @@ static struct node node5 = { .name = "BiscuitOS_node5", };
 static struct node node6 = { .name = "BiscuitOS_node6", };
 
 /* Declaration and implement a bindirect-list */
-LIST_HEAD(BiscuitOS_list);
+static LIST_HEAD(BiscuitOS_list);
 
 static __init int bindirect_demo_init(void)
 {
