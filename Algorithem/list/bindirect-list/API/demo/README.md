@@ -1,4 +1,4 @@
-list_add_tail [中文教程](https://biscuitos.github.io/blog//)
+BBXX [中文教程](https://biscuitos.github.io/blog/LIST_BBXX/)
 ----------------------------------
 
 ```
@@ -17,7 +17,7 @@ Add a new entry on back.
 
 Context:
 
-* Driver Files: demo.c
+* Driver Files: list.c
 
 ## Usage
 
@@ -25,7 +25,7 @@ Copy Driver Files into `/drivers/xxx/`, and modify Makefile on current
 directory, as follow:
 
 ```
-obj-y += list.o
+obj-$(CONFIG_XX) += list.o
 ```
 
 Then, compile driver and dts. Details :

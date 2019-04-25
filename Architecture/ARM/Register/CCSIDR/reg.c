@@ -38,7 +38,7 @@
  *   Reset behavior of CP14 and CP15 registers on page B3-1450.
  *
  *
- * 32                                                               0
+ * 32                            13                      3          0
  * +-+-+-+-+---------------------+-----------------------+----------+
  * | | | | |                     |                       |          |
  * | | | | |       NumSets       |     Associativity     | LineSize |
