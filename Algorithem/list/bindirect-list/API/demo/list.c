@@ -1,5 +1,5 @@
 /*
- * bindirect-list: list_add_tail
+ * bindirect-list
  *
  * (C) 20179.04.25 <buddy.zhang@aliyun.com>
  *

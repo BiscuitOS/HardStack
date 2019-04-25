@@ -1,5 +1,5 @@
 /*
- * bindirect-list
+ * bindirect-list: 
  *
  * (C) 20179.04.25 <buddy.zhang@aliyun.com>
  *
@@ -10,7 +10,7 @@
 
 /*
  * bidirect-list
- *
+*
  * +-----------+<--o    +-----------+<--o    +-----------+<--o    +-----------+
  * |           |   |    |           |   |    |           |   |    |           |
  * |      prev |   o----| prev      |   o----| prev      |   o----| prev      |
@@ -29,8 +29,8 @@
 
 /* private structure */
 struct node {
-    const char *name;
-    struct list_head list;
+	const char *name;
+	struct list_head list;
 };
 
 /* Initialize a group node structure */
@@ -42,26 +42,29 @@ static struct node node4 = { .name = "BiscuitOS_node4", };
 static struct node node5 = { .name = "BiscuitOS_node5", };
 static struct node node6 = { .name = "BiscuitOS_node6", };
 
-/* Declaration and implement a bindirect-list */
-LIST_HEAD(BiscuitOS_list);
+/* Declaration a bindirect-list */
+static struct list_head BiscuitOS_list;
 
 static __init int bindirect_demo_init(void)
 {
-    struct node *np;
+	struct node *np;
 
-    /* add a new entry on back */
-    list_add_tail(&node0.list, &BiscuitOS_list);
-    list_add_tail(&node1.list, &BiscuitOS_list);
-    list_add_tail(&node2.list, &BiscuitOS_list);
-    list_add_tail(&node3.list, &BiscuitOS_list);
-    list_add_tail(&node4.list, &BiscuitOS_list);
-    list_add_tail(&node5.list, &BiscuitOS_list);
-    list_add_tail(&node6.list, &BiscuitOS_list);
+	/* Implement a bidirect-list */
+	INIT_LIST_HEAD(&BiscuitOS_list);
 
-    /* Traverser all node on bindirect-list */
-    list_for_each_entry(np, &BiscuitOS_list, list)
-        printk("%s\n", np->name);
+	/* add a new entry on back */
+	list_add_tail(&node0.list, &BiscuitOS_list);
+	list_add_tail(&node1.list, &BiscuitOS_list);
+	list_add_tail(&node2.list, &BiscuitOS_list);
+	list_add_tail(&node3.list, &BiscuitOS_list);
+	list_add_tail(&node4.list, &BiscuitOS_list);
+	list_add_tail(&node5.list, &BiscuitOS_list);
+	list_add_tail(&node6.list, &BiscuitOS_list);
 
-    return 0;
+	/* Traverser all node on bindirect-list */
+	list_for_each_entry(np, &BiscuitOS_list, list)
+		printk("%s\n", np->name);
+
+	return 0;
 }
 device_initcall(bindirect_demo_init);
