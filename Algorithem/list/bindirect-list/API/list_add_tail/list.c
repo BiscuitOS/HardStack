@@ -1,10 +1,7 @@
 /*
- * bindirect-list: list_add_tail
+ * bindirect-list
  *
- * static inline void list_add_tail(struct list_head *new, 
- *                                             struct list_head *head)
- *
- * (C) 20179.01.25 <buddy.zhang@aliyun.com>
+ * (C) 20179.04.25 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -50,21 +47,21 @@ LIST_HEAD(BiscuitOS_list);
 
 static __init int bindirect_demo_init(void)
 {
-    struct node *np;
+	struct node *np;
 
-    /* add a new entry on back */
-    list_add_tail(&node0.list, &BiscuitOS_list);
-    list_add_tail(&node1.list, &BiscuitOS_list);
-    list_add_tail(&node2.list, &BiscuitOS_list);
-    list_add_tail(&node3.list, &BiscuitOS_list);
-    list_add_tail(&node4.list, &BiscuitOS_list);
-    list_add_tail(&node5.list, &BiscuitOS_list);
-    list_add_tail(&node6.list, &BiscuitOS_list);
+	/* add a new entry on special entry */
+	list_add_tail(&node0.list, &BiscuitOS_list);
+	list_add_tail(&node1.list, &BiscuitOS_list);
+	list_add_tail(&node2.list, &BiscuitOS_list);
+	list_add_tail(&node3.list, &BiscuitOS_list);
+	list_add_tail(&node4.list, &BiscuitOS_list);
+	list_add_tail(&node5.list, &BiscuitOS_list);
+	list_add_tail(&node6.list, &BiscuitOS_list);
 
-    /* Traverser all node on bindirect-list */
-    list_for_each_entry(np, &BiscuitOS_list, list)
-        printk("%s\n", np->name);
+	/* Traverser all node on bindirect-list */
+	list_for_each_entry(np, &BiscuitOS_list, list)
+		printk("%s\n", np->name);
 
-    return 0;
+	return 0;
 }
 device_initcall(bindirect_demo_init);
