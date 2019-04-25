@@ -35,6 +35,12 @@ struct node {
 
 /* Initialize a group node structure */
 static struct node node0 = { .name = "BiscuitOS_node0", };
+static struct node node1 = { .name = "BiscuitOS_node1", };
+static struct node node2 = { .name = "BiscuitOS_node2", };
+static struct node node3 = { .name = "BiscuitOS_node3", };
+static struct node node4 = { .name = "BiscuitOS_node4", };
+static struct node node5 = { .name = "BiscuitOS_node5", };
+static struct node node6 = { .name = "BiscuitOS_node6", };
 
 /* Declaration and implement a bindirect-list */
 LIST_HEAD(BiscuitOS_list);
@@ -43,12 +49,14 @@ static __init int bindirect_demo_init(void)
 {
 	struct node *np;
 
-	/* Check new entry whether is valid. */
-	if (__list_add_valid(&node0.list, &BiscuitOS_list, 
-					BiscuitOS_list.next)) {
-		/* add a new entry on special entry */
-		__list_add(&node0.list, &BiscuitOS_list, BiscuitOS_list.next);
-	}
+	/* add a new entry on special entry */
+	__list_add(&node0.list, &BiscuitOS_list, BiscuitOS_list.next);
+	__list_add(&node1.list, &BiscuitOS_list, BiscuitOS_list.next);
+	__list_add(&node2.list, &BiscuitOS_list, BiscuitOS_list.next);
+	__list_add(&node3.list, &BiscuitOS_list, BiscuitOS_list.next);
+	__list_add(&node4.list, &BiscuitOS_list, BiscuitOS_list.next);
+	__list_add(&node5.list, &BiscuitOS_list, BiscuitOS_list.next);
+	__list_add(&node6.list, &BiscuitOS_list, BiscuitOS_list.next);
 
 	/* Traverser all node on bindirect-list */
 	list_for_each_entry(np, &BiscuitOS_list, list)
