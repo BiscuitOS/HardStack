@@ -1,11 +1,23 @@
-list_for_eah_entry [中文教程](https://biscuitos.github.io/blog//)
+list_for_each_entry [中文教程](https://biscuitos.github.io/blog/LIST_list_for_each_entry/)
 ----------------------------------
 
-Traverse all node on list.
+```
+bidirect-list
+
++-----------+<--o    +-----------+<--o    +-----------+<--o    +-----------+
+|           |   |    |           |   |    |           |   |    |           |
+|      prev |   o----| prev      |   o----| prev      |   o----| prev      |
+| list_head |        | list_head |        | list_head |        | list_head |
+|      next |---o    |      next |---o    |      next |---o    |      next |
+|           |   |    |           |   |    |           |   |    |           |
++-----------+   o--->+-----------+   o--->+-----------+   o--->+-----------+
+```
+
+Iterate over list of given type.
 
 Context:
 
-* Driver Files: demo.c
+* Driver Files: list.c
 
 ## Usage
 
@@ -13,7 +25,7 @@ Copy Driver Files into `/drivers/xxx/`, and modify Makefile on current
 directory, as follow:
 
 ```
-obj-y += demo.o
+obj-$(CONFIG_XX) += list.o
 ```
 
 Then, compile driver and dts. Details :
