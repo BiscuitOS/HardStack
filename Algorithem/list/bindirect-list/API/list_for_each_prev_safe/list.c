@@ -61,7 +61,7 @@ static __init int bindirect_demo_init(void)
 
 	printk("BiscuitOS_list:\n");
 	/* Traverser all node on bindirect-list */
-	list_for_each_safe(np, n, &BiscuitOS_list) {
+	list_for_each_prev_safe(np, n, &BiscuitOS_list) {
 		printk("%s\n", list_entry(np, struct node, list)->name);
 		list_del(np);
 	}
