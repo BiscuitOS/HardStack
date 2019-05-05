@@ -1,7 +1,7 @@
-__write_once_size [中文教程](https://biscuitos.github.io/blog/ATOMIC___write_once_size/)
+BBXX [中文教程](https://biscuitos.github.io/blog/ATOMIC_BBXX/)
 ----------------------------------
 
-Write data into memory not cache/buffer/register.
+Add a new entry on back.
 
 Context:
 

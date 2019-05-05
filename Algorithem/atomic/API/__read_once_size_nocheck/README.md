@@ -1,4 +1,4 @@
-__read_once_size_nocheck [中文教程](https://biscuitos.github.io/blog/LIST___read_once_size_nocheck/)
+__read_once_size_nocheck [中文教程](https://biscuitos.github.io/blog/ATOMIC___read_once_size_nocheck/)
 ----------------------------------
 
 Read value from memory not cache nor register.

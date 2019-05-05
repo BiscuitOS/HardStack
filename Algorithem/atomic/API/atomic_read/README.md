@@ -1,4 +1,4 @@
-atomic_read [中文教程](https://biscuitos.github.io/blog/LIST_atomic_read/)
+atomic_read [中文教程](https://biscuitos.github.io/blog/ATOMIC_atomic_read/)
 ----------------------------------
 
 Read a atomic value from memory.

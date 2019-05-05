@@ -1,4 +1,4 @@
-atomic_set [中文教程](https://biscuitos.github.io/blog/LIST_atomic_set/)
+atomic_set [中文教程](https://biscuitos.github.io/blog/ATOMIC_atomic_set/)
 ----------------------------------
 
 Set up a atomic value.

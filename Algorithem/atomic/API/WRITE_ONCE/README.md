@@ -1,4 +1,4 @@
-WRITE_ONCE [中文教程](https://biscuitos.github.io/blog/LIST_WRITE_ONCE/)
+WRITE_ONCE [中文教程](https://biscuitos.github.io/blog/ATOMIC_WRITE_ONCE/)
 ----------------------------------
 
 Write dato into memory not cache/buffer/register.

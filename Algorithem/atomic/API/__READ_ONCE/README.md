@@ -1,4 +1,4 @@
-__READ_ONCE [中文教程](https://biscuitos.github.io/blog/LIST___READ_ONCE/)
+__READ_ONCE [中文教程](https://biscuitos.github.io/blog/ATOMIC___READ_ONCE/)
 ----------------------------------
 
 Read value from memory not buffer/cache/register.
