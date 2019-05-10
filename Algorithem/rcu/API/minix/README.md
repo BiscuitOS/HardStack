@@ -1,11 +1,11 @@
-BBXX [中文教程](https://biscuitos.github.io/blog/CPUID_BBXX/)
+BBXX [中文教程](https://biscuitos.github.io/blog/RCU_BBXX/)
 ----------------------------------
 
-Read CPUID register.
+RCU.
 
 Context:
 
-* Driver Files: cpuid.c
+* Driver Files: rcu.c
 
 ## Usage
 
@@ -13,7 +13,7 @@ Copy Driver Files into `/drivers/xxx/`, and modify Makefile on current
 directory, as follow:
 
 ```
-obj-$(CONFIG_CPUID_XX) += cpuid.o
+obj-$(CONFIG_SPINLOCK_XX) += rcu.o
 ```
 
 Then, compile driver or dts. Details :

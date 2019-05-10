@@ -1,11 +1,11 @@
-BBXX [中文教程](https://biscuitos.github.io/blog/CPUID_BBXX/)
+BBXX [中文教程](https://biscuitos.github.io/blog/RADIX-TREE_BBXX/)
 ----------------------------------
 
-Read CPUID register.
+Radix-tree.
 
 Context:
 
-* Driver Files: cpuid.c
+* Driver Files: radix.c
 
 ## Usage
 
@@ -13,7 +13,7 @@ Copy Driver Files into `/drivers/xxx/`, and modify Makefile on current
 directory, as follow:
 
 ```
-obj-$(CONFIG_CPUID_XX) += cpuid.o
+obj-$(CONFIG_SPINLOCK_XX) += radix.o
 ```
 
 Then, compile driver or dts. Details :
