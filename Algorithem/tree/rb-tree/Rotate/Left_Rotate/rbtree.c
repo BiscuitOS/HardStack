@@ -78,7 +78,7 @@ __rb_insert(struct rb_node *node, struct rb_root *root,
 		gparent = rb_red_parent(parent);
 
 		tmp = gparent->rb_right;
-		if (parent == tmp) { /* parent == gparent->rb_left */
+		if (parent == tmp) { /* parent == gparent->rb_right */
 			tmp = parent->rb_left;
 
 			gparent->rb_right = tmp;
