@@ -103,30 +103,7 @@ __rb_insert(struct rb_node *node, struct rb_root *root,
 
 			tmp = parent->rb_right;
 			if (node == tmp) {
-				/*
-				 * Case 2 - node's uncle is black and node is
-				 * the parent's right child (left rotate at
-				 * parent).
-				 *
-				 *      G             G
-				 *     / \           / \
-				 *    p   U  -->    n   U
-				 *     \           /
-				 *      n         p
-				 *
-				 * This still leaves us in volation of 4), the
-				 * continuation into Case 3 will fix that.
-				 */
-				tmp = node->rb_left;
-				parent->rb_right = tmp;
-				node->rb_left = parent;
-				if (tmp)
-					rb_set_parent_color(tmp, parent, 
-							    RB_BLACK);
-				rb_set_parent_color(parent, node, RB_RED);
-				augment_rotate(parent, node);
-				parent = node;
-				tmp = node->rb_right;
+				;
 			}
 
 			/*

@@ -23,7 +23,8 @@ struct node {
 
 static struct node node0 = { .runtime = 0x20 };
 static struct node node1 = { .runtime = 0x15 };
-static struct node node2 = { .runtime = 0x18 };
+static struct node node2 = { .runtime = 0x30 };
+static struct node node3 = { .runtime = 0x10 };
 
 /* rbroot */
 static struct rb_root BiscuitOS_rb = RB_ROOT;
@@ -85,6 +86,7 @@ int main()
 	rbtree_insert(&BiscuitOS_rb, &node0);
 	rbtree_insert(&BiscuitOS_rb, &node1);
 	rbtree_insert(&BiscuitOS_rb, &node2);
+	rbtree_insert(&BiscuitOS_rb, &node3);
 	Middorder_IterateOver(BiscuitOS_rb.rb_node);
 	printf("\n");
 
