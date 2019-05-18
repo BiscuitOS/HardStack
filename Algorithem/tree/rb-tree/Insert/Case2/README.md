@@ -1,4 +1,4 @@
-RB-Tree Insert Root node
+RB-Tree Insert Red-node cause Right rotate
 -------------------------------------------
 
 #### File list
@@ -13,7 +13,7 @@ RB-Tree Insert Root node
 
 * rb_run.c
 
-  The userspace demo code which descibe how to insert root node into rbtree.
+  The userspace demo code which descibe how to use rbtree.
 
 #### Usage
 

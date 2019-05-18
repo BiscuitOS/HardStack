@@ -67,13 +67,39 @@ __rb_insert(struct rb_node *node, struct rb_root *root,
 		}
 
 		/*
-		 * If there is a black parent, we are done.
+		 * If there is a block parent, we are done.
 		 * Otherwise, take some corrective action as,
 		 * per 4), we don't want a red root or two
-		 * consecutive red nodes.
+		 * consecutive red node.
 		 */
 		if (rb_is_black(parent))
 			break;
+
+		gparent = rb_red_parent(parent);
+
+		tmp = gparent->rb_right;
+		if (parent != tmp) { /* parent == gparent->rb_left */
+			tmp = parent->rb_right;
+			/*
+			 * Case 3 - node's uncle is black and node is
+			 * the parent's left child (right rotate at gparent)
+			 *
+			 *        G           P
+                         *       / \         / \
+                         *      p   U  -->  n   g
+                         *     /                 \
+                         *    n                   U
+			 */
+			gparent->rb_left = tmp;
+			parent->rb_right = gparent;
+			if (tmp)
+				rb_set_parent_color(tmp, gparent, RB_BLACK);
+			__rb_rotate_set_parents(gparent, parent, root, RB_RED);
+			augment_rotate(gparent, parent);
+			break;
+		} else { /* parent == gparent->rb_right */
+			break;
+		}
 	}
 }
 
