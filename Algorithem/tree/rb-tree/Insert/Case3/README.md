@@ -1,4 +1,4 @@
-RB-Tree Usermanual
+RB-Tree Color flips, parent is left child for gparent
 -------------------------------------------
 
 #### File list
@@ -28,5 +28,5 @@ make
 Output:
 
 ```
-0x10 0x15 0x20
+0x10 0x15 0x20 0x30
 ```
