@@ -1,4 +1,4 @@
-RB-Tree Insert Root node
+RB-Tree Insert node into 2- Root
 -------------------------------------------
 
 #### File list
@@ -28,5 +28,5 @@ make
 Output:
 
 ```
-0x10 0x15 0x20
+0x20 0x30
 ```
