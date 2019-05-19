@@ -167,24 +167,7 @@ __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 	if (leftmost && node == *leftmost)
 		*leftmost = rb_next(node);
 
-	if (!tmp) {
-		/*
-		 * Case 1: node to erase has no more than 1 child (easy!)
-		 *
-		 * Note that if there is one child it must be red due to 5)
-		 * and node must be black due to 4). We adjust colors locally
-		 * so as to bypass __rb_erase_color() later on.
-		 */
-		pc = node->__rb_parent_color;
-		parent = __rb_parent(pc);
-		__rb_change_child(node, child, parent, root);
-		if (child) {
-			child->__rb_parent_color = pc;
-			rebalance = NULL;
-		} else
-			rebalance = __rb_is_black(pc) ? parent : NULL;
-		tmp = parent;
-	} else if (!child) {
+	if (tmp && !child) {
 		/* Still case 1, but this time the child is node->rb_left */
 		tmp->__rb_parent_color = pc = node->__rb_parent_color;
 		parent = __rb_parent(pc);

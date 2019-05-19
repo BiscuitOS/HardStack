@@ -184,13 +184,6 @@ __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 		} else
 			rebalance = __rb_is_black(pc) ? parent : NULL;
 		tmp = parent;
-	} else if (!child) {
-		/* Still case 1, but this time the child is node->rb_left */
-		tmp->__rb_parent_color = pc = node->__rb_parent_color;
-		parent = __rb_parent(pc);
-		__rb_change_child(node, tmp, parent, root);
-		rebalance = NULL;
-		tmp = parent;
 	}
 
 	augment->propagate(tmp, NULL);

@@ -26,19 +26,19 @@ struct node {
  *
  *                                                        [] Black node
  *                                                        () Red node
- *                               [5]
- *                                |
- *                     o----------o----------o
- *                     |                     |
- *                    (2)                   (8)
- *                     |                     |
- *              o------o------o       o------o------o
- *              |             |       |             |
- *             [1]           [3]     [7]           [9]
- *              |                                   |
- *       o------o                                   o------o
- *       |                                                 |
- *      (0)                                              (129)
+ *                           [5]
+ *                            |
+ *                 o----------o----------o
+ *                 |                     |
+ *                (2)                   (8)
+ *                 |                     |
+ *          o------o------o       o------o------o
+ *          |             |       |             |
+ *         [1]           [3]     [7]           [9]
+ *                                              |
+ *                                              o------o
+ *                                                     |
+ *                                                   (129)
  */
 static struct node node0 = { .runtime = 0x1 };
 static struct node node1 = { .runtime = 0x2 };
@@ -49,7 +49,6 @@ static struct node node5 = { .runtime = 0x7 };
 static struct node node6 = { .runtime = 0x8 };
 static struct node node7 = { .runtime = 0x9 };
 static struct node node8 = { .runtime = 0x129 };
-static struct node node9 = { .runtime = 0x0 };
 
 /* rbroot */
 static struct rb_root BiscuitOS_rb = RB_ROOT;
@@ -117,12 +116,11 @@ int main()
 	rbtree_insert(&BiscuitOS_rb, &node6);
 	rbtree_insert(&BiscuitOS_rb, &node7);
 	rbtree_insert(&BiscuitOS_rb, &node8);
-	rbtree_insert(&BiscuitOS_rb, &node9);
 	Middorder_IterateOver(BiscuitOS_rb.rb_node);
 	printf("\n");
 
 	/* Erase node from RBTree */
-	rb_erase(&node0.node, &BiscuitOS_rb);
+	rb_erase(&node7.node, &BiscuitOS_rb);
 	printf("Re- Iterate over RBTree\n");
 	Middorder_IterateOver(BiscuitOS_rb.rb_node);
 	printf("\n");
