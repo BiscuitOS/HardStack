@@ -1,13 +1,22 @@
+# Compile tools
 CC=gcc
 
-CFLAGS = -I./
+# Running source code
+SRC = tree23_run.c tree23.c
+# Performance test source code
+SRC_PERF = tree23_perform.c tree23.c
 
-SRC := tree23.c tree23_usage.c
+# Cflags
+CFLAGS := -I./
 
-all: tree23
+# Target file
+TARGET := tree23 tree23_test
+
+all: $(TARGET)
 
 tree23: $(SRC)
-	$(CC) $(SRC) $(CFLAGS) -o $@
-
+	@gcc $(SRC) $(CFLAGS) -o $@ 
+tree23_test: 
+	@gcc $(SRC_PERF) $(CFLAGS) -o $@ 
 clean:
-	@rm -rf *.o tree23 > /dev/null
+	@rm $(TARGET)
