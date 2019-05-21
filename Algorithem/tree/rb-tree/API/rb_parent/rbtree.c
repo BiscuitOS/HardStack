@@ -1,7 +1,7 @@
 /*
  * rbtree
  *
- * (C) 2019.05.08 <buddy.zhang@aliyun.com>
+ * (C) 2019.05.20 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -20,16 +20,36 @@ struct node {
 	unsigned long runtime;
 };
 
-static struct node node0 = { .runtime = 0x20 };
-static struct node node1 = { .runtime = 0x40 };
-static struct node node2 = { .runtime = 0x60 };
-static struct node node3 = { .runtime = 0x10 };
-static struct node node4 = { .runtime = 0x01 };
-static struct node node5 = { .runtime = 0x53 };
-static struct node node6 = { .runtime = 0x24 };
-static struct node node7 = { .runtime = 0x89 };
-static struct node node8 = { .runtime = 0x56 };
-static struct node node9 = { .runtime = 0x43 };
+/*
+ * RB-Tree
+ *
+ *                                                        [] Black node
+ *                                                        () Red node
+ *                    [4]
+ *                     |
+ *          o----------o----------o
+ *          |                     |
+ *         (2)                   (7)
+ *          |                     |
+ *   o------o------o      o-------o-------o
+ *   |             |      |               |             
+ *  [1]           [3]    [5]             [9]
+ *                                        |
+ *                                o-------o-------o
+ *                                |               |
+ *                               (8)            (129)
+ *                      
+ *
+ */
+static struct node node0 = { .runtime = 0x1 };
+static struct node node1 = { .runtime = 0x2 };
+static struct node node2 = { .runtime = 0x3 };
+static struct node node3 = { .runtime = 0x5 };
+static struct node node4 = { .runtime = 0x4 };
+static struct node node5 = { .runtime = 0x7 };
+static struct node node6 = { .runtime = 0x8 };
+static struct node node7 = { .runtime = 0x9 };
+static struct node node8 = { .runtime = 0x129 };
 
 /* root for rbtree */
 struct rb_root BiscuitOS_rb = RB_ROOT;
@@ -101,41 +121,16 @@ static __init int rbtree_demo_init(void)
 	rbtree_insert(&BiscuitOS_rb, &node6);
 	rbtree_insert(&BiscuitOS_rb, &node7);
 	rbtree_insert(&BiscuitOS_rb, &node8);
-	rbtree_insert(&BiscuitOS_rb, &node9);
 
 	/* Traverser all node on rbtree */
 	for (np = rb_first(&BiscuitOS_rb); np; np = rb_next(np))
 		printk("RB: %#lx\n", rb_entry(np, struct node, node)->runtime);
 
-	/* Search node by runtime */
-	this = rbtree_search(&BiscuitOS_rb, 0x53);
-	if (this) {
-		struct rb_node *parent;
-
-		/* Obtain rb_node's parent */
-		parent = rb_parent(&this->node);
-		if (parent)
-			printk("%#lx's parent is %#lx\n", this->runtime, 
-				rb_entry(parent, struct node, node)->runtime);
-		else
-			printk("illegae child\n");
-		
-	} else
-		printk("Invalid data on rbtree\n");
-
-	/* delete rb_node */
-	rb_erase(&node0.node, &BiscuitOS_rb);
-	rb_erase(&node3.node, &BiscuitOS_rb);
-	rb_erase(&node4.node, &BiscuitOS_rb);
-	rb_erase(&node6.node, &BiscuitOS_rb);
-	printk("Remove: %#lx %#lx %#lx %#lx\n", node0.runtime, node3.runtime,
-				node4.runtime, node6.runtime);
-
-	printk("Traverser all node again\n");
-	/* Traverser all node again */
-	for (np = rb_first(&BiscuitOS_rb); np; np = rb_next(np))
-		printk("RB: %#lx\n", rb_entry(np, struct node, node)->runtime);
-
+	this = rbtree_search(&BiscuitOS_rb, 0x5);
+	/* Obtain rb_node's parent */
+	np = rb_parent(&this->node);
+	printk("%#lx's parent is %#lx\n", this->runtime, 
+				rb_entry(np, struct node, node)->runtime);
 	return 0;
 }
 device_initcall(rbtree_demo_init);
