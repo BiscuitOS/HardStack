@@ -1,7 +1,27 @@
 rb_entry [中文教程](https://biscuitos.github.io/blog/RBTREE_rb_entry/)
 ----------------------------------
 
-obtain struct that embeed rb_node.
+```
+RB-Tree
+
+                                                       [] Black node
+                                                       () Red node
+                   [4]
+                    |
+         o----------o----------o
+         |                     |
+        (2)                   (7)
+         |                     |
+  o------o------o      o-------o-------o
+  |             |      |               |             
+ [1]           [3]    [5]             [9]
+                                       |
+                               o-------o-------o
+                               |               |
+                              (8)            (129)
+```
+
+Obtain the container struct which embedd a rb_node structure.
 
 Context:
 
