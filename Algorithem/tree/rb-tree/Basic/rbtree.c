@@ -380,7 +380,7 @@ ____rb_erase_color(struct rb_node *parent, struct rb_root *root,
 				}
 				/* Case 3 - left rotate at sibling */
 				tmp1 = tmp2->rb_left;
-				sibling->rb_right, tmp1;
+				sibling->rb_right = tmp1;
 				tmp2->rb_left = sibling;
 				parent->rb_left = tmp2;
 				if (tmp1)
