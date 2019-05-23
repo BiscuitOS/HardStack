@@ -1,8 +1,29 @@
 BBXX [中文教程](https://biscuitos.github.io/blog/RBTREE_BBXX/)
 ----------------------------------
 
+```
+RB-Tree
 
-Context:
+                                                       [] Black node
+                                                       () Red node
+                   [4]
+                    |
+         o----------o----------o
+         |                     |
+        (2)                   (7)
+         |                     |
+  o------o------o      o-------o-------o
+  |             |      |               |             
+ [1]           [3]    [5]             [9]
+                                       |
+                               o-------o-------o
+                               |               |
+                              (8)            (129)
+```
+
+## Context:
+
+
 
 * Driver Files: rbtree.c
 
