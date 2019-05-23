@@ -70,9 +70,9 @@ static int rbtree_insert(struct rb_root *root, struct node *node)
 		/* setup parent */
 		parent = *new;
 	
-		if (result < 0)
+		if (result > 0)
 			new = &((*new)->rb_left);
-		else if (result > 0)
+		else if (result < 0)
 			new = &((*new)->rb_right);
 		else
 			return 0;
@@ -96,9 +96,9 @@ struct node *rbtree_search(struct rb_root *root, unsigned long runtime)
 
 		result = this->runtime - runtime;
 
-		if (result < 0)
+		if (result > 0)
 			node = node->rb_left;
-		else if (result > 0)
+		else if (result < 0)
 			node = node->rb_right;
 		else
 			return this;
