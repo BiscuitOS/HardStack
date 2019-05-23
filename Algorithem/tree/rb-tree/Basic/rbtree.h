@@ -90,6 +90,9 @@ struct rb_augment_callbacks {
 #define rb_parent(r)	((struct rb_node *)((r)->__rb_parent_color & ~3))
 
 #define RB_ROOT (struct rb_root) { NULL, }
+#define rb_entry(ptr, type, member) container_of(ptr, type, member)
+
+#define RB_EMPTY_ROOT(root)  ((root)->rb_node == NULL)
 
 /* 'empty' nodes are nodes that are known not to be inserted in an rbtree */
 #define RB_EMPTY_NODE(node)  \
@@ -142,6 +145,39 @@ extern void rb_erase(struct rb_node *node, struct rb_root *root);
 extern struct rb_node *rb_first(const struct rb_root *root);
 extern struct rb_node *rb_last(const struct rb_root *root);
 extern struct rb_node *rb_next(const struct rb_node *node);
+extern struct rb_node *rb_prev(const struct rb_node *node);
+extern void rb_replace_node(struct rb_node *victim, struct rb_node *new,
+                     struct rb_root *root);
+extern struct rb_node *rb_next_postorder(const struct rb_node *node);
+extern struct rb_node *rb_first_postorder(const struct rb_root *root);
+
+#define rb_entry_safe(ptr, type, member) \
+	({ typeof(ptr) ____ptr = (ptr); \
+	   ____ptr ? rb_entry(____ptr, type, member) : NULL; \
+	})
+
+/*
+ * rbtree_postorder_for_each_entry_safe - iterate in post-order over rb_root of
+ * given type allowing the backing memory of @pos to be invalidated
+ *
+ * @pos:	the 'type *' to use as a loop cursor.
+ * @n:		another 'type *' to use as temporary storage
+ * @root:	'rb_root *' of the rbtree.
+ * @field:	the name of the rb_node field within 'type'.
+ *
+ * rbtree_postorder_for_each_entry_safe() provides a similar guarantee as
+ * list_for_each_entry_safe() and allows the iteration to continue independent
+ * of changes to @pos by the body of the loop.
+ *
+ * Note, however, that is cannot handle other modifications that re-order the
+ * rbtree it is iterating over. This includes calling rb_erase() on @pos, as
+ * rb_erase() may rebalance the tree, causing us to miss some nodes.
+ */
+#define rbtree_postorder_for_each_entry_safe(pos, n, root, field) \
+	for (pos = rb_entry_safe(rb_first_postorder(root), typeof(*pos), field); \
+		pos && ({ n = rb_entry_safe(rb_next_postorder(&pos->field), \
+			   typeof(*pos), field); 1; }); \
+		pos = n)
 
 #define offsetof(TYPE, MEMBER)	((size_t)&((TYPE *)0)->MEMBER)
 /**
@@ -153,6 +189,11 @@ extern struct rb_node *rb_next(const struct rb_node *node);
 #define container_of(ptr, type, member) ({				\
 	void *__mptr = (void *)(ptr);					\
 	((type *)(__mptr - offsetof(type, member))); })
+
+static inline void rb_set_parent(struct rb_node *rb, struct rb_node *p)
+{
+	rb->__rb_parent_color = rb_color(rb) | (unsigned long)p;
+}
 
 static inline struct rb_node *
 __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
@@ -181,7 +222,7 @@ __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 		if (child) {
 			child->__rb_parent_color = pc;
 			rebalance = NULL;
-		} else
+		} else 
 			rebalance = __rb_is_black(pc) ? parent : NULL;
 		tmp = parent;
 	} else if (!child) {
@@ -191,6 +232,72 @@ __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 		__rb_change_child(node, tmp, parent, root);
 		rebalance = NULL;
 		tmp = parent;
+	} else {
+		struct rb_node *successor = child, *child2;
+
+		tmp = child->rb_left;
+		if (!tmp) {
+			/*
+			 * Case 2: node's successor is its right child
+			 *
+			 *    (n)          (s)
+			 *    / \          / \
+			 *  (x) (s)  ->  (x) (c)
+			 *        \
+			 *        (c)
+			 */
+			parent = successor;
+			child2 = successor->rb_right;
+
+			augment->copy(node, successor);
+		} else {
+			/*
+			 * Case 3: node's successor is leftmost under
+			 * node's right child subtree.
+			 *
+			 *    (n)          (s)
+			 *    / \          / \
+			 *  (x) (y)  ->  (x) (y)
+			 *      /            /
+			 *    (p)          (p)
+			 *    /            /
+			 *  (s)          (c)
+			 *    \
+			 *    (c)
+			 */
+			do {
+				parent = successor;
+				successor = tmp;
+				tmp = tmp->rb_left;
+			} while (tmp);
+			child2 = successor->rb_right;
+			parent->rb_left = child2;
+			successor->rb_right = child;
+			rb_set_parent(child, successor);
+
+			augment->copy(node, successor);
+			augment->propagate(parent, successor);
+		}
+
+		tmp = node->rb_left;
+		successor->rb_left  = tmp;
+		rb_set_parent(tmp, successor);
+
+		pc = node->__rb_parent_color;
+		tmp = __rb_parent(pc);
+		__rb_change_child(node, successor, tmp, root);
+
+		if (child2) {
+			successor->__rb_parent_color = pc;
+			rb_set_parent_color(child2, parent, RB_BLACK);
+			rebalance = NULL;
+		} else {
+			unsigned long pc2 = successor->__rb_parent_color;
+
+			successor->__rb_parent_color = pc;
+			rebalance = __rb_is_black(pc2) ? parent : NULL;
+		}
+		tmp = successor;
 	}
 
 	augment->propagate(tmp, NULL);

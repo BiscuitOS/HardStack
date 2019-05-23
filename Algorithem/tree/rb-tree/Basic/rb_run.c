@@ -18,38 +18,36 @@ struct node {
 	unsigned long runtime;
 };
 
-/* n points to a rb_node */
-#define node_entry(n) container_of(n, struct node, node)
-
 /*
  * RB-Tree
  *
  *                                                        [] Black node
  *                                                        () Red node
- *                               [5]
- *                                |
- *                     o----------o----------o
- *                     |                     |
- *                    (2)                   (8)
- *                     |                     |
- *              o------o------o       o------o------o
- *              |             |       |             |
- *             [1]           [3]     [7]           [9]
- *              |                                   |
- *       o------o                                   o------o
- *       |                                                 |
- *      (0)                                              (129)
+ *                    [4]
+ *                     |
+ *          o----------o----------o
+ *          |                     |
+ *         (2)                   (7)
+ *          |                     |
+ *   o------o------o      o-------o-------o
+ *   |             |      |               |             
+ *  [1]           [3]    [5]             [9]
+ *                                        |
+ *                                o-------o-------o
+ *                                |               |
+ *                               (8)            (129)
+ *                      
+ *
  */
 static struct node node0 = { .runtime = 0x1 };
 static struct node node1 = { .runtime = 0x2 };
 static struct node node2 = { .runtime = 0x3 };
 static struct node node3 = { .runtime = 0x5 };
-static struct node node4 = { .runtime = 0x3 };
+static struct node node4 = { .runtime = 0x4 };
 static struct node node5 = { .runtime = 0x7 };
 static struct node node6 = { .runtime = 0x8 };
 static struct node node7 = { .runtime = 0x9 };
 static struct node node8 = { .runtime = 0x129 };
-static struct node node9 = { .runtime = 0x0 };
 
 /* rbroot */
 static struct rb_root BiscuitOS_rb = RB_ROOT;
@@ -61,7 +59,7 @@ static int rbtree_insert(struct rb_root *root, struct node *node)
 
 	/* Figure out where to put new node */
 	while (*new) {
-		struct node *this = node_entry(*new);
+		struct node *this = rb_entry(*new, struct node, node);
 		int result;
 
 		/* Compare runtime */
@@ -90,21 +88,9 @@ static int rbtree_insert(struct rb_root *root, struct node *node)
 	rb_insert_color(&node->node, root);
 }
 
-/* Middle-order iterate over RB tree */
-static void Middorder_IterateOver(struct rb_node *node)
-{
-	if (!node) {
-		return;
-	} else {
-		Middorder_IterateOver(node->rb_left);
-		printf("%#lx ", node_entry(node)->runtime);
-		Middorder_IterateOver(node->rb_right);
-	}
-}
-
 int main()
 {
-	struct node *np;
+	struct node *np, *n;
 	struct rb_node *node;
 
 	/* Insert rb_node */
@@ -112,19 +98,19 @@ int main()
 	rbtree_insert(&BiscuitOS_rb, &node1);
 	rbtree_insert(&BiscuitOS_rb, &node2);
 	rbtree_insert(&BiscuitOS_rb, &node3);
-	rbtree_insert(&BiscuitOS_rb, &node4);
 	rbtree_insert(&BiscuitOS_rb, &node5);
 	rbtree_insert(&BiscuitOS_rb, &node6);
 	rbtree_insert(&BiscuitOS_rb, &node7);
 	rbtree_insert(&BiscuitOS_rb, &node8);
-	rbtree_insert(&BiscuitOS_rb, &node9);
-	Middorder_IterateOver(BiscuitOS_rb.rb_node);
+
+	printf("Iterate over RBTree.\n");
+	for (node = rb_first(&BiscuitOS_rb); node; node = rb_next(node))
+		printf("%#lx ", rb_entry(node, struct node, node)->runtime);
 	printf("\n");
 
-	/* Erase node from RBTree */
-	rb_erase(&node0.node, &BiscuitOS_rb);
-	printf("Re- Iterate over RBTree\n");
-	Middorder_IterateOver(BiscuitOS_rb.rb_node);
+	printf("Iterate over by postorder.\n");
+	rbtree_postorder_for_each_entry_safe(np, n, &BiscuitOS_rb, node)
+		printf("%#lx ", np->runtime);
 	printf("\n");
 	
 	return 0;
