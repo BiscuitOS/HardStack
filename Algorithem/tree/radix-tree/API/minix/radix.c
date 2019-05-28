@@ -1,7 +1,7 @@
 /*
  * Radix tree.
  *
- * (C) 2019.05.09 <buddy.zhang@aliyun.com>
+ * (C) 2019.06.01 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -13,6 +13,31 @@
 
 /* header of radix-tree */
 #include <linux/radix-tree.h>
+
+/*
+ * Radix-tree                                             RADIX_TREE_MAP: 6
+ *                                  (root)
+ *                                    |
+ *                          o---------o---------o
+ *                          |                   |
+ *                        (0x0)               (0x2)
+ *                          |                   |
+ *                  o-------o------o            o---------o
+ *                  |              |                      |
+ *                (0x0)          (0x2)                  (0x2)
+ *                  |              |                      |
+ *         o--------o------o       |             o--------o--------o
+ *         |               |       |             |        |        |
+ *       (0x0)           (0x1)   (0x0)         (0x0)    (0x1)    (0x3)
+ *         A               B       C             D        E        F
+ *
+ * A: 0x00000000
+ * B: 0x00000001
+ * C: 0x00000080
+ * D: 0x00080080
+ * E: 0x00080081
+ * F: 0x00080083
+ */
 
 /* node */
 struct node {
