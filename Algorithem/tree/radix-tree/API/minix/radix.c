@@ -10,6 +10,7 @@
 
 #include <linux/kernel.h>
 #include <linux/init.h>
+#include <linux/mm.h>
 
 /* header of radix-tree */
 #include <linux/radix-tree.h>
