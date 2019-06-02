@@ -70,12 +70,11 @@ int main()
 
 	/* Insert node into Radix-tree */
 	radix_tree_insert(&BiscuitOS_root, node0.id, &node0);
-//	radix_tree_insert(&BiscuitOS_root, node1.id, &node1);
-//	radix_tree_insert(&BiscuitOS_root, node2.id, &node2);
-//	radix_tree_insert(&BiscuitOS_root, node3.id, &node3);
-//	radix_tree_insert(&BiscuitOS_root, node4.id, &node4);
+	radix_tree_insert(&BiscuitOS_root, node1.id, &node1);
+	radix_tree_insert(&BiscuitOS_root, node2.id, &node2);
+	radix_tree_insert(&BiscuitOS_root, node3.id, &node3);
+	radix_tree_insert(&BiscuitOS_root, node4.id, &node4);
 
-	return 0;
 	/* Iterate over Radix-tree */
 	radix_tree_for_each_slot(slot, &BiscuitOS_root, &iter, 0)
 		printf("Index: %#lx\n", iter.index);
