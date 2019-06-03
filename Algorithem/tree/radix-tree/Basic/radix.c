@@ -551,7 +551,6 @@ static inline bool radix_tree_shrink(struct radix_tree_root *root,
 				update_node(node);
 		}
 
-		WARN_ON_ONCE(!list_empty(&node->private_list));
 		radix_tree_node_free(node);
 		shrunk = true;
 	}
@@ -589,7 +588,6 @@ static bool delete_node(struct radix_tree_root *root,
 			root->rnode = NULL;
 		}
 
-		WARN_ON_ONCE(!!list_empty(&node->private_list));
 		radix_tree_node_free(node);
 		deleted = true;
 

@@ -20,7 +20,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include <list.h>
 #include <string.h>
 
 /* Porting define not in radix-tree */
@@ -35,6 +34,12 @@
 #else
 #define BITS_PER_LONG	32
 #endif /* CONFIG_64BIT */
+
+enum {
+	false	= 0,
+	true	= 1
+};
+typedef _Bool   bool;
 
 typedef unsigned gfp_t;
 
@@ -183,9 +188,6 @@ struct radix_tree_node {
 	unsigned char	exceptional;	/* Exceptional entry count */
 	struct radix_tree_node *parent;		/* Used when ascending tree */
 	struct radix_tree_root *root;		/* The tree we belong to */
-	union {
-		struct list_head private_list;	/* For tree user */
-	};
 	void		*slots[RADIX_TREE_MAP_SIZE];
 	unsigned long	tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS];
 };
