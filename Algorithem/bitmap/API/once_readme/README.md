@@ -1,7 +1,7 @@
-\_find_next_bit [中文教程](https://biscuitos.github.io/blog/BITMAP_SC/#_find_next_bit)
+BBXX [中文教程](https://biscuitos.github.io/blog/BITMAP_SC/#BBXX)
 ----------------------------------
 
-Find next bit on Bitmap.
+Bitmap.
 
 Context:
 
