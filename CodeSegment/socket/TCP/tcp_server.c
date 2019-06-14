@@ -18,7 +18,7 @@
 #include <errno.h>
 
 /* Define IP */
-#define SOCKET_IP	"127.0.0.1"
+#define SOCKET_IP	"10.10.10.5"
 
 /* Define PORT */
 #ifdef CONFIG_PORT
