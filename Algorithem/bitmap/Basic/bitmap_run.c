@@ -15,12 +15,11 @@
 
 int main()
 {
-	unsigned long bitmap[2] = {0};
-	u64 map = 0x123456789abcdef;
-	
-	/* Cover u64 to bitmap */
-	bitmap_from_u64(bitmap, map);
-	printf("%#llx cover to [0]%#lx [1]%#lx\n", map, bitmap[0], bitmap[1]);
+	unsigned long bitmap = 0x123;
+	unsigned long pos;	
+
+	for_each_clear_bit(pos, &bitmap, 32)
+		printf("bitmap: %d\n", pos);
 
 	return 0;
 }
