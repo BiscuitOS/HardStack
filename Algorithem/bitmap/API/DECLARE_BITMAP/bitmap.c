@@ -20,8 +20,8 @@ DECLARE_BITMAP(bitmap, 32);
 static __init int bitmap_demo_init(void)
 {
 	/* Set range bits on bitmap */
-	bitmap_set(&bitmap, 4, 8);
-	printk("Bitmap: %#lx\n", bitmap);
+	bitmap_set(bitmap, 4, 8);
+	printk("Bitmap: %#lx\n", bitmap[0]);
 
 	return 0;
 }
