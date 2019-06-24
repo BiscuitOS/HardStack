@@ -327,6 +327,61 @@ unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
 	return _find_next_bit(addr, NULL, size, offset, 0UL);
 }
 
+unsigned long find_next_and_bit(const unsigned long *addr1,
+		const unsigned long *addr2, unsigned long size,
+		unsigned long offset)
+{
+	return _find_next_bit(addr1, addr2, size, offset, 0UL);
+}
+
+/*      
+ * Find the first set bit in a memory region.
+ */
+unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
+{
+	unsigned long idx;
+
+	for (idx = 0; idx * BITS_PER_LONG < size; idx++) {
+		if (addr[idx])
+			return min(idx * BITS_PER_LONG + __ffs(addr[idx]), 
+									size);
+	}
+	return size;
+}
+
+/*
+ * Find the first cleared bit in a memory region.
+ */
+unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
+{
+	unsigned long idx;
+
+	for (idx = 0; idx * BITS_PER_LONG < size; idx++) {
+		if (addr[idx] != ~0UL)
+			return min(idx * BITS_PER_LONG + ffz(addr[idx]), size);
+	}
+	
+	return size;
+}
+
+unsigned long find_last_bit(const unsigned long *addr, unsigned long size)
+{
+	if (size) {
+		unsigned long val = BITMAP_LAST_WORD_MASK(size);
+		unsigned long idx = (size - 1) / BITS_PER_LONG;
+
+		do {
+			val &= addr[idx];
+			if (val)
+				return idx * BITS_PER_LONG + __fls(val);
+
+			val = ~0ul;
+		} while (idx--);
+	}
+	return size;
+}
+
+
 /**
  * bitmap_find_next_zero_area_off - find a contiguous aligned zero area
  * @map: The address to base the search on
@@ -521,22 +576,53 @@ static int bitmap_pos_to_ord(const unsigned long *buf, unsigned int pos,
 	return __bitmap_weight(buf, pos);
 }
 
-/*      
- * Find the first set bit in a memory region.
+#if BITS_PER_LONG == 64
+/**
+ * bitmap_from_arr32 - copy the contents of u32 array of bits to bitmap
+ *      @bitmap: array of unsigned longs, the destination bitmap
+ *      @buf: array of u32 (in host byte order), the source bitmap
+ *      @nbits: number of bits in @bitmap
  */
-unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
+void bitmap_from_arr32(unsigned long *bitmap, const u32 *buf, 
+							unsigned int nbits)
 {
-	unsigned long idx;
+	unsigned int i, halfwords;
 
-	for (idx = 0; idx * BITS_PER_LONG < size; idx++) {
-		if (addr[idx])
-			return min(idx * BITS_PER_LONG + __ffs(addr[idx]), 
-									size);
+	halfwords = DIV_ROUND_UP(nbits, 32);
+	for (i = 0; i < halfwords; i++) {
+		bitmap[i / 2] = (unsigned long)buf[i];
+		if (++i < halfwords)
+			bitmap[i / 2] |= ((unsigned long)buf[i]) << 32;
 	}
-	return size;
+
+	/* Clear tail bits in last word beyond nbits */
+	if (nbits % BITS_PER_LONG)
+		bitmap[(halfwords - 1) / 2] &= BITMAP_LAST_WORD_MASK(nbits);
 }
 
+/**
+ * bitmap_to_arr32 - copy the contents of bitmap to a u32 array of bits
+ *      @buf: array of u32 (in host byte order), the dest bitmap
+ *      @bitmap: array of unsigned longs, the source bitmap
+ *      @nbits: number of bits in @bitmap
+ */
+void bitmap_to_arr32(u32 *buf, const unsigned long *bitmap, unsigned int nbits)
+{
+	unsigned int i, halfwords;
 
+	halfwords = DIV_ROUND_UP(nbits, 32);
+	for (i = 0; i < halfwords; i++) {
+		buf[i] = (u32)(bitmap[i / 2] & UINT_MAX);
+		if (++i < halfwords)
+			buf[i] = (u32)(bitmap[i / 2] >> 32);
+	}
+
+	/* Clear tail bits in last element of array beyond nbits. */
+	if (nbits % BITS_PER_LONG)
+		buf[halfwords - 1] &= (u32)(UINT_MAX >> ((-nbits) & 31));
+}
+
+#endif
 
 
 
