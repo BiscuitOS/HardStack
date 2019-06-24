@@ -22,7 +22,7 @@ static __init int bitmap_demo_init(void)
 
 	/* ANDNOT operation */
 	bitmap_andnot(&bitmap, &bitmap0, &bitmap1, 12);
-	printk("%#lx XOR %#lx = %#lx\n", bitmap0, bitmap1, bitmap);
+	printk("%#lx ANDNOT %#lx = %#lx\n", bitmap0, bitmap1, bitmap);
 
 	return 0;
 }

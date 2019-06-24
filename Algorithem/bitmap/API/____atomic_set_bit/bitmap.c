@@ -18,7 +18,7 @@ static __init int bitmap_demo_init(void)
 {
 	unsigned long bit = 0xf0;
 
-	/* Change a bit and return its old value */
+	/* Set a bit with atomic */
 	____atomic_set_bit(1, &bit);
 	printk("bit: %#lx\n", bit);
 
