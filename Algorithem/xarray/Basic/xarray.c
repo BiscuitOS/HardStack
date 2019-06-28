@@ -11,133 +11,55 @@
 #include <xarray.h>
 
 /*
- * This is a common helper function for find_next_bit, find_next_zero_bit, and
- * find_next_and_bit. The differences are:
- *  - The "invert" argument, which is XORed with each fetched word before
- *    searching it for one bits.
- *  - The optional "addr2", which is anded with "addr1" if present.
- */
-static inline unsigned long _find_next_bit(const unsigned long *addr1,
-                const unsigned long *addr2, unsigned long nbits,
-                unsigned long start, unsigned long invert)
-{
-	unsigned int tmp;
-
-	if (unlikely(start >= nbits))
-		return nbits;
-
-	tmp = addr1[start / BITS_PER_LONG];
-	if (addr2)
-		tmp &= addr2[start / BITS_PER_LONG];
-	tmp ^= invert;
-
-	/* Handle 1st word. */
-	tmp &= BITMAP_FIRST_WORD_MASK(start);
-	start = round_down(start, BITS_PER_LONG);
-
-	while (!tmp) {
-		start += BITS_PER_LONG;
-		if (start >= nbits)
-			return nbits;
-
-		tmp = addr1[start / BITS_PER_LONG];
-		if (addr2)
-			tmp &= addr2[start / BITS_PER_LONG];
-		tmp ^= invert;
-	}
-
-	return min(start + __ffs(tmp), nbits);
-}
-/*
- * Find the next set bit in a memory region.
- */
-unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
-                            unsigned long offset)
-{
-	return _find_next_bit(addr, NULL, size, offset, 0UL);
-}
-
-/**
- * __set_bit - Set a bit in memory
- * @nr: the bit to set
- * @addr: the address to start counting from
+ * Coding conventions in this file:
  *
- * Unlike set_bit(), this function is non-atomic and may be reordered.
- * If it's called on the same region of memory simultaneously, the effect
- * may be that only one operation succeeds.
+ * @xa is used to refer to the entire xarray.
+ * @xas is the 'xarray operation state'.  It may be either a pointer to
+ * an xa_state, or an xa_state stored on the stack.  This is an unfortunate
+ * ambiguity.
+ * @index is the index of the entry being operated on
+ * @mark is an xa_mark_t; a small number indicating one of the mark bits.
+ * @node refers to an xa_node; usually the primary one being operated on by
+ * this function.
+ * @offset is the index into the slots array inside an xa_node.
+ * @parent refers to the @xa_node closer to the head than @node.
+ * @entry refers to something stored in a slot in the xarray
  */
-static inline void __set_bit(int nr, volatile unsigned long *addr)
-{
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
 
-	*p  |= mask;
+static inline unsigned int xa_lock_type(const struct xarray *xa)
+{
+	return (unsigned int)xa->xa_flags & 3;
 }
 
-static inline void __clear_bit(int nr, volatile unsigned long *addr)
+static inline void xas_lock_type(struct xa_state *xas, unsigned int lock_type)
 {
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-
-	*p &= ~mask;
+	if (lock_type == XA_LOCK_IRQ)
+		xas_lock_irq(xas);
+	else if (lock_type == XA_LOCK_BH)
+		xas_lock_bh(xas);
+	else
+		xas_lock(xas);
 }
 
-void bitmap_clear(unsigned long *map, unsigned int start, int len)
-{               
-	unsigned long *p = map + BIT_WORD(start);
-	const unsigned int size = start + len;
-	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
-	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
-                 
-	while (len - bits_to_clear >= 0) {
-		*p &= ~mask_to_clear;
-		len -= bits_to_clear;
-		bits_to_clear = BITS_PER_LONG;
-		mask_to_clear = ~0UL;
-		p++;
-	}
-	if (len) { 
-		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
-		*p &= ~mask_to_clear;
-	}
+static inline void xas_unlock_type(struct xa_state *xas, unsigned int lock_type)
+{
+	if (lock_type == XA_LOCK_IRQ)
+		xas_unlock_irq(xas);
+	else if (lock_type == XA_LOCK_BH)
+		xas_unlock_bh(xas);
+	else
+		xas_unlock(xas);
 }
 
-/**
- * __test_and_set_bit - Set a bit and return its old value
- * @nr: Bit to set
- * @addr: Address to count from
- *
- * This operation is non-atomic and can be reordered.
- * If two examples of this operation race, one can appear to succeed
- * but actually fail.  You must protect multiple accesses with a lock.
- */
-static inline int __test_and_set_bit(int nr, volatile unsigned long *addr)
+static inline void xa_mark_clear(struct xarray *xa, xa_mark_t mark)
 {
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-	unsigned long old = *p;
-
-	*p = old | mask;
-	return (old & mask) != 0;
-}
-
-static inline int bitmap_empty(const unsigned long *src, unsigned nbits)
-{
-	if (small_const_nbits(nbits))
-		return ! (*src & BITMAP_LAST_WORD_MASK(nbits));
-
-	return find_first_bit(src, nbits) == nbits;
+	if (xa->xa_flags & XA_FLAGS_MARK(mark))
+		xa->xa_flags &= ~(XA_FLAGS_MARK(mark));
 }
 
 static inline bool xa_track_free(const struct xarray *xa)
 {
 	return xa->xa_flags & XA_FLAGS_TRACK_FREE;
-}
-
-static inline void bitmap_fill(unsigned long *dst, unsigned int nbits)
-{
-	unsigned int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
-	memset(dst, 0xff, len);
 }
 
 /* The maximum index that can be contained in the array without expanding it */
@@ -151,6 +73,12 @@ static unsigned long max_index(void *entry)
 static inline unsigned long *node_marks(struct xa_node *node, xa_mark_t mark)
 {
 	return node->marks[(unsigned)mark];
+}
+
+static inline bool node_get_mark(struct xa_node *node,
+			unsigned int offset, xa_mark_t mark)
+{
+	return test_bit(offset, node_marks(node, mark));
 }
 
 static inline void node_mark_all(struct xa_node *node, xa_mark_t mark)
@@ -209,6 +137,12 @@ static void xas_squash_marks(const struct xa_state *xas)
 		__set_bit(xas->xa_offset, marks);
 		bitmap_clear(marks, xas->xa_offset + 1, xas->xa_sibs);
 	} while (mark++ != (unsigned)XA_MARK_MAX);
+}
+
+/* extracts the offset within this node from the index */
+static unsigned int get_offset(unsigned long index, struct xa_node *node)
+{
+	return (index >> node->shift) & XA_CHUNK_MASK;
 }
 
 static void xas_update(struct xa_state *xas, struct xa_node *node)
@@ -319,7 +253,7 @@ void radix_tree_node_rcu_free(struct xa_node *node)
 
 static void xa_node_free(struct xa_node *node)
 {
-	node->xarray = XA_RCU_FREE;
+	node->array = XA_RCU_FREE;
 	
 	radix_tree_node_rcu_free(node);
 }
@@ -394,7 +328,7 @@ static void *xas_alloc(struct xa_state *xas, unsigned int shift)
 	node->count = 0;
 	node->nr_values = 0;
 	node->parent = xas->xa_node;
-	node->xarray = xas->xa;
+	node->array = xas->xa;
 
 	return node;
 }
@@ -412,6 +346,13 @@ static void *xas_descend(struct xa_state *xas, struct xa_node *node)
 
 	xas->xa_offset = offset;
 	return entry;
+}
+
+static unsigned long xas_max(struct xa_state *xas)
+{
+	unsigned long max = xas->xa_index;
+
+	return max;
 }
 
 /*
@@ -483,6 +424,22 @@ static int xas_expand(struct xa_state *xas, void *head)
 
 	xas->xa_node = node;
 	return shift;
+}
+
+/*
+ * xas_destroy() - Free any resources allocated during the XArray operation.
+ * @xas: XArray operation state.
+ *
+ * This function is now internal-only.
+ */
+static void xas_destroy(struct xa_state *xas)
+{
+	struct xa_node *node = xas->xa_alloc;
+
+	if (!node)
+		return;
+	free(node);
+	xas->xa_alloc = NULL;
 }
 
 /*
@@ -584,6 +541,41 @@ static void *xas_create(struct xa_state *xas, bool allow_root)
 	return entry;
 }
 
+static void *set_bounds(struct xa_state *xas)
+{
+	xas->xa_node = XAS_BOUNDS;
+	return NULL;
+}
+
+/*
+ * Starts a walk.  If the @xas is already valid, we assume that it's on
+ * the right path and just return where we've got to.  If we're in an
+ * error state, return NULL.  If the index is outside the current scope
+ * of the xarray, return NULL without changing @xas->xa_node.  Otherwise
+ * set @xas->xa_node to NULL and return the current head of the array.
+ */
+static void *xas_start(struct xa_state *xas)
+{
+	void *entry;
+
+	if (xas_valid(xas))
+		return xas_reload(xas);
+	if (xas_error(xas))
+		return NULL;
+
+	entry = xa_head(xas->xa);
+	if (!xa_is_node(entry)) {
+		if (xas->xa_index)
+			return set_bounds(xas);
+	} else {
+		if ((xas->xa_index >> xa_to_node(entry)->shift) > XA_CHUNK_MASK)
+			return set_bounds(xas);
+	}
+
+	xas->xa_node = NULL;
+	return entry;
+}
+
 /**
  * xas_load() - Load an entry from the XArray (advanced).
  * @xas: XArray operation state.
@@ -616,6 +608,96 @@ void *xas_load(struct xa_state *xas)
 	return entry;
 }
 
+static void xas_shrink(struct xa_state *xas)
+{
+	struct xarray *xa = xas->xa;
+	struct xa_node *node = xas->xa_node;
+
+	for (;;) {
+		void *entry;
+
+		XA_NODE_BUG_ON(node, node->count > XA_CHUNK_SIZE);
+		if (node->count != 1)
+			break;
+		entry = xa_entry_locked(xa, node, 0);
+		if (!entry)
+			break;
+		if (!xa_is_node(entry) && node->shift)
+			break;
+		xas->xa_node = XAS_BOUNDS;
+
+		xa->xa_head = entry;
+		if (xa_track_free(xa) && !node_get_mark(node, 0, XA_FREE_MARK))
+			xa_mark_clear(xa, XA_FREE_MARK);
+
+		node->count = 0;
+		node->nr_values = 0;
+		if (!xa_is_node(entry))
+			node->slots[0] = XA_RETRY_ENTRY;
+		xas_update(xas, node);
+		xa_node_free(node);
+		if (!xa_is_node(entry))
+			break;
+		node = xa_to_node(entry);
+		node->parent = NULL;
+	}
+}
+
+/*
+ * xas_delete_node() - Attempt to delete an xa_node
+ * @xas: Array operation state.
+ *
+ * Attempts to delete the @xas->xa_node.  This will fail if xa->node has
+ * a non-zero reference count.
+ */
+static void xas_delete_node(struct xa_state *xas)
+{
+	struct xa_node *node = xas->xa_node;
+
+	for (;;) {
+		struct xa_node *parent;
+
+		XA_NODE_BUG_ON(node, node->count > XA_CHUNK_SIZE);
+		if (node->count)
+			break;
+
+		parent = xa_parent_locked(xas->xa, node);
+		xas->xa_node = parent;
+		xas->xa_offset = node->offset;
+		xa_node_free(node);
+
+		if (!parent) {
+			xas->xa->xa_head = NULL;
+			xas->xa_node = XAS_BOUNDS;
+			return;
+		}
+
+		parent->slots[xas->xa_offset] = NULL;
+		parent->count--;
+		XA_NODE_BUG_ON(parent, parent->count > XA_CHUNK_SIZE);
+		node = parent;
+		xas_update(xas, node);
+	}
+
+	if (!node->parent)
+		xas_shrink(xas);
+}
+
+static void update_node(struct xa_state *xas, struct xa_node *node,
+				int count, int values)
+{
+	if (!node || (!count && !values))
+		return;
+
+	node->count += count;
+	node->nr_values += values;
+	XA_NODE_BUG_ON(node, node->count > XA_CHUNK_SIZE);
+	XA_NODE_BUG_ON(node, node->nr_values > XA_CHUNK_SIZE);
+	xas_update(xas, node);
+	if (count < 0)
+		xas_delete_node(xas);
+}
+
 /**
  * xas_store() - Store this entry in the XArray.
  * @xas: XArray operation state.
@@ -640,7 +722,7 @@ void *xas_store(struct xa_state *xas, void *entry)
 	bool value = xa_is_value(entry);
 
 	if (entry)
-		first = vas_create(xas, !xa_is_node(entry));
+		first = xas_create(xas, !xa_is_node(entry));
 	else
 		first = xas_load(xas);
 
@@ -658,7 +740,7 @@ void *xas_store(struct xa_state *xas, void *entry)
 	if (node) {
 		slot = &node->slots[offset];
 		if (xas->xa_sibs)
-			xa_squash_marks(xas);
+			xas_squash_marks(xas);
 	}
 	if (!entry)
 		xas_init_marks(xas);
@@ -673,7 +755,7 @@ void *xas_store(struct xa_state *xas, void *entry)
 		 */
 		*slot = entry;
 		if (xa_is_node(next))
-			xas_free_node(xas, xa_to_node(next));
+			xas_free_nodes(xas, xa_to_node(next));
 		if (!node)
 			break;
 		count += !next - !entry;
@@ -687,7 +769,7 @@ void *xas_store(struct xa_state *xas, void *entry)
 			if (offset == XA_CHUNK_MASK)
 				break;
 		}
-		next = xa_entry_lock(xas->xa, node, ++offset);
+		next = xa_entry_locked(xas->xa, node, ++offset);
 		if (!xa_is_sibling(next)) {
 			if (!entry && (offset > max))
 				break;
@@ -707,6 +789,40 @@ static void *xas_result(struct xa_state *xas, void *curr)
 	if (xas_error(xas))
 		curr = xas->xa_node;
 	return curr;
+}
+
+/**
+ * __xa_clear_mark() - Clear this mark on this entry while locked.
+ * @xa: XArray.
+ * @index: Index of entry.
+ * @mark: Mark number.
+ *
+ * Context: Any context.  Expects xa_lock to be held on entry.
+ */
+void __xa_clear_mark(struct xarray *xa, unsigned long index, xa_mark_t mark)
+{
+	XA_STATE(xas, xa, index);
+	void *entry = xas_load(&xas);
+
+	if (entry)
+		xas_clear_mark(&xas, mark);
+}
+
+/**
+ * xa_clear_mark() - Clear this mark on this entry.
+ * @xa: XArray.
+ * @index: Index of entry.
+ * @mark: Mark number.
+ *
+ * Clearing a mark always succeeds.
+ *
+ * Context: Process context.  Takes and releases the xa_lock.
+ */
+void xa_clear_mark(struct xarray *xa, unsigned long index, xa_mark_t mark)
+{
+	xa_lock(xa);
+	__xa_clear_mark(xa, index, mark);
+	xa_unlock(xa);
 }
 
 /**
@@ -737,7 +853,7 @@ void *__xa_store(struct xarray *xa, unsigned long index, void *entry, gfp_t gfp)
 	do {
 		curr = xas_store(&xas, entry);
 		if (xa_track_free(xa))
-			xa_clear_mark(&xas, XA_FREE_MARK);
+			xas_clear_mark(&xas, XA_FREE_MARK);
 	} while (__xas_nomem(&xas, gfp));
 
 	return xas_result(&xas, curr);
@@ -770,3 +886,301 @@ void *xa_store(struct xarray *xa, unsigned long index, void *entry, gfp_t gfp)
 
 	return curr;
 }
+
+/* move the index either forwards (find) or backwards (sibling slot) */
+static void xas_move_index(struct xa_state *xas, unsigned long offset)
+{
+	unsigned int shift = xas->xa_node->shift;
+
+	xas->xa_index &= ~XA_CHUNK_MASK << shift;
+	xas->xa_index += offset << shift;
+}
+
+static void xas_set_offset(struct xa_state *xas)
+{
+	xas->xa_offset = get_offset(xas->xa_index, xas->xa_node);
+}
+
+static void xas_advance(struct xa_state *xas)
+{
+	xas->xa_offset++;
+	xas_move_index(xas, xas->xa_offset);
+}
+
+/**
+ * xas_find_marked() - Find the next marked entry in the XArray.
+ * @xas: XArray operation state.
+ * @max: Highest index to return.
+ * @mark: Mark number to search for.
+ *
+ * If the @xas has not yet been walked to an entry, return the marked entry
+ * which has an index >= xas.xa_index.  If it has been walked, the entry
+ * currently being pointed at has been processed, and so we return the
+ * first marked entry with an index > xas.xa_index.
+ *
+ * If no marked entry is found and the array is smaller than @max, @xas is
+ * set to the bounds state and xas->xa_index is set to the smallest index
+ * not yet in the array.  This allows @xas to be immediately passed to
+ * xas_store().
+ *
+ * If no entry is found before @max is reached, @xas is set to the restart
+ * state.
+ *
+ * Return: The entry, if found, otherwise %NULL.
+ */
+void *xas_find_marked(struct xa_state *xas, unsigned long max, xa_mark_t mark)
+{
+	bool advance = true;
+	unsigned int offset;
+	void *entry;
+
+	if (xas_error(xas))
+		return NULL;
+
+	if (!xas->xa_node) {
+		xas->xa_index = 1;
+		goto out;
+	} else if (xas_top(xas->xa_node)) {
+		advance = false;
+		entry = xa_head(xas->xa);
+		xas->xa_node = NULL;
+		if (xas->xa_index > max_index(entry))
+			goto out;
+		if (!xa_is_node(entry)) {
+			if (xa_marked(xas->xa, mark))
+				return entry;
+			xas->xa_index = 1;
+			goto out;
+		}
+		xas->xa_node = xa_to_node(entry);
+		xas->xa_offset = xas->xa_index >> xas->xa_node->shift;
+	}
+
+	while (xas->xa_index <= max) {
+		if (unlikely(xas->xa_offset == XA_CHUNK_SIZE)) {
+			xas->xa_offset = xas->xa_node->offset + 1;
+			xas->xa_node = xa_parent(xas->xa, xas->xa_node);
+			if (!xas->xa_node)
+				break;
+			advance = false;
+			continue;
+		}
+
+		if (!advance) {
+			entry = xa_entry(xas->xa, xas->xa_node, xas->xa_offset);
+			if (xa_is_sibling(entry)) {
+				xas->xa_offset = xa_to_sibling(entry);
+				xas_move_index(xas, xas->xa_offset);
+			}
+		}
+
+		offset = xas_find_chunk(xas, advance, mark);
+		if (offset > xas->xa_offset) {
+			advance = false;
+			xas_move_index(xas, offset);
+			/* Mind the wrap */
+			if ((xas->xa_index - 1) >= max)
+				goto max;
+			xas->xa_offset = offset;
+			if (offset == XA_CHUNK_SIZE)
+				continue;
+		}
+
+		entry = xa_entry(xas->xa, xas->xa_node, xas->xa_offset);
+		if (!xa_is_node(entry))
+			return entry;
+		xas->xa_node = xa_to_node(entry);
+		xas_set_offset(xas);
+	}
+
+out:
+	if (xas->xa_index > max)
+		goto max;
+	return set_bounds(xas);
+max:
+	xas->xa_node = XAS_RESTART;
+	return NULL;
+}
+
+/**
+ * xas_find() - Find the next present entry in the XArray.
+ * @xas: XArray operation state.
+ * @max: Highest index to return.
+ *
+ * If the @xas has not yet been walked to an entry, return the entry
+ * which has an index >= xas.xa_index.  If it has been walked, the entry
+ * currently being pointed at has been processed, and so we move to the
+ * next entry.
+ *
+ * If no entry is found and the array is smaller than @max, the iterator
+ * is set to the smallest index not yet in the array.  This allows @xas
+ * to be immediately passed to xas_store().
+ *
+ * Return: The entry, if found, otherwise %NULL.
+ */
+void *xas_find(struct xa_state *xas, unsigned long max)
+{
+	void *entry;
+
+	if (xas_error(xas))
+		return NULL;
+
+	if (!xas->xa_node) {
+		xas->xa_index = 1;
+		return set_bounds(xas);
+	} else if (xas_top(xas->xa_node)) {
+		entry = xas_load(xas);
+		if (entry || xas_not_node(xas->xa_node))
+			return entry;
+	} else if (!xas->xa_node->shift &&
+		    xas->xa_offset != (xas->xa_index & XA_CHUNK_MASK)) {
+		xas->xa_offset = ((xas->xa_index - 1) & XA_CHUNK_MASK) + 1;
+	}
+
+	xas_advance(xas);
+
+	while (xas->xa_node && (xas->xa_index <= max)) {
+		if (unlikely(xas->xa_offset == XA_CHUNK_SIZE)) {
+			xas->xa_offset = xas->xa_node->offset + 1;
+			xas->xa_node = xa_parent(xas->xa, xas->xa_node);
+			continue;
+		}
+
+		entry = xa_entry(xas->xa, xas->xa_node, xas->xa_offset);
+		if (xa_is_node(entry)) {
+			xas->xa_node = xa_to_node(entry);
+			xas->xa_offset = 0;
+			continue;
+		}
+		if (entry && !xa_is_sibling(entry))
+			return entry;
+
+		xas_advance(xas);
+	}
+
+	if (!xas->xa_node)
+		xas->xa_node = XAS_BOUNDS;
+	return NULL;
+}
+
+/**
+ * xa_find() - Search the XArray for an entry.
+ * @xa: XArray.
+ * @indexp: Pointer to an index.
+ * @max: Maximum index to search to.
+ * @filter: Selection criterion.
+ *
+ * Finds the entry in @xa which matches the @filter, and has the lowest
+ * index that is at least @indexp and no more than @max.
+ * If an entry is found, @indexp is updated to be the index of the entry.
+ * This function is protected by the RCU read lock, so it may not find
+ * entries which are being simultaneously added.  It will not return an
+ * %XA_RETRY_ENTRY; if you need to see retry entries, use xas_find().
+ *
+ * Context: Any context.  Takes and releases the RCU lock.
+ * Return: The entry, if found, otherwise %NULL.
+ */
+void *xa_find(struct xarray *xa, unsigned long *indexp,
+			unsigned long max, xa_mark_t filter)
+{
+	XA_STATE(xas, xa, *indexp);
+	void *entry;
+
+	do {
+		if ((unsigned int)filter < XA_MAX_MARKS)
+			entry = xas_find_marked(&xas, max, filter);
+		else
+			entry = xas_find(&xas, max);
+	} while (xas_retry(&xas, entry));
+
+	if (entry)
+		*indexp = xas.xa_index;
+	return entry;
+}
+
+/**
+ * xa_find_after() - Search the XArray for a present entry.
+ * @xa: XArray.
+ * @indexp: Pointer to an index.
+ * @max: Maximum index to search to.
+ * @filter: Selection criterion.
+ *
+ * Finds the entry in @xa which matches the @filter and has the lowest
+ * index that is above @indexp and no more than @max.
+ * If an entry is found, @indexp is updated to be the index of the entry.
+ * This function is protected by the RCU read lock, so it may miss entries
+ * which are being simultaneously added.  It will not return an
+ * %XA_RETRY_ENTRY; if you need to see retry entries, use xas_find().
+ *
+ * Context: Any context.  Takes and releases the RCU lock.
+ * Return: The pointer, if found, otherwise %NULL.
+ */
+void *xa_find_after(struct xarray *xa, unsigned long *indexp,
+			unsigned long max, xa_mark_t filter)
+{
+	XA_STATE(xas, xa, *indexp + 1);
+	void *entry;
+
+	for (;;) {
+		if ((unsigned int)filter < XA_MAX_MARKS)
+			entry = xas_find_marked(&xas, max, filter);
+		else
+			entry = xas_find(&xas, max);
+		if (xas.xa_node == XAS_BOUNDS)
+			break;
+		if (xas.xa_shift) {
+			if (xas.xa_index & (xas.xa_index & XA_CHUNK_MASK))
+				continue;
+		}
+		if (!xas_retry(&xas, entry))
+			break;
+	}
+	
+	if (entry)
+		*indexp = xas.xa_index;
+	return entry;
+}
+
+/**
+ * __xa_erase() - Erase this entry from the XArray while locked.
+ * @xa: XArray.
+ * @index: Index into array.
+ *
+ * If the entry at this index is a multi-index entry then all indices will
+ * be erased, and the entry will no longer be a multi-index entry.
+ * This function expects the xa_lock to be held on entry.
+ *
+ * Context: Any context.  Expects xa_lock to be held on entry.  May
+ * release and reacquire xa_lock if @gfp flags permit.
+ * Return: The old entry at this index.
+ */
+void *__xa_erase(struct xarray *xa, unsigned long index)
+{
+	XA_STATE(xas, xa, index);
+	return xas_result(&xas, xas_store(&xas, NULL));
+}
+
+
+/**
+ * xa_erase() - Erase this entry from the XArray.
+ * @xa: XArray.
+ * @index: Index of entry.
+ *
+ * This function is the equivalent of calling xa_store() with %NULL as
+ * the third argument.  The XArray does not need to allocate memory, so
+ * the user does not need to provide GFP flags.
+ *
+ * Context: Any context.  Takes and releases the xa_lock.
+ * Return: The entry which used to be at this index.
+ */
+void *xa_erase(struct xarray *xa, unsigned long index)
+{
+	void *entry;
+
+	xa_lock(xa);
+	entry = __xa_erase(xa, index);
+	xa_unlock(xa);
+
+	return entry;
+}
+

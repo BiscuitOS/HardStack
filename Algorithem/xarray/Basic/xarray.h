@@ -2,6 +2,9 @@
 #ifndef _XARRAY_H_
 #define _XARRAY_H_
 
+/* bitmap */
+#include <bitmap.h>
+
 /* Porting define not in XArray. */
 
 enum {
@@ -27,41 +30,27 @@ typedef unsigned	xa_mark_t;
 
 #define WARN_ON_ONCE(condition) WARN_ON(condition)
 
-#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) & (BITS_PER_LONG - 1)))
-#define BITMAP_LAST_WORD_MASK(nbits) (~0UL >> (-(nbits) & (BITS_PER_LONG - 1)))
-
-#define DIV_ROUND_UP(n, d)	(((n) + (d) - 1) / (d))
-#define BITS_PER_LONG		32
-#define BITS_PER_BYTE		8
-
-#define BITS_PER_TYPE(type)	(sizeof(type) * BITS_PER_BYTE)
-#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_TYPE(long))
-#define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
-#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
-
 #define __GFP_BITS_SHIFT	(23)
 #define __GFP_BITS_MASK		(((1 << __GFP_BITS_SHIFT) - 1))
 
+#define ___GFP_IO		0x40u
+#define ___GFP_FS		0x80u
+#define ___GFP_DIRECT_RECLAIM	0x200000u
+#define ___GFP_KSWAPD_RECLAIM	0x400000u
+#define __GFP_DIRECT_RECLAIM	((gfp_t)___GFP_DIRECT_RECLAIM) /* Caller can reclaim */
+#define __GFP_IO	((gfp_t)___GFP_IO)
+#define __GFP_FS	((gfp_t)___GFP_FS)
+
+#define __GFP_RECLAIM	((gfp_t)(___GFP_DIRECT_RECLAIM|___GFP_KSWAPD_RECLAIM))
+#define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
+
+static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
+{
+	return !!(gfp_flags & __GFP_DIRECT_RECLAIM);
+}
+
 #define max(x, y)	((x) > (y) ? (x) : (y))
 #define min(x, y)	((x) > (y) ? (y) : (x))
-
-/*
- * This looks more complex than it should be. But we need to
- * get the type for the ~ right in round_down (it needs to be
- * as wide as the result!), and we want to evaluate the macro
- * arguments just once each.
- */
-#define __round_mask(x, y) ((__typeof__(x))((y)-1))
-
-/**  
- * round_down - round down to next specified power of 2
- * @x: the value to round
- * @y: multiple to round down to (must be a power of 2)
- *      
- * Rounds @x down to next multiple of @y (which must be a power of 2).
- * To perform arbitrary rounding down, use rounddown() below.
- */
-#define round_down(x, y) ((x) & ~__round_mask(x, y))
 
 /*
  * xa_mk_internal() - Create an internal entry.
@@ -137,25 +126,6 @@ enum xa_lock_type {
 						(unsigned)(mark))
 
 /**
- * __test_and_clear_bit - Clear a bit and return its old value
- * @nr: Bit to clear
- * @addr: Address to count from
- *
- * This operation is non-atomic and can be reordered.
- * If two examples of this operation race, one can appear to succeed
- * but actually fail.  You must protect multiple accesses with a lock.
- */
-static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
-{
-	unsigned long mask = BIT_MASK(nr);
-	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-	unsigned long old = *p;
-
-	*p = old & ~mask;
-	return (old & mask) != 0;
-}
-
-/**
  * struct xarray - The anchor of the XArray.
  * @xa_lock: Lock that protects the contents of the XArray.
  *
@@ -223,6 +193,28 @@ static inline bool xa_is_zero(const void *entry)
 	return unlikely(entry == XA_ZERO_ENTRY);
 }
 
+/**
+ * xa_is_retry() - Is the entry a retry entry?
+ * @entry: Entry retrieved from the XArray
+ *
+ * Return: %true if the entry is a retry entry.
+ */
+static inline bool xa_is_retry(const void *entry)
+{
+	return unlikely(entry == XA_RETRY_ENTRY);
+}
+
+/**
+ * xa_is_advanced() - Is the entry only permitted for the advanced API?
+ * @entry: Entry to be stored in the XArray.
+ *
+ * Return: %true if the entry cannot be stored by the normal API.
+ */
+static inline bool xa_is_advanced(const void *entry)
+{
+	return xa_is_internal(entry) && (entry <= XA_RETRY_ENTRY);
+}
+
 /*
  * The xarray is constructed out of a set of 'chunks' of pointers.  Choosing
  * the best chunk size requires some tradeoffs.  A power of two recommends
@@ -252,7 +244,7 @@ struct xa_node {
 	unsigned char	count;		/* Total entry count */
 	unsigned char	nr_values;	/* Value entry count */
 	struct xa_node	*parent;	/* NULL at top of tree */
-	struct xarray	*xarray;	/* The arrary we belong to */
+	struct xarray	*array;		/* The arrary we belong to */
 	void 		*slots[XA_CHUNK_SIZE];
 	union {
 		unsigned long	tags[XA_MAX_MARKS][XA_MARK_LONGS];
@@ -336,14 +328,9 @@ struct xa_state {
 
 /* Everything below here is the Advanced API.  Proceed with caution. */
  
-static inline void *xa_entry_locked(const struct xarray *xa,
-			const struct xa_node *node, unsigned int offset)
+static inline bool xas_not_node(struct xa_node *node)
 {
-}
-
-static inline struct xa_node *xa_parent_locked(const struct xarray *xa,
-				const struct xa_node *node)
-{
+	return ((unsigned long)node & 3) || !node;
 }
 
 /* True if the node represents head-of-tree, RESTART or BOUNDS */
@@ -383,6 +370,12 @@ static inline bool xa_is_node(const void *entry)
 }
 
 /* Private */
+static inline void *xa_mk_sibling(unsigned int offset)
+{
+	return xa_mk_internal(offset);
+}
+
+/* Private */
 static inline struct xa_node *xa_to_node(const void *entry)
 {
 	return (struct xa_node *)((unsigned long)entry - 2);
@@ -410,6 +403,20 @@ static inline bool xa_marked(const struct xarray *xa, xa_mark_t mark)
 static inline int xas_error(const struct xa_state *xas)
 {
 	return xa_err(xas->xa_node);
+}
+
+/**     
+ * xas_set_err() - Note an error in the xa_state.
+ * @xas: XArray operation state.
+ * @err: Negative error number.
+ *              
+ * Only call this function with a negative @err; zero or positive errors
+ * will probably not behave the way you think they should.  If you want
+ * to clear the error from an xa_state, use xas_reset().
+ */
+static inline void xas_set_err(struct xa_state *xas, long err)
+{
+	xas->xa_node = XA_ERROR(err);
 }
 
 /**
@@ -444,4 +451,230 @@ static inline bool xas_valid(const struct xa_state *xas)
 {
 	return !xas_invalid(xas);
 }
+
+/* Private */
+static inline void *xa_entry(const struct xarray *xa,
+				const struct xa_node *node, unsigned int offset)
+{
+	XA_NODE_BUG_ON(node, offset >= XA_CHUNK_SIZE);
+	return node->slots[offset];
+}
+
+/* Private */
+static inline void *xa_entry_locked(const struct xarray *xa,
+				const struct xa_node *node, unsigned int offset)
+{
+	XA_NODE_BUG_ON(node, offset >= XA_CHUNK_SIZE);
+	return node->slots[offset];
+}
+
+/* Private */
+static inline struct xa_node *xa_parent(const struct xarray *xa,
+					const struct xa_node *node)
+{
+	return node->parent;
+}
+
+/* Private */
+static inline struct xa_node *xa_parent_locked(const struct xarray *xa,
+					const struct xa_node *node)
+{
+	return node->parent;
+}
+
+/*
+ * xa_to_internal() - Extract the value from an internal entry.
+ * @entry: XArray entry.
+ *
+ * Context: Any context.
+ * Return: The value which was stored in the internal entry.
+ */
+static inline unsigned long xa_to_internal(const void *entry)
+{
+	return (unsigned long)entry >> 2;
+}
+
+/* Private */
+static inline unsigned long xa_to_sibling(const void *entry)
+{
+	return xa_to_internal(entry);
+}
+
+/* Private */
+static inline void *xa_mk_node(const struct xa_node *node)
+{
+	return (void *)((unsigned long)node | 2);
+}
+
+#define xa_lock_bh(xa)		do {} while (0)
+#define xa_unlock_bh(xa)	do {} while (0)
+#define xa_lock_irq(xa)		do {} while (0)
+#define xa_unlock_irq(xa)	do {} while (0)
+#define xa_lock(xa)		do {} while (0)
+#define xa_unlock(xa)		do {} while (0)
+
+
+#define xas_lock(xas)		xa_lock((xas)->xa)
+#define xas_unlock(xas)		xa_unlock((xas)->xa)
+#define xas_lock_bh(xas)	xa_lock_bh((xas)->xa)
+#define xas_unlock_bh(xas)	xa_unlock_bh((xas)->xa)
+#define xas_lock_irq(xas)	xa_lock_irq((xas)->xa)
+#define xas_unlock_irq(xas)	xa_unlock_irq((xas)->xa) 
+
+/* Private */
+static inline void *xa_head(const struct xarray *xa)
+{
+	return xa->xa_head;
+}
+
+/* Private */
+static inline void *xa_head_locked(const struct xarray *xa)
+{
+	return xa->xa_head;
+}
+
+/**
+ * xas_reload() - Refetch an entry from the xarray.
+ * @xas: XArray operation state.
+ *
+ * Use this function to check that a previously loaded entry still has
+ * the same value.  This is useful for the lockless pagecache lookup where
+ * we walk the array with only the RCU lock to protect us, lock the page,
+ * then check that the page hasn't moved since we looked it up.
+ *
+ * The caller guarantees that @xas is still valid.  If it may be in an
+ * error or restart state, call xas_load() instead.
+ *
+ * Return: The entry at this location in the xarray.
+ */
+static inline void *xas_reload(struct xa_state *xas)
+{
+	struct xa_node *node = xas->xa_node;
+
+	if (node)
+		return xa_entry(xas->xa, node, xas->xa_offset);
+	return xa_head(xas->xa);
+}
+
+/* Private */
+static inline unsigned int xas_find_chunk(struct xa_state *xas, bool advance,
+		xa_mark_t mark)
+{
+	unsigned long *addr = xas->xa_node->marks[(unsigned)mark];
+	unsigned int offset = xas->xa_offset;
+
+	if (advance)
+		offset++;
+	if (XA_CHUNK_SIZE == BITS_PER_LONG) {
+		if (offset < XA_CHUNK_SIZE) {
+			unsigned long data = *addr & (~0UL << offset);
+
+			if (data)
+				return __ffs(data);
+		}
+		return XA_CHUNK_SIZE;
+	}
+
+	return find_next_bit(addr, XA_CHUNK_SIZE, offset);
+}
+
+/**
+ * xas_reset() - Reset an XArray operation state.
+ * @xas: XArray operation state.
+ *
+ * Resets the error or walk state of the @xas so future walks of the
+ * array will start from the root.  Use this if you have dropped the
+ * xarray lock and want to reuse the xa_state.
+ *
+ * Context: Any context.
+ */
+static inline void xas_reset(struct xa_state *xas)
+{
+	xas->xa_node = XAS_RESTART;
+}
+
+/**
+ * xas_retry() - Retry the operation if appropriate.
+ * @xas: XArray operation state. 
+ * @entry: Entry from xarray.
+ *
+ * The advanced functions may sometimes return an internal entry, such as
+ * a retry entry or a zero entry.  This function sets up the @xas to restart
+ * the walk from the head of the array if needed.
+ *
+ * Context: Any context.
+ * Return: true if the operation needs to be retried. 
+ */
+static inline bool xas_retry(struct xa_state *xas, const void *entry)
+{
+	if (xa_is_zero(entry))
+		return true;
+	if (!xa_is_retry(entry))
+		return false;
+	xas_reset(xas);
+	return true;
+}
+
+extern void *xa_find(struct xarray *xa, unsigned long *indexp,
+		unsigned long max, xa_mark_t filter);
+extern void *xas_find(struct xa_state *xas, unsigned long max);
+extern void *xa_store(struct xarray *xa, unsigned long index, 
+		void *entry, gfp_t gfp);
+extern void *xa_find_after(struct xarray *xa, unsigned long *indexp,
+		unsigned long max, xa_mark_t filter);
+extern void *xa_erase(struct xarray *xa, unsigned long index);
+
+/*
+ * xa_for_each_start() - Iterate over a portion of an XArray.
+ * @xa: XArray.
+ * @index: Index of @entry.
+ * @entry: Entry retrieved from array.
+ * @start: First index to retrieve from array.
+ *
+ * During the iteration, @entry will have the value of the entry stored
+ * in @xa at @index.  You may modify @index during the iteration if you
+ * want to skip or reprocess indices.  It is safe to modify the array
+ * during the iteration.  At the end of the iteration, @entry will be set
+ * to NULL and @index will have a value less than or equal to max.
+ *
+ * xa_for_each_start() is O(n.log(n)) while xas_for_each() is O(n).  You have
+ * to handle your own locking with xas_for_each(), and if you have to unlock
+ * after each iteration, it will also end up being O(n.log(n)).
+ * xa_for_each_start() will spin if it hits a retry entry; if you intend to
+ * see retry entries, you should use the xas_for_each() iterator instead.
+ * The xas_for_each() iterator will expand into more inline code than
+ * xa_for_each_start().
+ *
+ * Context: Any context.  Takes and releases the RCU lock.
+ */
+#define xa_for_each_start(xa, index, entry, start) 			\
+	for (index = start,						\
+	     entry = xa_find(xa, &index, ULONG_MAX, XA_PRESENT);	\
+	     entry;							\
+	     entry = xa_find_after(xa, &index, ULONG_MAX, XA_PRESENT))
+
+/**
+ * xa_for_each() - Iterate over present entries in an XArray.
+ * @xa: XArray.
+ * @index: Index of @entry.
+ * @entry: Entry retrieved from array.
+ *
+ * During the iteration, @entry will have the value of the entry stored
+ * in @xa at @index.  You may modify @index during the iteration if you want
+ * to skip or reprocess indices.  It is safe to modify the array during the
+ * iteration.  At the end of the iteration, @entry will be set to NULL and
+ * @index will have a value less than or equal to max.
+ *
+ * xa_for_each() is O(n.log(n)) while xas_for_each() is O(n).  You have
+ * to handle your own locking with xas_for_each(), and if you have to unlock
+ * after each iteration, it will also end up being O(n.log(n)).  xa_for_each()
+ * will spin if it hits a retry entry; if you intend to see retry entries,
+ * you should use the xas_for_each() iterator instead.  The xas_for_each()
+ * iterator will expand into more inline code than xa_for_each().
+ *
+ * Context: Any context.  Takes and releases the RCU lock.
+ */
+#define xa_for_each(xa, index, entry) \
+	xa_for_each_start(xa, index, entry, 0)
+
 #endif
