@@ -1,4 +1,4 @@
-\_\_acquires [中文教程](https://biscuitos.github.io/blog/SPARSE___acquires/)
+\_\_releases [中文教程](https://biscuitos.github.io/blog/SPARSE___releases/)
 ----------------------------------
 
 Counter must be 1 before clear.
