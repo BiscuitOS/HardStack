@@ -1,7 +1,7 @@
 \_\_acquires [中文教程](https://biscuitos.github.io/blog/SPARSE___acquires/)
 ----------------------------------
 
-Counter must be 0.
+Counter must be 1 before clear.
 
 Context:
 
