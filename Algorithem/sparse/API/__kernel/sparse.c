@@ -17,10 +17,12 @@
 static __init int sparse_demo_init(void)
 {
 	int __kernel *src;
-	int a = 0x10;
+	int __user dst = 0x10;
 
-	src = &a;
-	printk("SRC: %#x\n", a);
+	/* points to user space */
+	src = &dst;
+
+	printk("SRC: %#x\n", *src);
 
 	return 0;
 }
