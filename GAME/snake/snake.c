@@ -5,9 +5,11 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <curses.h>
+#include <time.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <ncurses/curses.h> /* include on BiscuitOS */
+
 #define NUM 60
 
 struct direct
@@ -259,4 +261,3 @@ void deleteLink()
 	free(head);
 	free(tail);
 }
-
