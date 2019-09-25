@@ -428,13 +428,9 @@ You can follow steps:
 
    ```
    ~ # App_demo
-   [LINK] subsystem
-   [DIRT] power
-   [FILE] driver_override
-   [FILE] modalias
-   [FILE] uevent
-   [LINK] of_node
-
+   Hexadecimal: 0x88
+   Integer:      1234
+   String:       Hello-BiscuitOS
    ``` 
 
 --------------------------------
@@ -443,3 +439,17 @@ You can follow steps:
 
 The shell scripts contains some useful command to operate platform
 device. Detail see "userland/platform.sh"
+
+Running scripts on BiscuitOS:
+
+```
+~ # platform.sh 
+Hexadecimal      driver           power
+Integer          driver_override  subsystem
+String           modalias         uevent
+-------------------------------
+Hexadecimal: 567
+Integer:     123445
+String:      Hello-BiscuitOS
+-------------------------------
+```
