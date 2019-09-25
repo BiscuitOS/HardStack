@@ -1,0 +1,2 @@
+config PLATFORM_LDD_BASE
+	tristate "Platform LDD base"

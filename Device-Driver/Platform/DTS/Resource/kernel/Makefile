@@ -9,7 +9,7 @@
 ifneq ($(KERNELRELEASE),)
 
 # SRC
-obj-m	:= platform_with_dts.o
+obj-m	:= platform.o
 
 else
 BSROOT=BiscuitOS/output/linux-5.0-arm32
@@ -39,7 +39,7 @@ OBJDUMP		= $(CROSS_COMPILE)objdump
 CFLAGS += -I$(INCLUDEDIR) -I$(ARCHINCLUDEDIR)
 
 # Target
-obj-m	+= platform_with_dts.o
+obj-m	+= platform.o
 
 all: $(OBJS)
 	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \

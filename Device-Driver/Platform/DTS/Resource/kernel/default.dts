@@ -1,0 +1,36 @@
+/*
+ * DTS Demo Code
+ *
+ * (C) 2019.01.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+/ {
+       Platform_demo {
+               compatible = "Platform_demo, BiscuitOS";
+               status = "okay";
+               bool-property;
+               u8-property = <0x11223344>;
+               u8-array-property = <0x11223344 0x55667788>;
+               u16-property = <0xaabbccdd>;
+               u16-array-property = <0x45678923 0x32563487>;
+               u32-property = <0x12345678>;
+               u32-array-property = <0x124adcef 0x20aabbcc>;
+               u64-property = <0x11223344 0x55667788>;
+               u64-array-property = <0x21475839 0x7836475d
+                                     0x874dabef 0x4fdeabbd>;
+               
+               gpio-property = <&gpio2 18 1>;
+               gpio2: gpio_demo@2 {
+                       compatible = "gpio-controller, BiscuitOS";
+                       reg = <2>;
+                       gpio-controller;
+                       #gpio-cells = <2>;
+                       ngpios = <32>;
+                       interrupt-controller;
+                       #interrupt-celss = <2>;
+               };
+       };
+};

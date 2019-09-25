@@ -1,5 +1,5 @@
 #
-# Platform Bus (DTS DDL)
+# Platform Bus
 #
 # (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -9,10 +9,10 @@
 ifneq ($(KERNELRELEASE),)
 
 # SRC
-obj-m	:= platform_with_dts_args.o
+obj-m	:= platform.o
 
 else
-BSROOT=/xspace/OpenSource/BiscuitOS/BiscuitOS/output/linux-5.0-arm32
+BSROOT=BiscuitOS/output/linux-5.0-arm32
 CROSS_TOOLS=arm-linux-gnueabi
 ARCH=arm
 
@@ -39,7 +39,7 @@ OBJDUMP		= $(CROSS_COMPILE)objdump
 CFLAGS += -I$(INCLUDEDIR) -I$(ARCHINCLUDEDIR)
 
 # Target
-obj-m	+= platform_with_dts_args.o
+obj-m	+= platform.o
 
 all: $(OBJS)
 	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \

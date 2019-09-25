@@ -1,5 +1,5 @@
 /*
- * Platform Bus (DTS DDL)
+ * Platform Bus (Normal without DTS)
  *
  * (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -8,25 +8,10 @@
  * published by the Free Software Foundation.
  */
 
-/*
- * Private DTS file: DTS_demo.dtsi
- *
- * / {
- *        Platform_demo {
- *                compatible = "Platform_demo, BiscuitOS";
- *                status = "okay";
- *        };
- * };
- *
- * On Core dtsi:
- *
- * include "DTS_demo.dtsi"
- */
-
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/of_platform.h>
+#include <linux/platform_device.h>
 
 /* DDL Platform Name */
 #define DEV_NAME "Platform_demo"
@@ -75,11 +60,11 @@ static int Platform_demo_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id Platform_demo_of_match[] = {
-	{ .compatible = "Platform_demo, BiscuitOS", },
-	{ },
-};
-MODULE_DEVICE_TABLE(of, Platform_demo_of_match);
+/* Platform Device Release */
+static void Platform_demo_dev_release(struct device *dev)
+{
+	dev->parent = NULL;
+}
 
 /* Platform Driver Information */
 static struct platform_driver Platform_demo_driver = {
@@ -91,10 +76,49 @@ static struct platform_driver Platform_demo_driver = {
 	.driver	= {
 		.owner	= THIS_MODULE,
 		.name	= DEV_NAME,
-		.of_match_table	= Platform_demo_of_match,
 	},
 };
-module_platform_driver(Platform_demo_driver);
+
+/* Platform Device Information */
+static struct platform_device Platform_demo_device = {
+	.name = DEV_NAME,
+	.id = 1,
+	.dev = {
+		.release = Platform_demo_dev_release,
+	}
+};
+
+/* Module initialize entry */
+static int __init Platform_demo_init(void)
+{
+	int ret;
+
+	/* Register platform driver */
+	ret = platform_driver_register(&Platform_demo_driver);
+	if (ret) {
+		printk("Unable register Platform driver.\n");
+		return -EBUSY;
+	}
+
+	/* Register platform device */
+	ret = platform_device_register(&Platform_demo_device);
+	if (ret) {
+		printk("Unable register Platform device.\n");
+		return -EBUSY;
+	}
+
+	return 0;
+}
+
+/* Module exit entry */
+static void __exit Platform_demo_exit(void)
+{
+	platform_device_unregister(&Platform_demo_device);
+	platform_driver_unregister(&Platform_demo_driver);
+}
+
+module_init(Platform_demo_init);
+module_exit(Platform_demo_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
