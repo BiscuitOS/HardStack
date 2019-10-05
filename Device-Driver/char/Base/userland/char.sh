@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Misc Device
+# Character Device Driver
 #
 # (C) 2019.09.24 BiscuitOS <buddy.zhang@aliyun.com>
 #
@@ -8,4 +8,4 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 
-ls /dev/Misc_demo
+ls /dev/Char_demo

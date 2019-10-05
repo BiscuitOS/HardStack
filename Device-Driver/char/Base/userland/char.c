@@ -1,5 +1,5 @@
 /*
- * Misc Device
+ * Character Device Driver
  *
  * (C) 2019.09.24 <buddy.zhang@aliyun.com>
  *
