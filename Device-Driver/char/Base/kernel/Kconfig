@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_CHAR
+	tristate "LDD: Character Device Driver"
