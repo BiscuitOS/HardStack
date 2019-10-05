@@ -214,4 +214,4 @@ module_exit(Platform_demo_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("Platform Device Driver with DTS");
+MODULE_DESCRIPTION("Platform Device Driver Attribute");
