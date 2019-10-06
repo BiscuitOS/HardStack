@@ -27,7 +27,7 @@ static void Timer_demo_handler(struct timer_list *unused)
 {
 	printk("BiscuitOS Timer Timeout\n");
 	/* Timer: Setup Timeout */
-	Timer.expires = jiffies + HZ;
+	Timer.expires = jiffies + msecs_to_jiffies(TIMER_DEMO_PERIOD);
 	/* Timer: Register */
 	add_timer(&Timer);
 }

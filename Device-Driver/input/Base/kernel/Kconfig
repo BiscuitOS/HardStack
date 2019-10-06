@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_INPUT
+	tristate "LDD: Input Device Driver"
