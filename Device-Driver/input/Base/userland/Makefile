@@ -31,11 +31,11 @@ OBJDUMP		= $(CROSS_COMPILE)objdump
 CFLAGS += -I./
 
 # SRC
-SRC += platform.c
+SRC += input.c
 
 # Target
 ifeq ($(TARGETA), )
-TARGET=platform_demo
+TARGET=input_demo
 else
 TARGET=$(TARGETA)
 endif
@@ -45,8 +45,8 @@ all:
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
-	@cp -rfa platform.sh $(INSTALL_PATH)
+	@cp -rfa input.sh $(INSTALL_PATH)
 
 clean:
 	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
-               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd
+               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd $(TARGET)
