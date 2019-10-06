@@ -13,7 +13,7 @@
 #include <dirent.h>
 #include <unistd.h>
 
-#define PLATFORM_PATH "/sys/bus/platform/devices/Platform_demo/"
+#define PLATFORM_PATH "/sys/bus/platform/devices/Platform_demo.1/"
 
 int main()
 {
