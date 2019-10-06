@@ -1,2 +1,2 @@
-config PLATFORM_LDD_BASE
-	tristate "Platform LDD base"
+config BISCUITOS_LDD_PLATFORM_RES
+	tristate "LDD: Platform Resource"
