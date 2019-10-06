@@ -1,5 +1,5 @@
 /*
- * Platform DD argument from DTS
+ * Platform Resource from DTS
  *
  * (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -328,4 +328,4 @@ module_platform_driver(Platform_demo_driver);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("Platform DD argument from DTS");
+MODULE_DESCRIPTION("Platform Resource from DTS");
