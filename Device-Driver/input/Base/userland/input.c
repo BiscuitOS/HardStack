@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <linux/input.h>
 
+/* Input sysfs direct */
 #define INPUT_SYS_PATH	"/sys/devices/platform/Input_demo.1/input"
 /* Input direct on /dev/input/ */
 static char input_dir[128] = "/dev/input";
