@@ -29,11 +29,16 @@
 
 
 /* CMA region information */
-struct CMA_demo_region {
+struct CMA_demo_info {
 	unsigned long virt;
 	unsigned long phys;
 	unsigned long offset;
 	unsigned long length;
+};
+
+/* CMA Memory Region */
+struct CMA_demo_region {
+	struct CMA_demo_info info;
 	struct list_head list;
 };
 
@@ -50,8 +55,8 @@ static struct CMA_demo_manager *manager;
 static long CMA_demo_ioctl(struct file *filp, unsigned int cmd, 
 							unsigned long arg)
 {
-	struct CMA_demo_region region;
-	struct CMA_demo_region *reg;
+	struct CMA_demo_region *region;
+	struct CMA_demo_info info;
 	unsigned int pool_size_order;
 	unsigned long nr_pages;
 	struct page *page;
@@ -63,23 +68,23 @@ static long CMA_demo_ioctl(struct file *filp, unsigned int cmd,
 		/* lock */
 		mutex_lock(&manager->lock);
 		/* Get information from userland */
-		if (copy_from_user(&region, (void __user *)arg,
-					sizeof(struct CMA_demo_region))) {
+		if (copy_from_user(&info, (void __user *)arg,
+					sizeof(struct CMA_demo_info))) {
 			printk(KERN_ERR "ALLOCATE: copy_from_user error\n");
 			rvl = -EFAULT;
 			goto err_user;
 		}
 
 		/* allocate new region */
-		reg = kzalloc(sizeof(*reg), GFP_KERNEL);
-		if (!reg) {
+		region = kzalloc(sizeof(*region), GFP_KERNEL);
+		if (!region) {
 			printk(KERN_ERR "ALLOCATE: no free memory.\n");
 			rvl = -ENOMEM;
 			goto err_alloc;
 		}
 
-		nr_pages = region.length >> PAGE_SHIFT;
-		pool_size_order = get_order(region.length);
+		nr_pages = info.length >> PAGE_SHIFT;
+		pool_size_order = get_order(info.length);
 		/* Allocate memory from CMA */
 		page = dma_alloc_from_contiguous(NULL, nr_pages,
 				pool_size_order, GFP_KERNEL);
@@ -90,35 +95,34 @@ static long CMA_demo_ioctl(struct file *filp, unsigned int cmd,
 		}
 		
 		/* Insert region into manager */
-		reg->virt = (dma_addr_t)page_to_virt(page);
-		reg->phys = (dma_addr_t)page_to_phys(page);
-		reg->length = region.length;
-		list_add(&reg->list, &manager->head);
+		info.virt = (dma_addr_t)page_to_virt(page);
+		info.phys = (dma_addr_t)page_to_phys(page);
+		region->info.virt = info.virt;
+		region->info.phys = info.phys;
+		region->info.length = info.length;
+		list_add(&region->list, &manager->head);
 
 		/* export to userland */
-		if (copy_to_user((void __user *)arg, reg, sizeof(*reg))) {
+		if (copy_to_user((void __user *)arg, &info, sizeof(info))) {
 			printk(KERN_ERR "ALLOCATE: copy_to_user error\n");
 			rvl = -EINVAL;
 			goto err_to;
 		}
-		list_for_each_entry(reg, &manager->head, list)
-			printk("Region: %#lx - %#lx\n", reg->phys,
-								reg->length);
 		/* unlock */
 		mutex_unlock(&manager->lock);
 		return 0;
 	case CMA_MEM_RELEASE:
 		mutex_lock(&manager->lock);
-		if (copy_from_user(&region, (void __user *)arg,
-							sizeof(region))) {
+		if (copy_from_user(&info, (void __user *)arg,
+							sizeof(info))) {
 			printk(KERN_ERR "RELEASE: copy_from_user\n");
 			rvl = -EINVAL;
 			goto err_user;
 		}
 		/* Search region */
-		list_for_each_entry(reg, &manager->head, list) {
-			if (reg->phys == region.phys &&
-				     reg->length == region.length) {
+		list_for_each_entry(region, &manager->head, list) {
+			if (region->info.phys == info.phys &&
+				     region->info.length == info.length) {
 				found = 1;
 				break;
 			}
@@ -129,11 +133,11 @@ static long CMA_demo_ioctl(struct file *filp, unsigned int cmd,
 			goto err_user;
 		}
 		/* Free contiguous memory */
-		page = phys_to_page(region.phys);
-		nr_pages = region.length >> PAGE_SHIFT;
+		page = phys_to_page(info.phys);
+		nr_pages = info.length >> PAGE_SHIFT;
 		dma_release_from_contiguous(NULL, page, nr_pages);
-		list_del(&reg->list);
-		kfree(reg);
+		list_del(&region->list);
+		kfree(region);
 		mutex_unlock(&manager->lock);
 
 		return 0;
@@ -142,13 +146,11 @@ static long CMA_demo_ioctl(struct file *filp, unsigned int cmd,
 		return -EFAULT;
 	}
 
-	return 0;
-
 err_to:
-	list_del(&reg->list);
+	list_del(&region->list);
 	dma_release_from_contiguous(NULL, page, nr_pages);
 err_dma:
-	kfree(reg);
+	kfree(region);
 err_alloc:
 
 err_user:
@@ -162,9 +164,19 @@ static int CMA_demo_mmap(struct file *filp, struct vm_area_struct *vma)
 	unsigned long start = vma->vm_start;
 	unsigned long size = vma->vm_end - vma->vm_start;
 	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-	unsigned long page, pos;
+	unsigned long page;
 
-	printk("START: %#lx\n", start);
+	/* offset is physical address */
+	page = offset >> PAGE_SHIFT;
+
+	/* Remap */
+	if (remap_pfn_range(vma, start, page, size, PAGE_SHARED)) {
+		printk("REMAP: failed\n");
+		return -EAGAIN;
+	}
+
+	vma->vm_flags &= ~VM_IO;
+	vma->vm_flags |= (VM_DONTEXPAND | VM_DONTDUMP);
 
 	return 0;
 }
@@ -210,6 +222,14 @@ err_alloc:
 /* Module exit entry */
 static void __exit CMA_demo_exit(void)
 {
+	struct CMA_demo_region *reg;
+
+	/* Free all region */
+	mutex_lock(&manager->lock);
+	list_for_each_entry(reg, &manager->head, list)
+		kfree(reg);
+	mutex_unlock(&manager->lock);
+
 	/* Un-Register Misc device */
 	misc_deregister(&manager->misc);
 	/* free memory */
@@ -222,4 +242,4 @@ module_exit(CMA_demo_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("CMA Device Driver");
+MODULE_DESCRIPTION("Contiguous Memory Allocate (CMA) Device Driver");

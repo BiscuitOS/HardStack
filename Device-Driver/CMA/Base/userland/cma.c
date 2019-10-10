@@ -38,23 +38,44 @@ int main()
 		printf("Can't open %s\n", CMA_PATH);
 		return -1;
 	}
-	memset(&region, 0, sizeof(struct CMA_demo_region));
+	memset(&region, 0, sizeof(region));
 	region.length = 1 << 20;
 	region.phys = 0; /* auto phys address */
 
+	/* Allocate memory from CMA */
 	if (ioctl(fd, CMA_MEM_ALLOCATE, &region) < 0) {
 		printf("CMA_MEM_ALLOCATE: ioctl failed\n");
 		return -1;
 	}
-	printf("CMA region: %#lx - %#lx\n", region.phys, 
+
+	/* Mmap physical address into user space */
+	base = mmap(NULL, region.length, PROT_READ | PROT_WRITE, 
+						MAP_SHARED, fd, region.phys);
+	if (base == MAP_FAILED) {
+		printf("CMA_MMAP: mmap failed\n");
+		close(fd);
+		return -1;
+	}
+
+	strcpy(base, "Hello BiscuitOS");
+	/* Information */
+	printf("CMA region: %s\n", (char *)base);
+	printf("Phys: %#lx - %#lx\n", region.phys, 
 					region.phys + region.length);
+	printf("Virt: %#lx - %#lx\n", base, 
+					(unsigned long)base + region.length);
 
-	/* Remmap */
-	base = mmap(0, region.length, PROT_READ | PROT_WRITE,
-					MAP_SHARED, fd, region.phys);
-	printf("SSSSS\n");
+	/* Unmmap */
+	munmap(base, region.length);
 
+	/* Free memory from CMA */
+	if (ioctl(fd, CMA_MEM_RELEASE, &region) < 0) {
+		printf("CMA_MEM_RELEASE: ioctl failed\n");
+		close(fd);
+		return -1;
+	}
 
+	close(fd);
 
 	return 0;
 }
