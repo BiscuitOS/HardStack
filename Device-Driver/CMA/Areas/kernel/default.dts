@@ -1,0 +1,22 @@
+reserved-memory {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	ranges;
+
+	/* Chipselect 3 is physically at 0x4c000000 */
+	vram: vram@4c000000 {
+		/* 8 MB of designated video RAM */
+		compatible = "shared-dma-pool";
+		reg = <0x4c000000 0x00800000>;
+		no-map;
+	};
+
+	BiscuitOS_cma {
+		compatible = "shared-dma-pool";
+		size = <0x00800000>;
+		alloc-ranges = <0x61000000 0x00800000>;
+		alignment = <0x00100000>;
+		reusable;
+		linux,BiscuitOS_cma;
+	};
+};
