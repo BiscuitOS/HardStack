@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_CMA
+	tristate "LDD: Contiguous Memory allocate from special Areas"

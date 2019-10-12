@@ -1,2 +1,2 @@
-config BISCUITOS_LDD_MISC
-	tristate "LDD: MISC Device Driver"
+config BISCUITOS_LDD_CMA
+	tristate "LDD: Contiguous Memory Allocate Device Driver"
