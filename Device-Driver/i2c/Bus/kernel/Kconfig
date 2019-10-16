@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_I2C_BUS
+	tristate "LDD: I2C Bus Device Driver"
