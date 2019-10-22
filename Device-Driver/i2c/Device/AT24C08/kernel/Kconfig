@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_AT24C08
+	tristate "LDD: AT24C08 EEPROM Device Driver"
