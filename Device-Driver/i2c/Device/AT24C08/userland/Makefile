@@ -31,11 +31,11 @@ OBJDUMP		= $(CROSS_COMPILE)objdump
 CFLAGS += -I./
 
 # SRC
-SRC += i2c.c
+SRC += at24c08.c
 
 # Target
 ifeq ($(TARGETA), )
-TARGET=i2c_demo
+TARGET=at24c08_demo
 else
 TARGET=$(TARGETA)
 endif

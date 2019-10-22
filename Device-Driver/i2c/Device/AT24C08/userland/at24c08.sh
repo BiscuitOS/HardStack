@@ -9,3 +9,5 @@
 # published by the Free Software Foundation.
 
 i2cdetect -y 1
+
+[ -f /usr/bin/LDD_at24c08_app-0.0.1 ] && LDD_at24c08_app-0.0.1
