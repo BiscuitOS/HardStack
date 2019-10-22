@@ -319,7 +319,6 @@ static int Page_write(int fd, unsigned char addr, unsigned char offset,
 
 int main()
 {
-	char msg = 0x89;
 	char buf[8];
 	int fd, ret;
 	int idx;
