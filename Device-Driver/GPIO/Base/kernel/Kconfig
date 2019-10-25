@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_GPIO
+	tristate "LDD: GPIO Device Driver"
