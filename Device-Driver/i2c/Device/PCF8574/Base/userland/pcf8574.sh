@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# I2C Device
+# PCF8574A
 #
 # (C) 2019.09.24 BiscuitOS <buddy.zhang@aliyun.com>
 #
@@ -10,4 +10,4 @@
 
 i2cdetect -y 1
 
-[ -f /usr/bin/LDD_at24c08_app-0.0.1 ] && LDD_at24c08_app-0.0.1
+[ -f /usr/bin/LDD_pcf8574_app-0.0.1 ] && LDD_pcf8574_app-0.0.1
