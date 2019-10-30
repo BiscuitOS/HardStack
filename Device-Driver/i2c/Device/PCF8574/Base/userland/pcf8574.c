@@ -133,8 +133,8 @@ int main()
 		return -1;
 	}
 
-	/* Pull up GPIO0 and GPIO1, other Pull down */
-	pcf8574a_write(fd, I2C_ADDR, GPIO_SET, GPIO0 | GPIO1);
+	/* Pull up GPIO1 and GPIO2, other Pull down */
+	pcf8574a_write(fd, I2C_ADDR, GPIO_SET, GPIO1 | GPIO2);
 
 	/* Read GPIO status */
 	pcf8574a_read(fd, I2C_ADDR, GPIO_READ, buf);
