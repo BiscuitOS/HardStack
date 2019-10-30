@@ -1,5 +1,5 @@
 /*
- * UIO Device Driver
+ * UIO Memory Device Driver
  *
  * (C) 2019.10.24 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -17,7 +17,7 @@
 #define DEV_NAME	"UIO_demo"
 #define UIO_VERSION	"0.11"
 
-struct uio_info UIO_demo_info = {
+struct uio_info uinfo = {
 	.name = DEV_NAME,
 	.version = UIO_VERSION,
 	.irq = UIO_IRQ_NONE,
@@ -27,33 +27,33 @@ static int UIO_demo_probe(struct platform_device *pdev)
 {
 	int ret;
 
-	UIO_demo_info.mem[0].addr = (unsigned long)kzalloc(1024, GFP_KERNEL);
-	if (UIO_demo_info.mem[0].addr == 0) {
+	uinfo.mem[0].addr = (unsigned long)kzalloc(1024, GFP_KERNEL);
+	if (uinfo.mem[0].addr == 0) {
 		printk("System no free meory.\n");
 		ret = -ENOMEM;
 		goto err_alloc;
 	}
 
-	UIO_demo_info.mem[0].memtype = UIO_MEM_LOGICAL;
-	UIO_demo_info.mem[0].size = 1024;
+	uinfo.mem[0].memtype = UIO_MEM_LOGICAL;
+	uinfo.mem[0].size = 1024;
 
 	/* Register UIO device */
-	ret = uio_register_device(&pdev->dev, &UIO_demo_info);
+	ret = uio_register_device(&pdev->dev, &uinfo);
 	if (ret) {
 		printk("Register UIO error\n");
 		ret = -ENODEV;
 		goto err_uio;
 	}
 
-	platform_set_drvdata(pdev, &UIO_demo_info);
+	platform_set_drvdata(pdev, &uinfo);
 
 	printk("UIO -> %#lx (length: %ld)\n", 
-			(unsigned long)UIO_demo_info.mem[0].addr,
-			(unsigned long)UIO_demo_info.mem[0].size);
+			(unsigned long)uinfo.mem[0].addr,
+			(unsigned long)uinfo.mem[0].size);
 	return 0;
 
 err_uio:
-	kfree((void *)(unsigned long)UIO_demo_info.mem[0].addr);
+	kfree((void *)(unsigned long)uinfo.mem[0].addr);
 err_alloc:
 	return ret;
 }
@@ -98,4 +98,4 @@ module_exit(UIO_demo_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BuddyZhang1 BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("UIO Device Driver Module");
+MODULE_DESCRIPTION("UIO Memory Device Driver Module");

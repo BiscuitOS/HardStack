@@ -82,16 +82,6 @@ int main()
 		return -1;
 	}
 	
-#if 0
-	/* Write Operations */
-	rvl = I2CBus_packageWrite(fd, I2C_ADDR, 0x0, &msg, 1);
-	if (rvl < 0) {
-		printf("I2C Write error.\n");
-		close(fd);
-		return -1;
-	}
-#endif
-
 	memset(buf, 0, 8);
 	/* Read Operations */
 	rvl = I2CBus_packageRead(fd, I2C_ADDR, 0x0, buf, 1);

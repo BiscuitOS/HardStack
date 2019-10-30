@@ -1,0 +1,10 @@
+/* arch/arm/boot/dts/bcm2711-rpi-4-b.dts */
+
+&soc {
+	UIO_demo {
+		compatible = "BiscuitOS,pcf8574";
+		reg = <0x38>;
+		interrupts-parent = <&gpio>;
+		interrupts = <&gpio 58 IRQ_TYPE_LEVEL_HIGH>;
+	};
+};
