@@ -1,35 +1,51 @@
 #
-CC=gcc
+# Game tetris
+#
+# (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
 
-CFLAGS=-Wall -pedantic -g
+# Install PATH
+ifeq ($(INSPATH), )
+INSTALL_PATH=./
+else
+INSTALL_PATH=$(INSPATH)
+endif
 
-INCLUDES=
+# CROSS_COMPILE form argument
 
-LFLAGS=
+# Compile
+AS		= $(CROSS_COMPILE)as
+LD		= $(CROSS_COMPILE)ld
+CC		= $(CROSS_COMPILE)gcc
+CPP		= $(CC) -E
+AR		= $(CROSS_COMPILE)ar
+NM		= $(CROSS_COMPILE)nm
+STRIP		= $(CROSS_COMPILE)strip
+OBJCOPY		= $(CROSS_COMPILE)objcopy
+OBJDUMP		= $(CROSS_COMPILE)objdump
 
-LIBS=-lncurses
+# FLAGS
+LCFLAGS += -I./ $(CPPFLAGS) $(LIBS) -lncurses
 
-SRCS=tetris.c
+# SRC
+SRC += tetris.c
 
-OBJS=$(SRCS:.c=.o)
+# Target
+ifeq ($(TARGETA), )
+TARGET=tetris_demo
+else
+TARGET=$(TARGETA)
+endif
 
-NAME=tetris
+all:
+	$(CC) $(LCFLAGS) -o $(TARGET) $(SRC)
 
-.PHONY: depend clean
-
-all: $(NAME)
-	@echo  $(NAME) has been compiled.
-
-$(NAME): $(OBJS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(NAME) $(OBJS) $(LFLAGS) $(LIBS)
-
-.c.o:
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
+install:
+	@cp -rfa $(TARGET) $(INSTALL_PATH)
 
 clean:
-	$(RM) *.o *~ $(NAME)
-
-depend: $(SRCS)
-	makedepend $(INCLUDES) $^
-
-#
+	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
+               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd $(TARGET)

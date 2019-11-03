@@ -1,5 +1,5 @@
 #
-# Game 2048
+# Game snake
 #
 # (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -28,20 +28,20 @@ OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 
 # FLAGS
-CFLAGS += -I./
+LCFLAGS += -I./ $(CPPFLAGS) $(LIBS) -lncurses
 
 # SRC
-SRC += 2048.c
+SRC += snake.c
 
 # Target
 ifeq ($(TARGETA), )
-TARGET=2048_demo
+TARGET=snake_demo
 else
 TARGET=$(TARGETA)
 endif
 
 all:
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+	$(CC) $(LCFLAGS) -o $(TARGET) $(SRC)
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
