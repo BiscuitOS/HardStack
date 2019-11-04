@@ -1,5 +1,5 @@
 #
-# UIO Device Driver
+# UIO Interrupt Device Driver
 #
 # (C) 2019.10.30 BuddyZhang1 <buddy.zhang@aliyun.com>
 #

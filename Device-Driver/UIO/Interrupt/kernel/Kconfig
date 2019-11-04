@@ -1,2 +1,2 @@
-config BISCUITOS_LDD_UIO
-	tristate "LDD: UIO Device Driver"
+config BISCUITOS_LDD_UIO_INTR
+	tristate "LDD: UIO Interrupt Device Driver"

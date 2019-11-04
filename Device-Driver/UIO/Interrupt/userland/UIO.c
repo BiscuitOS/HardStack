@@ -21,7 +21,7 @@
 int do_thread(void)
 {
 	int uio_fd;
-	int ret, c;
+	int ret, info;
 
 	uio_fd = open(UIO_DEV, O_RDWR);
 	if (uio_fd < 0) {
@@ -29,12 +29,25 @@ int do_thread(void)
 		exit(-1);
 	}
 
-	/* listen interrupt */
+	/* Enable interrupt */
+	info = 1;
+	write(uio_fd, &info, sizeof(int));
+
 	while (1) {
-		ret = read(uio_fd, &c, sizeof(int));
-		c = 1;
+		/* listening Interrupt */
+		read(uio_fd, &info, sizeof(int));
+
+		/* Disable interrupt */
+		info = 0;
+		write(uio_fd, &info, sizeof(int));
+
+		/* Handle interrupt on userspace */
 		printf("Interrupt from Driver\n");
-		write(uio_fd, &c, sizeof(int));
+		sleep(1);
+
+		/* Enable interrupt */
+		info = 1;
+		write(uio_fd, &info, sizeof(int));
 	}
 
 	close(uio_fd);
