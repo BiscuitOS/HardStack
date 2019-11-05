@@ -282,7 +282,47 @@ static int Page_write(struct i2c_client *client, unsigned char offset,
 static int lm75a_probe(struct i2c_client *client,
 				const struct i2c_device_id *id)
 {
+	struct lm75a_pdata *pdata;
+	struct input_dev *input;
+	int ret;
+
+	/* Build private data */
+	pdata = (struct lm75a_pdata *)kzalloc(sizeof(*pdata), GFP_KERNEL);
+	if (!pdata) {
+		printk("Error: System no free memory.\n");
+		ret = -ENOMEM;
+		goto err_alloc;
+	}
+
+	/* Build input device */
+	input = devm_input_allocate_device(&pdev->dev);
+	if (!input) {
+		printk("Error: allocate input device.\n");
+		ret = -ENOMEM;
+		goto err_input_dev;
+	}
+
+	/* Setup input information */
+	input_set_drvdata(input, pdata);
+	input->name		= DEV_NAME;
+	input->open		= lm75a_open;
+	input->close		= lm75a_close;
+	input->id.bustype	= BUS_HOST;
+
+	/* Setup event */
+	input->evbit[0] = BIT_MASK(EV_SYNC) | BIT_MASK(EV_ABS);
+	input_set_abs_params(input, ABX_X, TEMP_MIN, TEMP_MAX, 0, 0);
+
+	pdata->input = input;
+	platform_set_drvdata(pdev, pdata);
+
+
 	return 0;
+
+err_input_dev:
+	kfree(pdata);
+err_alloc:
+	return ret;
 }
 
 /* Remove: (LDD) Remove Device (Module) */
