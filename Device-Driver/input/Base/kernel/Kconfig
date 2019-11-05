@@ -1,2 +1,4 @@
 config BISCUITOS_LDD_INPUT
+	select INPUT
+	select INPUT_EVDEV
 	tristate "LDD: Input Device Driver"
