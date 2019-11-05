@@ -1,4 +1,4 @@
-/*
+BD-gpio = <&gpio 25 GPIO_ACTIVE_HIGH>;/*
  * GPIO Device Driver
  *
  * (C) 2019.10.24 BuddyZhang1 <buddy.zhang@aliyun.com>
@@ -41,7 +41,7 @@
  *        GPIO_demo {
  *                compatible = "BiscuitOS, GPIO";
  *                status = "okay";
- *                BD-gpio = <&gpio 27 GPIO_ACTIVE_HIGH>;
+ *                BD-gpio = <&gpio 25 GPIO_ACTIVE_HIGH>;
  *        };
  * };
  *
