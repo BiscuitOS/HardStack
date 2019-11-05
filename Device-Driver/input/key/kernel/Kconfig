@@ -1,0 +1,4 @@
+config BISCUITOS_LDD_INPUT_KEY
+	select INPUT
+	select INPUT_EVDEV
+	tristate "LDD: Input Key Device Driver"
