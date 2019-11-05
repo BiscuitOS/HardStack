@@ -1,0 +1,4 @@
+config BISCUITOS_LDD_INPUT_TOUCH
+	select INPUT
+	select INPUT_EVDEV
+	tristate "LDD: Input Touch Device Driver"

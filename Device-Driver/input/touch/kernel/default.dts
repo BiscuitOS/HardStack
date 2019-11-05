@@ -1,0 +1,9 @@
+/* arch/arm/boot/dts/bcm2711-rpi-4-b.dts */
+
+&soc {
+	input_touch {
+		compatible = "BiscuitOS, input_touch";
+		status = "okay";
+		BD-gpio = <&gpio 25 GPIO_ACTIVE_HIGH>;
+	};
+};

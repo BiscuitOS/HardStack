@@ -1,5 +1,5 @@
 #
-# Platform Device Driver on Applicatiion
+# Input key Device Driver on Applicatiion
 #
 # (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
