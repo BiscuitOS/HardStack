@@ -298,7 +298,7 @@ static int lm75a_write(int fd, unsigned char addr, unsigned char offset,
  * and previous data will overwritten. 
  *
  */
-static int lm74a_2bytes_write(int fd, unsigned char addr, unsigned char offset,
+static int lm75a_2bytes_write(int fd, unsigned char addr, unsigned char offset,
 						unsigned char *buf)
 {
 	struct i2c_rdwr_ioctl_data msgset;
