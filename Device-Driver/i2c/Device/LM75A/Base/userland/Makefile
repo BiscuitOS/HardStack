@@ -1,5 +1,5 @@
 #
-#  LM75A Applicatiion
+# LM75A Applicatiion
 #
 # (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
 #

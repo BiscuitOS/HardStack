@@ -28,8 +28,8 @@
 #define LM75A_THYST_REG		0x02
 #define LM75A_TOS_REG		0x03
 
-#define TEMP_MSB_MASK		0x07
-#define TEMP_LSB_MASK		0xFF
+#define TEMP_MSB_MASK		0xFF
+#define TEMP_LSB_MASK		0x07
 
 /* Configuration Register Read
  *
@@ -346,8 +346,8 @@ int main()
 
 	/* Temperature register (Temp) read */
 	lm75a_2bytes_read(fd, I2C_ADDR, LM75A_TEMPER_REG, buf);
-	value = (buf[0] & TEMP_MSB_MASK) << 8;
-	value |= buf[1] & TEMP_LSB_MASK;
+	value  = (buf[0] & TEMP_MSB_MASK) << 3;
+	value |= (buf[1] >> 5) & TEMP_LSB_MASK;
 	printf("Temperature: %f C\n", (float)value * 0.125);
 
 	/* Close I2C Bus */
