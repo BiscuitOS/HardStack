@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_LM75A
+	tristate "LDD: LM75A Temperature Device Driver"
