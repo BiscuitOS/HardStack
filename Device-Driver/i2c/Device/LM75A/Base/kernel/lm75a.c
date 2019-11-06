@@ -30,17 +30,67 @@
  */
 
 /* I2C Device Name */
-#define DEV_NAME	"lm75a"
-#define SLAVE_I2C_ADDR	0x48
+#define DEV_NAME		"lm75a"
+#define SLAVE_I2C_ADDR		0x48
 
-static int Random_read(struct i2c_client *client, 
+#define LM75A_TEMP_REG		0x00
+#define LM75A_CONF_REG		0x01
+#define LM75A_THYST_REG		0x02
+#define LM75A_TOS_REG		0x03
+
+/* Mode with configure register */
+#define LM75A_SHUT_DOWN		0x01
+#define LM75A_NORMAL		0x00
+#define LM75A_OS_INTR		0x02
+#define LM75A_OS_COMP		0x00
+#define LM75A_OS_ACTIVE_HIGH	0x04
+#define LM75A_OS_ACTIVE_LOW	0x00
+
+#define __unused		__attribute__((unused))
+
+/* Configuration Register Read
+ *
+ * SDA LINE
+ *
+ *
+ *  S                                     S
+ *  T                                     T               R               S
+ *  A                                     A               E               T
+ *  R                                     R               A               O
+ *  T                                     T               D               P
+ * +-+-+ +-+ +-+-+-+ + +-+-+-+-+-+-+-+-+-+-+-+ +-+ +-+-+-+-+-+-+-+-+-+-+-+-+
+ * | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ * | | | | | |     | | |*              | | | | | | |     | | |  ...  | | | |
+ * | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ * +-+ +-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ +-+ +-+-+-+-+ +-+-+-+-+-+-+ +-+
+ *    M           L R A M             L A   M           L   A  Data n   N
+ *    S           S / C S             S C   S           S   C  (8bits)  O
+ *    B           B W K B             B K   B           B   K
+ * |                                   |                                A
+ * | <-------------------------------> |                                C
+ *              DUMMY WRITE                                             K
+ *    
+ *
+ * (* = DON't CARE bit for 1K)
+ *    
+ *
+ * A random read requires a "dummy" byte write sequence to load in the
+ * data word address. Once the device address word and data word address
+ * are clocked in and acknowledged by the EEPROM, the microcontroller
+ * must generate another start condition. The microcontroller now initiates
+ * a current address read by sending a device address with the read/write
+ * select bit high. The EEPROM acknowledges the device address and serially
+ * clocks out the data word. The microcontroller does not respond with a
+ * zero but does generate a following stop condition.
+ */
+static int __unused lm75a_read(struct i2c_client *client, 
 				unsigned char offset, unsigned char *buf) 
 {
 	struct i2c_msg msgs[2];
 	int ret;
 
 	msgs[0].addr	= client->addr;
-	msgs[0].flags	= client->flags & I2C_M_TEN;
+	msgs[0].flags	= client->flags;
 	msgs[0].len	= 1;
 	msgs[0].buf	= &offset;
 
@@ -55,26 +105,26 @@ static int Random_read(struct i2c_client *client,
 	return ret;
 }
 
-/* Squential Read
+/* Temp or Tos or Thyst Register read
  *
  * SDA LINE
  *
  *
- *          R                                                   S
- *          E             A           A           A             T
- * DEVICE   A             C           C           C             O
- * ADDRESS  D             K           K           K             P
- * - - - - +-+ +-+-+-+-+-+ +-+-+-+-+-+ +-+-+-+-+-+ +-+-+-+-+-+-+-+
- *       | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
- *         | | |  ...  | | |  ...  | | |  ...  | | |  ...  | | | |
- *       | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
- * - - - - + +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ +-+
- *          R A  Data n      Data n+1    Data n+2    Data n+3 N
- *          / C                                               O
+ *          R                           S
+ *          E             A             T
+ * DEVICE   A             C             O
+ * ADDRESS  D             K             P
+ * - - - - +-+ +-+-+-+-+-+ +-+-+-+-+-+-+-+
+ *       | | | | | | | | | | | | | | | | |
+ *         | | |  ...  | | |  ...  | | | |
+ *       | | | | | | | | | | | | | | | | |
+ * - - - - + +-+-+-+-+-+-+-+-+-+-+-+-+ +-+
+ *          R A   MSB         LSB     N
+ *          / C                       O
  *          W K
- *                                                            A
- *                                                            C
- *                                                            K
+ *                                    A
+ *                                    C
+ *                                    K
  *
  *
  * Sequential reads are initated by either a current address read or a
@@ -87,8 +137,8 @@ static int Random_read(struct i2c_client *client,
  * microcontroller does not respond when a zero but does generate a
  * following stop condition.
  */
-static int Sequen_read(struct i2c_client *client, unsigned char offset,
-			unsigned char *buf, int len)
+static int __unused lm75a_2bytes_read(struct i2c_client *client, 
+				unsigned char offset, unsigned char *buf)
 {
 	struct i2c_msg msgs[2];
 	int ret;
@@ -100,7 +150,7 @@ static int Sequen_read(struct i2c_client *client, unsigned char offset,
 
 	msgs[1].addr	= client->addr;
 	msgs[1].flags	= I2C_M_RD;
-	msgs[1].len	= len;
+	msgs[1].len	= 2;
 	msgs[1].buf	= buf;
 
 	ret = i2c_transfer(client->adapter, msgs, 2);
@@ -109,24 +159,24 @@ static int Sequen_read(struct i2c_client *client, unsigned char offset,
 	return ret;
 }
 
-/* Current Address Read
+/* Presetn Pointer Read
  * 
  *           S
- *           T               R                     S
- *           A               E                     T
- *           R               A                     O
- *           T               D                     P
- *          +-+-+ +-+ +-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
- *          | | | | | | | | | | | | | | | | | | | | |
- * SDA LINE | | | | | |     | | |               | | |
- *          | | | | | | | | | | | | | | | | | | | | |
- *          +-+ +-+ +-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+
- *             M           L R A      DATA       N
- *             S           S / C                 O
- *             B           B W K
- *                                               A
- *                                               C
- *                                               K
+ *           T               R                                   S
+ *           A               E                                   T
+ *           R               A                                   O
+ *           T               D                                   P
+ *          +-+-+ +-+ +-+-+-+-+ +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+
+ *          | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ * SDA LINE | | | | | |     | | |             | |             | | |
+ *          | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ *          +-+ +-+ +-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ +-+
+ *             M           L R A       MSB     A    LSB        N
+ *             S           S / C               C               O
+ *             B           B W K               K
+ *                                                             A
+ *                                                             C
+ *                                                             K
  *
  * The internal data word address counter maintains the last address
  * accessed during the last read or write operation, incremented by one,
@@ -142,14 +192,15 @@ static int Sequen_read(struct i2c_client *client, unsigned char offset,
  * with an input zero but does generated a following stop condition.
  *
  */
-static int Current_Address_read(struct i2c_client *client, unsigned char *buf)
+static int __unused lm75a_present_read(struct i2c_client *client, 
+							unsigned char *buf)
 {
 	struct i2c_msg msgs;
 	int ret;
 
 	msgs.addr	= client->addr;
 	msgs.flags	= I2C_M_RD;
-	msgs.len	= 1;
+	msgs.len	= 2;
 	msgs.buf	= buf;
 
 	ret = i2c_transfer(client->adapter, &msgs, 1);
@@ -158,7 +209,7 @@ static int Current_Address_read(struct i2c_client *client, unsigned char *buf)
 	return ret;
 }
 
-/* Byte Write
+/* Configuration Register Write
  *
  *
  *  S               W
@@ -187,8 +238,8 @@ static int Current_Address_read(struct i2c_client *client, unsigned char *buf)
  * and the EEPROM will not respond until the write is complete.
  *
  */
-static int Byte_write(struct i2c_client *client, unsigned char offset,
-							unsigned char data)
+static int __unused lm75a_write(struct i2c_client *client, 
+				unsigned char offset, unsigned char data)
 {
 	struct i2c_msg msgs;
 	unsigned char tmp[2];
@@ -207,25 +258,25 @@ static int Byte_write(struct i2c_client *client, unsigned char offset,
 	return ret;
 }
 
-/* Page Write
+/* Tos or Thyst Register Write
  * 
  * SDA LINE
  *
  *
  *
  *  S               W
- *  T               R                                                   S
- *  A               I                                                   T
- *  R  DEVICE       T                                                   O
- *  T ADDRESS       E    WORD ADDRESS      DATAn    DATAm     DATAp     P
- * +-+-+ +-+ +-+-+-+ + +-+-+-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+-+ +-+-+-+-+ +-+
- * | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
- * | | | | | |     | | |*              | |  ...  | |  ...  | |  ...  | | |
- * | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
- * +-+ +-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *    M           L R A   M           L A         A         A         A
- *    S           S / C   S           S C         C         C         C
- *    B           B W K   B           B K         K         K         K
+ *  T               R                                         S
+ *  A               I                                         T
+ *  R  DEVICE       T                                         O
+ *  T ADDRESS       E    WORD ADDRESS       MSB       LSB     P
+ * +-+-+ +-+ +-+-+-+ + +-+-+-+-+-+-+-+-+ +-+-+-+-+ +-+-+-+-+ +-+
+ * | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ * | | | | | |     | | |*              | |  ...  | |  ...  | | |
+ * | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ * +-+ +-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    M           L R A   M           L A         A         A
+ *    S           S / C   S           S C         C         C
+ *    B           B W K   B           B K         K         K
  *
  *
  * The 1K/2K EEPROM is capable of an 8-byte page write, and the 4K,
@@ -249,26 +300,26 @@ static int Byte_write(struct i2c_client *client, unsigned char offset,
  * and previous data will overwritten. 
  *
  */
-static int Page_write(struct i2c_client *client, unsigned char offset,
-						unsigned char *buf, int len)
+static int __unused lm75a_2bytes_write(struct i2c_client *client, 
+				unsigned char offset, unsigned char *buf)
 {
 	struct i2c_msg msgs;
 	unsigned char *tmp;
 	int ret;
 
 	/* kzalloc */
-	tmp = kzalloc(len + 1, GFP_KERNEL);
+	tmp = kzalloc(3, GFP_KERNEL);
 	if (!tmp) {
 		printk("Unable to allocate memory\n");
 		return -ENOMEM;
 	}
 
 	tmp[0] = offset;
-	memcpy(&tmp[1], buf, len);
+	memcpy(&tmp[1], buf, 2);
 
 	msgs.addr	= client->addr;
 	msgs.flags	= client->flags;
-	msgs.len	= len + 1;
+	msgs.len	= 3;
 	msgs.buf	= tmp;
 
 	ret = i2c_transfer(client->adapter, &msgs, 1);
@@ -278,51 +329,26 @@ static int Page_write(struct i2c_client *client, unsigned char offset,
 	return ret;
 }
 
+/* Cover 11bit data to a integer dataa */
+static inline int lm75a_temperature(unsigned char msb, unsigned char lsb)
+{
+	return (msb << 3) | ((lsb >> 5) & 0x7);
+}
+
 /* Probe: (LDD) Initialize Device */
 static int lm75a_probe(struct i2c_client *client,
 				const struct i2c_device_id *id)
 {
-	struct lm75a_pdata *pdata;
-	struct input_dev *input;
-	int ret;
+	unsigned char buf[2];
+	int temp;
 
-	/* Build private data */
-	pdata = (struct lm75a_pdata *)kzalloc(sizeof(*pdata), GFP_KERNEL);
-	if (!pdata) {
-		printk("Error: System no free memory.\n");
-		ret = -ENOMEM;
-		goto err_alloc;
-	}
-
-	/* Build input device */
-	input = devm_input_allocate_device(&pdev->dev);
-	if (!input) {
-		printk("Error: allocate input device.\n");
-		ret = -ENOMEM;
-		goto err_input_dev;
-	}
-
-	/* Setup input information */
-	input_set_drvdata(input, pdata);
-	input->name		= DEV_NAME;
-	input->open		= lm75a_open;
-	input->close		= lm75a_close;
-	input->id.bustype	= BUS_HOST;
-
-	/* Setup event */
-	input->evbit[0] = BIT_MASK(EV_SYNC) | BIT_MASK(EV_ABS);
-	input_set_abs_params(input, ABX_X, TEMP_MIN, TEMP_MAX, 0, 0);
-
-	pdata->input = input;
-	platform_set_drvdata(pdev, pdata);
-
+	/* Read Temperature */
+	memset(buf, 0, 2);
+	lm75a_2bytes_read(client, LM75A_TEMP_REG, buf);
+	temp = lm75a_temperature(buf[0], buf[1]);
+	printk("Tempeture: %d\n", temp);
 
 	return 0;
-
-err_input_dev:
-	kfree(pdata);
-err_alloc:
-	return ret;
 }
 
 /* Remove: (LDD) Remove Device (Module) */

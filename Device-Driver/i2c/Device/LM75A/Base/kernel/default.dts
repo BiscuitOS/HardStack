@@ -1,7 +1,7 @@
 /* arch/arm/boot/dts/bcm2711-rpi-4-b.dts */
 
 &i2c1 {
-	lm75a@50 {
+	lm75a@48 {
 		compatible = "BiscuitOS,lm75a";
 		reg = <0x48>;
 	};
