@@ -1,5 +1,5 @@
 /*
- * AT24C08A Userland
+ * PCF8574AT 8-bit I/O expander Application
  *
  * (C) 2019.10.29 <buddy.zhang@aliyun.com>
  *
@@ -30,6 +30,7 @@
 #define GPIO6		0x20
 #define GPIO7		0x40
 #define GPIO8		0x80
+#define GPIO_ALL	0xFF
 #define GPIO_MASK	0xFF
 #define GPIO_READ	0x01
 #define GPIO_SET	0x00
@@ -133,13 +134,14 @@ int main()
 		return -1;
 	}
 
-	/* Pull up GPIO1 and GPIO2, other Pull down */
-	pcf8574a_write(fd, I2C_ADDR, GPIO_SET, GPIO1 | GPIO2);
+	while (1) {
+		/* Breathing lamp */
+		sleep(1);
+		pcf8574a_write(fd, I2C_ADDR, GPIO_ALL, GPIO1);
+		sleep(1);
+		pcf8574a_write(fd, I2C_ADDR, GPIO_ALL, ~GPIO1);
+	}
 
-	/* Read GPIO status */
-	pcf8574a_read(fd, I2C_ADDR, GPIO_READ, buf);
-	printf("buf[0] %hhx\n", buf[0]);
-	printf("buf[1] %hhx\n", buf[1]);
 	/* Close I2C Bus */
 	close(fd);
 
