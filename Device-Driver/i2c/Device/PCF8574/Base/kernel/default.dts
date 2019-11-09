@@ -4,7 +4,6 @@
 	pcf8574@50 {
 		compatible = "BiscuitOS,pcf8574";
 		reg = <0x38>;
-		interrupts-parent = <&gpio>;
-		interrupts = <&gpio 58 IRQ_TYPE_LEVEL_HIGH>;
+		BD-gpio = <&gpio 25 GPIO_ACTIVE_HIGH>;
 	};
 };
