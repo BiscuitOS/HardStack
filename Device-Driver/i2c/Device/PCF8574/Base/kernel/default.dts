@@ -1,7 +1,7 @@
 /* arch/arm/boot/dts/bcm2711-rpi-4-b.dts */
 
 &i2c1 {
-	pcf8574@50 {
+	pcf8574@38 {
 		compatible = "BiscuitOS,pcf8574";
 		reg = <0x38>;
 		BD-gpio = <&gpio 25 GPIO_ACTIVE_HIGH>;
