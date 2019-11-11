@@ -1,5 +1,5 @@
 /*
- * PCF8574 IO Expander Device Driver
+ * PCF8574 IO Device Driver
  *
  * (C) 2019.10.30 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -49,7 +49,7 @@
  * (GPIO_GEN3) GPIO22 | 15   16 | GPIO23 (GPIO_GEN4)
  *               3V3  | 17   18 | GPIO24 (GPIO_GEN5)
  *  (SPI_MOSI) GPIO10 | 19   20 | GND
- *   (SPI_MISO) GPIO9 | 21   22 | GPIO25 (GPIO_GEN6)
+ *   (SPI_MISO) GPIO9 | 21   22 | GPIO25 (GPIO_GEN6) <------ Interrupt
  *  (SPI_SCLK) GPIO11 | 23   24 | GPIO8  (SPI_CE0_N)
  *                GND | 25   26 | GPIO7  (SPI_CE1_N)
  *              ID_SD | 27   28 | ID_SC
@@ -80,6 +80,15 @@
 #define GPIO_ALL		0xFF
 
 #define __unused		__attribute__((unused))
+
+struct pcf8574_priv
+{
+	struct i2c_client *client;
+	struct work_struct wq;
+	int irq;
+	int gpio;
+	u8  data; /* priv gpio state */
+};
 
 /* Read
  *
@@ -159,26 +168,98 @@ static int __unused pcf8574a_write(struct i2c_client *client,
 	return ret;
 }
 
+static void wq_isr(struct work_struct *work)
+{
+	struct pcf8574_priv *priv;
+	unsigned char buf[2];
+
+	priv = container_of(work, struct pcf8574_priv, wq);
+	/* Read GPIO Status */
+	memset(buf, 0, 2);
+	pcf8574a_read(priv->client, GPIO_ALL, buf);
+	printk("GPIO Status: %#hhx\n", buf[0]);
+}
+
+/* IRQ handler */
+static irqreturn_t pcf8574_isr(int irq, void *dev_id)
+{
+	struct pcf8574_priv *priv = (struct pcf8574_priv *)dev_id;
+	
+	/* Low speed deal with on work queue */
+	schedule_work(&priv->wq);
+
+	return IRQ_HANDLED;
+}
+
 /* Probe: (LDD) Initialize Device */
 static int pcf8574_probe(struct i2c_client *client,
 				const struct i2c_device_id *id)
 {
-	unsigned char buf[2];
+	struct device_node *np = client->dev.of_node;
+	struct pcf8574_priv *priv;
+	int ret;
 
+	/* allocate memory */
+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+	if (!priv) {
+		printk("ERROR: no free memory\n");
+		ret = -ENOMEM;
+		goto err_alloc;
+	}
+	
+	/* Get IRQ number from DTB */
+	priv->gpio = of_get_named_gpio(np, "BD-gpio", 0);
+	if (priv->gpio < 0) {
+		printk("Error: unable to get GPIO from DTS\n");
+		ret = -EINVAL;
+		goto err_gpio;
+	}
+	gpio_direction_input(priv->gpio);
+	priv->irq = gpio_to_irq(priv->gpio);
+	if (priv->irq < 0) {
+		printk("Error: unable to get IRQ\n");
+		ret = -EINVAL;
+		goto err_gpio;
+	}
+
+	priv->client = client;
+	i2c_set_clientdata(client, priv);
 	/* setup GPIO3 as down */
 	pcf8574a_write(client, GPIO_ALL, GPIO3);
+	/* Initialize workqueue */
+	INIT_WORK(&priv->wq, wq_isr);
+	mdelay(100);
 
-	/* Read GPIO status */
-	memset(buf, 0, 2);
-	pcf8574a_read(client, GPIO_ALL, buf);
-	printk("PCF8574 8-bit I/O expander Status: %#hhx\n", buf[0]);
+	/* Require IRQ */
+	ret = request_irq(priv->irq, pcf8574_isr,
+				IRQF_TRIGGER_RISING, 
+				DEV_NAME, priv);
+	if (ret < 0) {
+		printk("Can't request IRQ %d\n", priv->irq);
+		return -EINVAL;
+		goto err_gpio;
+	}
+
+	printk("GPIO-Export IRQ: %d\n", priv->irq);
+
 	return 0;
 
+err_gpio:
+	kfree(priv);
+err_alloc:
+	return ret;
 }
 
 /* Remove: (LDD) Remove Device (Module) */
 static int pcf8574_remove(struct i2c_client *client)
 {
+	struct pcf8574_priv *priv = dev_get_drvdata(&client->dev);
+
+	/* Free IRQ */
+	free_irq(priv->irq, priv);
+	kfree(priv);
+	i2c_set_clientdata(client, NULL);
+
 	return 0;
 }
 
