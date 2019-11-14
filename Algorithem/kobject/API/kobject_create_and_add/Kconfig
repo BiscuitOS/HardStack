@@ -1,0 +1,2 @@
+config BISCUITOS_KOBJECT_CREATE_ADD
+	tristate "Kobject: kobject_create_and_add"
