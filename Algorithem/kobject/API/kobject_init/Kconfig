@@ -1,0 +1,2 @@
+config BISCUITOS_KOBJECT_INIT
+	tristate "Kobject: kobject_init"
