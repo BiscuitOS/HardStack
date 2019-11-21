@@ -162,15 +162,78 @@ struct bsfs_iattrs {
 	struct simple_xattrs	xattrs;
 };
 
+struct bsfs_open_node {
+	atomic_t		refcnt;
+	atomic_t		event;
+	wait_queue_head_t	poll;
+	struct list_head	files;
+};
+
+struct bsfs_super_info {
+	struct super_block	*sb;
+	struct bsfs_root	*root;
+	const void		*ns;
+	struct list_head	node;
+};
+#define bsfs_info(SB)	((struct bsfs_super_info *)(SB->s_fs_info))
+
 static inline enum bsfs_node_type bsfs_type(struct bsfs_node *kn)
 {
 	return kn->flags & BSFS_TYPE_MASK;
 }
 
+static inline struct bsfs_root *bsfs_root(struct bsfs_node *kn)
+{
+	if (kn->parent)
+		kn = kn->parent;
+	return kn->dir.root;
+}
+
+static inline struct bsfs_node *bsfs_dentry_node(struct dentry *dentry)
+{
+	if (d_really_is_negative(dentry))
+		return NULL;
+	return d_inode(dentry)->i_private;
+}
+
+static inline bool bsfs_ns_enabled(struct bsfs_node *kn)
+{
+	return kn->flags & BSFS_NS;
+}
 
 extern struct bsfs_root *bsfs_create_root(struct bsfs_syscall_ops *scops,
 				unsigned int flags, void *priv);
 extern struct kmem_cache *bsfs_node_cache;
 extern void bsfs_init(void);
 extern int __bsfs_setattr(struct bsfs_node *kn, const struct iattr *iattr);
+extern void bsfs_destroy_root(struct bsfs_root *root);
+extern void bsfs_drain_open_files(struct bsfs_node *kn);
+extern void bsfs_destroy_root(struct bsfs_root *root);
+extern ssize_t bsfs_iop_listxattr(struct dentry *dentry, 
+						char *buf, size_t size);
+extern int bsfs_iop_getattr(const struct path *path, struct kstat *stat,
+                        u32 request_mask, unsigned int query_flags);
+extern int bsfs_iop_setattr(struct dentry *dentry, struct iattr *iattr);
+extern int bsfs_iop_permission(struct inode *inode, int mask);
+extern struct inode *bsfs_get_inode(struct super_block *sb, 
+						struct bsfs_node *kn);
+extern struct mutex bsfs_mutex;
+extern const struct file_operations bsfs_file_fops;
+extern const struct inode_operations bsfs_dir_iops;
+extern const struct file_operations bsfs_dir_fops;
+extern void bsfs_get(struct bsfs_node *kn);
+extern void bsfs_put_active(struct bsfs_node *kn);
+extern struct bsfs_node *bsfs_get_active(struct bsfs_node *kn);
+extern void bsfs_kill_sb(struct super_block *sb);
+extern const void *bsfs_super_ns(struct super_block *sb);
+extern const struct inode_operations bsfs_symlink_iops;
+extern const struct dentry_operations bsfs_dops;
+extern struct dentry *bsfs_mount_ns(struct file_system_type *fs_type, int flags,
+                        struct bsfs_root *root, unsigned long magic,
+                        bool *new_sb_created, const void *ns);
+extern const struct xattr_handler *bsfs_xattr_handlers[];
+extern void bsfs_evict_inode(struct inode *inode);
+extern void bsfs_put(struct bsfs_node *kn);
+extern struct bsfs_node *bsfs_find_and_get_node_by_ino(struct bsfs_root *root,
+                                        unsigned int ino);
 #endif

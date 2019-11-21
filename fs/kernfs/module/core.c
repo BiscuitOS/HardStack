@@ -13,18 +13,10 @@
 
 #include "linux/bsfs.h"
 
-static struct bsfs_root *bsfs_root;
-
 /* Module initialize entry */
 static int __init Demo_init(void)
 {
 	bsfs_init();
-
-	bsfs_root = bsfs_create_root(NULL, 
-			BSFS_ROOT_EXTRA_OPEN_PERM_CHECK, NULL);
-
-	if (IS_ERR(bsfs_root))
-		return PTR_ERR(bsfs_root);
 
 	printk("BSFilesystem Root install...\n");
 	return 0;
