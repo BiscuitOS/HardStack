@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 /* rbtree */
-#include <rbtree.h>
+#include "rbtree.h"
 
 struct node {
 	struct rb_node node;

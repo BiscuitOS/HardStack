@@ -20,7 +20,7 @@
 
   Copy from linux/lib/rbtree.c
 */
-#include <rbtree.h>
+#include "rbtree.h"
 
 static inline void rb_set_black(struct rb_node *rb)
 {
