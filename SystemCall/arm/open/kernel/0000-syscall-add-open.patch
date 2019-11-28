@@ -1,0 +1,8 @@
+diff -uprN old/arch/arm/tools/syscall.tbl new/arch/arm/tools/syscall.tbl
+--- old/arch/arm/tools/syscall.tbl	2019-03-04 07:21:29.000000000 +0800
++++ new/arch/arm/tools/syscall.tbl	2019-11-28 16:55:36.575702524 +0800
+@@ -414,3 +414,4 @@
+ 397	common	statx			sys_statx
+ 398	common	rseq			sys_rseq
+ 399	common	io_pgetevents		sys_io_pgetevents
++400	common	BiscuitOS_open		sys_BiscuitOS_open
