@@ -11,6 +11,7 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/mm.h>
+#include <linux/module.h>
 
 /* header of radix-tree */
 #include <linux/idr.h>
@@ -63,4 +64,8 @@ static __init int idr_demo_init(void)
 
 	return 0;
 }
-device_initcall(idr_demo_init);
+module_init(idr_demo_init);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
+MODULE_DESCRIPTION("BiscuitOS");
