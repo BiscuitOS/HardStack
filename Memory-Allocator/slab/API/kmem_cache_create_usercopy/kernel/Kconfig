@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_SLAB
+	tristate "SLAB Device Driver"
