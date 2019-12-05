@@ -10,6 +10,7 @@
 
 #include <linux/kernel.h>
 #include <linux/init.h>
+#include <linux/module.h>
 
 /* header of rbtree */
 #include <linux/rbtree.h>
@@ -130,4 +131,8 @@ static __init int rbtree_demo_init(void)
 
 	return 0;
 }
-device_initcall(rbtree_demo_init);
+module_init(rbtree_demo_init);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
+MODULE_DESCRIPTION("BiscuitOS RBTree");
