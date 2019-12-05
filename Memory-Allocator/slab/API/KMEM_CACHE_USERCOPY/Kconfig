@@ -1,0 +1,2 @@
+config BISCUITOS_SLAB
+	tristate "Device Driver"
