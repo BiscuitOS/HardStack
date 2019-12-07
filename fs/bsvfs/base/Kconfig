@@ -1,0 +1,2 @@
+config BISCUITOS_FS
+	tristate "BiscuitOS Filesystem"
