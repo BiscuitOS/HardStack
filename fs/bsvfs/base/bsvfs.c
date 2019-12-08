@@ -19,12 +19,17 @@
 #include <linux/exportfs.h>
 #include <linux/mempolicy.h>
 #include <linux/posix_acl.h>
+#include <linux/security.h>
+#include <linux/mman.h>
 
 /* fs maigc */
 #define BISCUITOS_FS_MAGIC	0x911016
 
 /* Pretend that each entry is of this size in directory's i_size */
 #define BOGO_DIRENT_SIZE	20
+#define VM_ACCT(size)		(PAGE_ALIGN(size) >> PAGE_SHIFT)
+/* Not support xattr */
+#define BiscuitOS_initxattrs	NULL
 
 /* BiscuitOS inode info */
 struct BiscuitOS_inode_info
@@ -64,6 +69,9 @@ static struct kmem_cache *BiscuitOS_inode_cachep;
 /* mount pointer */
 static struct vfsmount *BiscuitOS_mnt;
 
+static LIST_HEAD(BiscuitOS_swaplist);
+static DEFINE_MUTEX(BiscuitOS_swaplist_mutex);
+
 /* head list */
 static const struct inode_operations BiscuitOS_special_inode_operations;
 static const struct address_space_operations BiscuitOS_aops;
@@ -72,6 +80,9 @@ static const struct file_operations BiscuitOS_file_operations;
 static const struct inode_operations BiscuitOS_dir_inode_operations;
 static const struct super_operations BiscuitOS_ops;
 static const struct export_operations BiscuitOS_export_ops;
+static struct inode *BiscuitOS_get_inode(struct super_block *,
+			const struct inode *, umode_t, dev_t, unsigned long);
+static void BiscuitOS_free_inode(struct super_block *sb);
 
 static void BiscuitOS_init_inode(void *foo)
 {
@@ -118,6 +129,25 @@ static inline struct BiscuitOS_sb_info *BISCUITOS_SB(struct super_block *sb)
 	return sb->s_fs_info;
 }
 
+static inline void BiscuitOS_unacct_size(unsigned long flags, loff_t size)
+{
+	if (!(flags & VM_NORESERVE))
+		vm_unacct_memory(VM_ACCT(size));
+}
+
+static void BiscuitOS_undo_range(struct inode *inode, 
+				loff_t lstart, loff_t lend, bool unfalloc)
+{
+	printk("\n\n\n\n%s\n\n\n", __func__);
+}
+
+static void BiscuitOS_truncate_range(struct inode *inode, 
+						loff_t lstart, loff_t lend)
+{
+	BiscuitOS_undo_range(inode, lstart, lend, false);
+	inode->i_ctime = inode->i_mtime = current_time(inode);
+}
+
 static int BiscuitOS_encode_fh(struct inode *inode, __u32 *fh,
 			int *len, struct inode *parent)
 {
@@ -151,9 +181,19 @@ static struct inode *BiscuitOS_alloc_inode(struct super_block *sb)
 	return &info->vfs_inode;
 }
 
+static void BiscuitOS_destroy_callback(struct rcu_head *head)
+{
+	struct inode *inode = container_of(head, struct inode, i_rcu);
+	if (S_ISLNK(inode->i_mode))
+		kfree(inode->i_link);
+	kmem_cache_free(BiscuitOS_inode_cachep, BISCUITOS_I(inode));
+}
+
 static void BiscuitOS_destroy_inode(struct inode *inode)
 {
-	printk("\n\n\n\n%s\n\n\n", __func__);
+	if (S_ISREG(inode->i_mode))
+		mpol_free_shared_policy(&BISCUITOS_I(inode)->policy);
+	call_rcu(&inode->i_rcu, BiscuitOS_destroy_callback);
 }
 
 static int BiscuitOS_statfs(struct dentry *dentry, struct kstatfs *buf)
@@ -176,7 +216,32 @@ static int BiscuitOS_show_options(struct seq_file *seq, struct dentry *root)
 
 static void BiscuitOS_evict_inode(struct inode *inode)
 {
-	printk("\n\n\n\n%s\n\n\n", __func__);
+	struct BiscuitOS_inode_info *info = BISCUITOS_I(inode);
+	struct BiscuitOS_sb_info *sbinfo = BISCUITOS_SB(inode->i_sb);
+
+	if (inode->i_mapping->a_ops == &BiscuitOS_aops) {
+		BiscuitOS_unacct_size(info->flags, inode->i_size);
+		inode->i_size = 0;
+		BiscuitOS_truncate_range(inode, 0, (loff_t)-1);
+		if (!list_empty(&info->shrinklist)) {
+			spin_lock(&sbinfo->shrinklist_lock);
+			if (!list_empty(&info->shrinklist)) {
+				list_del_init(&info->shrinklist);
+				sbinfo->shrinklist_len--;
+			}
+			spin_unlock(&sbinfo->shrinklist_lock);
+		}
+		if (!list_empty(&info->swaplist)) {
+			mutex_lock(&BiscuitOS_swaplist_mutex);
+			list_del_init(&info->swaplist);
+			mutex_unlock(&BiscuitOS_swaplist_mutex);
+		}
+	}
+
+	simple_xattrs_free(&info->xattrs);
+	WARN_ON(inode->i_blocks);
+	BiscuitOS_free_inode(inode->i_sb);
+	clear_inode(inode);
 }
 
 static int BiscuitOS_getattr(const struct path *path, struct kstat *stat,
@@ -298,7 +363,15 @@ static int BiscuitOS_link(struct dentry *old_dentry, struct inode *dir,
 
 static int BiscuitOS_unlink(struct inode *dir, struct dentry *dentry)
 {
-	printk("\n\n\n\n%s\n\n\n", __func__);
+	struct inode *inode = d_inode(dentry);
+
+	if (inode->i_nlink > 1 && !S_ISDIR(inode->i_mode))
+		BiscuitOS_free_inode(inode->i_sb);
+
+	dir->i_size -= BOGO_DIRENT_SIZE;
+	inode->i_ctime = dir->i_ctime = dir->i_mtime = current_time(inode);
+	drop_nlink(inode);
+	dput(dentry);/* Undo the count from "create" - this does all the work */
 	return 0;
 }
 
@@ -309,25 +382,57 @@ static int BiscuitOS_symlink(struct inode *dir, struct dentry *dentry,
 	return 0;
 }
 
+/* File creation. Allocate an inode, and we're done.. */
+static int BiscuitOS_mknod(struct inode *dir, struct dentry *dentry,
+					umode_t mode, dev_t dev)
+{
+	struct inode *inode;
+	int error = -ENOSPC;
+
+	inode = BiscuitOS_get_inode(dir->i_sb, dir, mode, dev, VM_NORESERVE);
+	if (inode) {
+		error = simple_acl_create(dir, inode);
+		if (error)
+			goto out_input;
+		error = security_inode_init_security(inode, dir,
+						&dentry->d_name,
+						BiscuitOS_initxattrs, NULL);
+		if (error && error != -EOPNOTSUPP)
+			goto out_input;
+
+		error = 0;
+		dir->i_size += BOGO_DIRENT_SIZE;
+		dir->i_ctime = dir->i_mtime = current_time(dir);
+		d_instantiate(dentry, inode);
+		dget(dentry); /* Extra count - pin the dentry in core */
+	}
+	return error;
+
+out_input:
+	iput(inode);
+	return error;
+}
+
 static int BiscuitOS_mkdir(struct inode *dir, 
 				struct dentry *dentry, umode_t mode)
 {
-	printk("\n\n\n\n%s\n\n\n", __func__);
+	int error;
+
+	if ((error = BiscuitOS_mknod(dir, dentry, mode | S_IFDIR, 0)))
+		return error;
+	inc_nlink(dir);
 	return 0;
 }
 
 static int BiscuitOS_rmdir(struct inode *dir, struct dentry *dentry)
 {
-	printk("\n\n\n\n%s\n\n\n", __func__);
-	return 0;
-}
+	if (!simple_empty(dentry))
+		return -ENOTEMPTY;
 
-/* File creation. Allocate an inode, and we're done.. */
-static int BiscuitOS_mknod(struct inode *dir, struct dentry *dentry,
-					umode_t mode, dev_t dev)
-{
-	printk("\n\n\n\n%s\n\n\n", __func__);
-	return 0;
+	drop_nlink(d_inode(dentry));
+	drop_nlink(dir);
+
+	return BiscuitOS_unlink(dir, dentry);
 }
 
 static int BiscuitOS_rename(struct inode *old_dir, struct dentry *old_dentry,
