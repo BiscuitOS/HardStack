@@ -272,9 +272,29 @@ static int BiscuitOS_remount_fs(struct super_block *sb, int *flags, char *data)
 	return 0;
 }
 
+static inline void BiscuitOS_show_mpol(struct seq_file *seq,
+						struct mempolicy *mpol)
+{
+}
+
 static int BiscuitOS_show_options(struct seq_file *seq, struct dentry *root)
 {
-	printk("\n\n\n\n%s\n\n\n", __func__);
+	struct BiscuitOS_sb_info *sbinfo = BISCUITOS_SB(root->d_sb);
+
+	if (sbinfo->max_blocks != BiscuitOS_default_max_blocks())
+		seq_printf(seq, ",size=%luk",
+			sbinfo->max_blocks << (PAGE_SHIFT - 10));
+	if (sbinfo->max_inodes != BiscuitOS_default_max_inodes())
+		seq_printf(seq, ",nr_inodes=%lu", sbinfo->max_inodes);
+	if (sbinfo->mode != (0777 | S_ISVTX))
+		seq_printf(seq, ",mode=%03ho", sbinfo->mode);
+	if (!uid_eq(sbinfo->uid, GLOBAL_ROOT_UID))
+		seq_printf(seq, ",uid=%u",
+			from_kuid_munged(&init_user_ns, sbinfo->uid));
+	if (!gid_eq(sbinfo->gid, GLOBAL_ROOT_GID))
+		seq_printf(seq, ",gid=%u",
+			from_kgid_munged(&init_user_ns, sbinfo->gid));
+	BiscuitOS_show_mpol(seq, sbinfo->mpol);
 	return 0;
 }
 
