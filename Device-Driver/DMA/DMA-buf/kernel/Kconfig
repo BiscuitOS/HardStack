@@ -1,0 +1,2 @@
+config BISCUITOS_DMABUF
+	tristate "DMA-Buffer"

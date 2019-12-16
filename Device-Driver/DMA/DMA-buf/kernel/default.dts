@@ -1,0 +1,15 @@
+/*
+ * DMA-Buffer
+ *
+ * (C) 2019.01.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+/ {
+	BiscuitOS_demo {
+		compatible = "dma-buf, BiscuitOS";
+		status = "okay";
+	};
+};
