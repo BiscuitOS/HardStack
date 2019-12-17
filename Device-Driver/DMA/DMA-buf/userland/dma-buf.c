@@ -33,7 +33,7 @@ int main()
 	struct dma_info dinfo;
 
 	/* Open */
-	fd = open("/dev/BiscuitOS", O_RDWR, 0);
+	fd = open("/dev/BiscuitOS", O_RDWR, 0644);
 	if (fd < 0) {
 		printf("Unable to open DMA-buf\n");
 		return -1;
@@ -43,7 +43,7 @@ int main()
 	memset(&dinfo, 0x00, sizeof(struct dma_info));
 	
 	/* setup dma-buf */
-	dinfo.size = 0x1000;
+	dinfo.size = 0x100000;
 
 	if (ioctl(fd, GET_DMA_BUF, &dinfo) < 0) {
 		printf("DMA-buf alloc fail\n");
@@ -60,6 +60,7 @@ int main()
 				      0);
 	if (vaddr == MAP_FAILED) {
 		printf("DMA-Buffer map error!\n");
+		close(fd);
 		return -1;
 	}
 	strcpy((char *)vaddr, "BiscuitOS");

@@ -30,6 +30,7 @@
 #include <linux/uaccess.h>
 #include <linux/dma-mapping.h>
 #include <linux/dma-buf.h>
+#include <linux/dma-direct.h>
 
 /* LDD Platform Name */
 #define DEV_NAME	"BiscuitOS_demo"
@@ -287,12 +288,12 @@ static int demo_ioctl_get_dmabuf(struct device *dev, unsigned long arg)
 	/* allocate structure dma_buf */
 	dbuf = kzalloc(sizeof(struct demo_dma_buffer), GFP_KERNEL);
 	if (!dbuf) {
-		ret = PTR_ERR(dbuf);
+		ret = -ENOMEM;
 		goto err_user;
 	}
 	dbuf->size = info.size;
 
-	/* Allocate dma buffer */
+	/* Allocate DMA Memory */
 	dbuf->cpu_handle = dma_alloc_coherent(dev,
 					dbuf->size,
 					&dbuf->dma_handle,
@@ -301,6 +302,11 @@ static int demo_ioctl_get_dmabuf(struct device *dev, unsigned long arg)
 		ret = -EFAULT;
 		goto err_handler;
 	}
+	/* DMA memory information */
+	printk("DMA-Memory Vir-addr: %#lx\n", (unsigned long)dbuf->cpu_handle);
+	printk("DMA-Memory DMA-addr: %#lx\n", (unsigned long)dbuf->dma_handle);
+	printk("DMA-Memory Phy-addr: %#lx\n", 
+			(unsigned long)dma_to_phys(dev, dbuf->dma_handle));
 
 	/* sg_table setup */
 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
@@ -356,6 +362,8 @@ err_handler:
 err_user:
 	return ret;
 }
+
+/** DMA-buf file operations **/
 
 static int demo_open(struct inode *inode, struct file *filp)
 {
