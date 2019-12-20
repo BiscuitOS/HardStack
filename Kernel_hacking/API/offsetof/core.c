@@ -22,6 +22,7 @@ struct demo_node
 	struct demo_node *next;
 	char *name;
 	unsigned int index;
+	const char iname[];
 };
 
 /* Module initialize entry */
@@ -33,6 +34,10 @@ static int __init Demo_init(void)
 	printk("demo_node->next:\t%d\n", offsetof(struct demo_node, next));
 	printk("demo_node->name:\t%d\n", offsetof(struct demo_node, name));
 	printk("demo_node->index:\t%d\n", offsetof(struct demo_node, index));
+	printk("demo_node->iname[0]:\t%d\n", 
+					offsetof(struct demo_node, iname[0]));
+	printk("demo_node->iname[1]:\t%d\n", 
+					offsetof(struct demo_node, iname[1]));
 
 	return 0;
 }
