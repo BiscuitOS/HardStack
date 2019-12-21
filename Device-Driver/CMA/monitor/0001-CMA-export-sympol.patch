@@ -1,0 +1,19 @@
+diff -uprN old/kernel/dma/contiguous.c new/kernel/dma/contiguous.c
+--- old/kernel/dma/contiguous.c	2019-03-04 07:21:29.000000000 +0800
++++ new/kernel/dma/contiguous.c	2019-10-10 09:17:47.498070250 +0800
+@@ -197,6 +197,7 @@ struct page *dma_alloc_from_contiguous(s
+ 
+ 	return cma_alloc(dev_get_cma_area(dev), count, align, no_warn);
+ }
++EXPORT_SYMBOL(dma_alloc_from_contiguous);
+ 
+ /**
+  * dma_release_from_contiguous() - release allocated pages
+@@ -213,6 +214,7 @@ bool dma_release_from_contiguous(struct
+ {
+ 	return cma_release(dev_get_cma_area(dev), pages, count);
+ }
++EXPORT_SYMBOL(dma_release_from_contiguous);
+ 
+ /*
+  * Support for reserved memory regions defined in device tree
