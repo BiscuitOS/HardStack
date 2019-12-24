@@ -20,7 +20,7 @@ int main()
 	int fd, ret;
 
 	/* open: Tmpfile, path must a directory */
-	fd = open("/etc", O_RDWR | __O_TMPFILE, 
+	fd = open("/etc", O_RDWR | __O_TMPFILE | O_DIRECTORY, 
 					S_IRUSR | S_IWUSR);
 	if (fd < 0) {
 		perror("open");

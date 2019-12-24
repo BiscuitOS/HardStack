@@ -32,6 +32,7 @@ LCFLAGS += -I./ -fomit-frame-pointer
 
 # SRC
 SRC += open.c
+SRC_BS += open-bs.c
 
 # Target
 ifeq ($(TARGETA), )
@@ -42,10 +43,13 @@ endif
 
 all:
 	$(CC) $(LCFLAGS) -o $(TARGET) $(SRC)
+	$(CC) $(LCFLAGS) -o $(TARGET)-bs $(SRC_BS)
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
+	@cp -rfa $(TARGET)-bs $(INSTALL_PATH)
 
 clean:
 	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
-               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd $(TARGET)
+               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd $(TARGET) \
+		$(TARGET)-bs
