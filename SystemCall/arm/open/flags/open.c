@@ -124,7 +124,7 @@
 #define O_RDWR			00000002
 /* Open-time Flags(bitwise Or) */
 #define O_CLOEXEC		02000000	/* set close_on_exec */
-#define O_DIRECTORY		00200000	/* must be a directory */
+#define O_DIRECTORY		00040000	/* must be a directory */
 #define O_NOFOLLOW		00400000	/* don't follow links */
 #define O_CREAT			00000100	/* not fcntl */
 #define O_EXCL			00000200	/* not fcntl */
