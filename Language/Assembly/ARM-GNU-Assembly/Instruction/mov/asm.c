@@ -1,14 +1,16 @@
 /*
- * Arm inline-assembly
+ * ARM inline-assembly/Assembly: MOV
  *
- * (C) 2019.03.15 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+
 #include <linux/init.h>
 #include <linux/kernel.h>
+#include <linux/module.h>
 
 /*
  * MOV (Move) writes a value to the destination register. The value can be
@@ -42,7 +44,8 @@
  *   some types of exception (see Exceptions on page A2-16).
  */
 
-static int debug_mov(void)
+/* Module initialize entry */
+static int __init mov_init(void)
 {
 	unsigned long reg;
 	unsigned long val = 0x3;
@@ -58,7 +61,7 @@ static int debug_mov(void)
 	printk("Register R0: %#lx\n", reg);
 
 	/* Perform a shift without any other arithmetic or logical operation.
-         * Use a left shift by n to multiply by 2^n.
+	 * Use a left shift by n to multiply by 2^n.
 	 * R0 = R1 * 8 */
 	__asm__ volatile ("mov r1, #2"); /* r1=2 */
 	__asm__ volatile ("mov r0, r1, lsl #3"); /* r1=2, r0=16 */
@@ -67,4 +70,15 @@ static int debug_mov(void)
 
 	return 0;
 }
-device_initcall(debug_mov);
+
+/* Module exit entry */
+static void __exit mov_exit(void)
+{
+}
+
+module_init(mov_init);
+module_exit(mov_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
+MODULE_DESCRIPTION("ARM inline-assembly/Assembly");
