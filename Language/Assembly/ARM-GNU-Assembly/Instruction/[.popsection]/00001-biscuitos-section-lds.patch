@@ -1,0 +1,16 @@
+diff -uprN old/arch/arm/kernel/vmlinux.lds.S new/arch/arm/kernel/vmlinux.lds.S
+--- old/arch/arm/kernel/vmlinux.lds.S	2019-03-04 07:21:29.000000000 +0800
++++ new/arch/arm/kernel/vmlinux.lds.S	2019-12-26 14:51:35.124399624 +0800
+@@ -127,6 +127,12 @@ SECTIONS
+ 		ARM_EXIT_KEEP(EXIT_DATA)
+ 	}
+ 
++	.biscuitos : {
++		__start_biscuitos = .;
++		*(.biscuitos)
++		__end_biscuitos = .;
++	}
++
+ #ifdef CONFIG_SMP
+ 	PERCPU_SECTION(L1_CACHE_BYTES)
+ #endif
