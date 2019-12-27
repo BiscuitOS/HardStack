@@ -1,0 +1,35 @@
+reserved-memory {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	ranges;
+
+	/* Chipselect 3 is physically at 0x4c000000 */
+	vram: vram@4c000000 {
+		/* 8 MB of designated video RAM */
+		compatible = "shared-dma-pool";
+		reg = <0x4c000000 0x00800000>;
+		no-map;
+	};
+
+	linux,cma {
+		compatible = "shared-dma-pool";
+		reusable;
+		size = <0x00800000>; /* 8M */
+		alloc-ranges = <0x69000000 0x00800000>;
+		linux,cma-default;
+	};
+
+	BiscuitOS_cma {
+		compatible = "shared-dma-pool";
+		reusable;
+		size = <0x00800000>; /* 8M */
+		alloc-ranges = <0x69800000 0x00800000>;
+		linux,BiscuitOS_cma;
+	};
+};
+
+	BiscuitOS_CMA {
+		compatible = "CMA, BiscuitOS";
+		status = "okay";
+		CMA-name = "BiscuitOS_cma";
+	};
