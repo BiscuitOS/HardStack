@@ -56,7 +56,6 @@ struct CMA_manager {
 };
 
 /* Platform device */
-static struct platform_device *pd;
 struct CMA_manager *manager;
 extern struct cma *find_cma_by_name(const char *name);
 static struct file_operations CMA_fops;
