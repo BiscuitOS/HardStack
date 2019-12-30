@@ -1,0 +1,16 @@
+diff -uprN old/mm/Kconfig new/mm/Kconfig
+--- old/mm/Kconfig	2019-03-04 07:21:29.000000000 +0800
++++ new/mm/Kconfig	2019-12-30 13:52:48.252872658 +0800
+@@ -515,6 +515,12 @@ config CMA_AREAS
+ 
+ 	  If unsure, leave the default value "7".
+ 
++config CMA_REDUCE_DEBRIS
++	bool "Reduce CMA debris"
++	depends on CMA
++	help
++	  Simulate buddy allocator to reduce CMA debris.
++
+ config MEM_SOFT_DIRTY
+ 	bool "Track memory changes"
+ 	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY && PROC_FS
