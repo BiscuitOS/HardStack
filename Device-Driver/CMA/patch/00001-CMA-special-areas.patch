@@ -1,0 +1,40 @@
+diff -uprN old/kernel/dma/contiguous.c new/kernel/dma/contiguous.c
+--- old/kernel/dma/contiguous.c	2019-10-12 16:24:57.136207650 +0800
++++ new/kernel/dma/contiguous.c	2019-10-12 16:25:41.012441798 +0800
+@@ -197,6 +197,7 @@ struct page *dma_alloc_from_contiguous(s
+ 
+ 	return cma_alloc(dev_get_cma_area(dev), count, align, no_warn);
+ }
++EXPORT_SYMBOL(dma_alloc_from_contiguous);
+ 
+ /**
+  * dma_release_from_contiguous() - release allocated pages
+@@ -213,6 +214,7 @@ bool dma_release_from_contiguous(struct
+ {
+ 	return cma_release(dev_get_cma_area(dev), pages, count);
+ }
++EXPORT_SYMBOL(dma_release_from_contiguous);
+ 
+ /*
+  * Support for reserved memory regions defined in device tree
+diff -uprN old/mm/cma.c new/mm/cma.c
+--- old/mm/cma.c	2019-10-12 16:24:57.156207757 +0800
++++ new/mm/cma.c	2019-10-12 16:25:24.360352934 +0800
+@@ -44,6 +44,17 @@ struct cma cma_areas[MAX_CMA_AREAS];
+ unsigned cma_area_count;
+ static DEFINE_MUTEX(cma_mutex);
+ 
++struct cma *find_cma_by_name(const char *name)
++{
++	int idx;
++
++	for (idx = 0; idx < MAX_CMA_AREAS; idx++)
++		if (!strcmp(name, cma_areas[idx].name))
++			return &cma_areas[idx];
++	return NULL;
++}
++EXPORT_SYMBOL(find_cma_by_name);
++
+ phys_addr_t cma_get_base(const struct cma *cma)
+ {
+ 	return PFN_PHYS(cma->base_pfn);
