@@ -11,11 +11,18 @@ reserved-memory {
 		no-map;
 	};
 
+	linux,cma {
+		compatible = "shared-dma-pool";
+		reusable;
+		size = <0x00800000>; /* 8M */
+		alloc-ranges = <0x69000000 0x00800000>;
+		linux,cma-default;
+	};
+
 	BiscuitOS_cma {
 		compatible = "shared-dma-pool";
 		size = <0x00800000>;
-		alloc-ranges = <0x61000000 0x00800000>;
-		alignment = <0x00100000>;
+		alloc-ranges = <0x69800000 0x00800000>;
 		reusable;
 		linux,BiscuitOS_cma;
 	};
