@@ -17,25 +17,34 @@
 #include "cma.h"
 
 extern struct cma cma_areas[MAX_CMA_AREAS];
-static char buffer[128];
+static int cma_index = 0;
 
 /* LDD Platform Name */
-#define DEV_NAME "Diagnosis"
+#define DEV_NAME 		"Diagnosis"
+#define CMA_DRAP_LEN		16
+#define STACK_BUFFER_SIZE	256
 
-static void show_bitmap_long(unsigned long bitmap, int index)
+/* Draw bitmap */
+static void draw_bitmap(unsigned long *bitmap, int width, int index)
 {
-	int nr = sizeof(unsigned long) * 8;
-	int i;
+	int bytes = sizeof(unsigned long);
+        char buffer_show[STACK_BUFFER_SIZE];
+	char *begin;
+        int i;
 
-	memset(buffer, 0x0, 128);
-	for (i = 0; i < nr; i++) {
-		if ((bitmap >> i) & 0x1)
-			buffer[i] = 'X';
-		else
-			buffer[i] = 'Y';
-	}
-	buffer[i] = '\0';
-	printk("[%05d]%s\n", index, buffer);
+        for (i = 0; i < width; i++) {
+                unsigned long bitmap_val = bitmap[i];
+		begin = buffer_show + i * bytes * 2;
+
+		if (bytes == 8) {
+			sprintf(begin, "%.16lx", bitmap_val);
+		} else {
+			sprintf(begin, "%.8lx", bitmap_val);
+		}
+        }
+	begin = buffer_show + i * bytes * 2;
+	begin[0] = '\0';
+	printk("[%06d] [%s]\n", index / width, buffer_show);
 }
 
 /* Read an bitmap from kernel to userspace
@@ -45,26 +54,26 @@ static void show_bitmap_long(unsigned long bitmap, int index)
 static ssize_t bitmap_show(struct device *dev,
                 struct device_attribute *attr, char *buf)
 {
-	struct cma *cma = &cma_areas[0];
+	struct cma *cma = &cma_areas[cma_index];
 	int bitmap_size = BITS_TO_LONGS(cma_bitmap_maxno(cma));
-	int i;
+	int idx;
 
-	for (i = 0; i < bitmap_size; i++) {
-		show_bitmap_long(cma->bitmap[i], i);
-	}
-	printk("Bitmap-length(unsigned long): %d-bits \n", bitmap_size);
-	printk("CMA total: %ld-bits(1bits = 4K)\n", cma->count);
-	printk("X-Used Y-Unused\n");
+	printk("\nCMA area: %s\n\n", cma->name);
+	for (idx = 0; idx < bitmap_size; idx += CMA_DRAP_LEN)
+		draw_bitmap(cma->bitmap + idx, CMA_DRAP_LEN, idx);
+	printk("\nCMA total size: %#lx\n", cma->count * 4096);
+
 	return 0;
 }
 
 /* Write an bitmap from userspace to kernel
  *   On userspace:
- *   --> echo "0x28" > /sys/busy/platform/devices/Platform_attr.1/bitmap
+ *   --> echo "0" > /sys/busy/platform/devices/Platform_attr.1/bitmap
  */
 static ssize_t bitmap_store(struct device *dev,
                 struct device_attribute *attr, const char *buf, size_t size)
 {
+	sscanf(buf, "%d", &cma_index);
 	return size;
 }
 

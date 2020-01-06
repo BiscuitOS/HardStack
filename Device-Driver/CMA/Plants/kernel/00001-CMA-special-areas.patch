@@ -29,7 +29,7 @@ diff -uprN old/mm/cma.c new/mm/cma.c
 +	int idx;
 +
 +	for (idx = 0; idx < MAX_CMA_AREAS; idx++)
-+		if (!strcmp(name, cma_areas[idx].name))
++		if (cma_areas[idx].name && !strcmp(name, cma_areas[idx].name))
 +			return &cma_areas[idx];
 +	return NULL;
 +}
