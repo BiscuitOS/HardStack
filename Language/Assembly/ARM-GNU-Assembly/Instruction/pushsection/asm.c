@@ -1,7 +1,7 @@
 /*
- * ARM inline-assembly/Assembly: .pushsection
+ * .pushsection/.popsection
  *
- * (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2020.01.08 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -11,59 +11,157 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/compiler.h>
+#include <linux/slab.h>
+#include <linux/platform_device.h>
 
-/* Function type */
-typedef int (*biscuitos_t)(void);
+#define DEV_NAME "pushsection"
 
-int biscuitos_show(void)
+static inline unsigned long load_unaligned(unsigned long *addr)
 {
-	printk("Hello BiscuitOS\n");
+	unsigned long ret;
+
+	asm volatile (
+	"1:	ldr	%0, [%1]			\n"
+	"2:						\n"
+	"	.pushsection .text.fixup,\"ax\"		\n"
+	"	.align 2				\n"
+	"3:	mov	%0, #0x89			\n"
+	"	b	2b				\n"
+	"	.popsection				\n"
+	"	.pushsection __ex_table,\"ax\"		\n"
+	"	.align	3				\n"
+	"	.long	1b, 3b				\n"
+	"	.popsection				\n"
+	: "=&r" (ret)
+	: "r" (addr));
+
+	return ret;
+}
+
+/* Trigger a unliagned exception
+ *   On userspace:
+ *   --> cat /sys/bus/platform/devices/pushsection.1/unaligned
+ */
+static ssize_t unaligned_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	unsigned long *addr;
+	unsigned long value;
+	
+	addr = kzalloc(sizeof(unsigned long), GFP_KERNEL);
+	*addr = 0x8976;
+
+	/* Pass a unliagned address */
+	value = load_unaligned((unsigned long *)((unsigned long)addr + 1));
+	printk("Value: %#lx\n", value);
+	kfree(addr);
+
 	return 0;
 }
 
-static void patch_hot(void)
+/* Normal aligned show
+ *   On userspace:
+ *   --> cat /sys/bus/platform/device/pushsection.1/aligned
+ */
+static ssize_t aligned_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
 {
-	asm volatile (
-			".pushsection .biscuitos,\"a\"		\n\r"
-			".long	biscuitos_show			\n\r"
-			".popsection");
+	unsigned long *addr;
+	unsigned long value;
+
+	addr = kzalloc(sizeof(unsigned long), GFP_KERNEL);
+	*addr = 0x8976;
+
+	/* Pass a aligned address */
+	value = load_unaligned(addr);
+	printk("Value: %#lx\n", value);
+	kfree(addr);
+
+	return 0;
 }
 
-/* Running .biscuitos section */
-static void section_run(void)
-{
-	extern char __start_biscuitos[];
-	extern char __end_biscuitos[]; 
-	biscuitos_t *fn;
+/* Unaligned attribute */
+static struct device_attribute unaligned_attr =
+				__ATTR_RO(unaligned);
+/* aligned attribute */
+static struct device_attribute aligned_attr = 
+				__ATTR_RO(aligned);
 
-	for (fn = (biscuitos_t *)(unsigned long)__start_biscuitos; 
-		fn < (biscuitos_t *)(unsigned long)__end_biscuitos; fn++) {
-		(*fn)();
+/* Probe: (LDD) Initialize Device */
+static int pushsection_probe(struct platform_device *pdev)
+{
+	int err;
+
+	err = device_create_file(&pdev->dev, &unaligned_attr);
+	if (err) {
+		dev_err(&pdev->dev, "Unable to create unaligned_attr");
+		goto unaligned_err;
 	}
+	err = device_create_file(&pdev->dev, &aligned_attr);
+	if (err) {
+		dev_err(&pdev->dev, "Unable to create aligned_attr");
+		goto aligned_err;
+	}
+	return 0;
+
+aligned_err:
+	device_remove_file(&pdev->dev, &unaligned_attr);
+unaligned_err:
+	return err;
 }
 
-static int __init mov_init(void)
+/* Remove: (LDD) Remove Device (Module) */
+static int pushsection_remove(struct platform_device *pdev)
 {
-	int idx;
+	device_remove_file(&pdev->dev, &aligned_attr);
+	device_remove_file(&pdev->dev, &unaligned_attr);
 
-	for (idx = 0; idx < 8; idx++) {
-		printk("Hot plugin .biscuitos section.\n");
-		patch_hot();
-		section_run();
+	return 0;
+}
+
+/* Platform Driver Information */
+static struct platform_driver pushsection_driver = {
+	.probe    = pushsection_probe,
+	.remove   = pushsection_remove,
+	.driver	= {
+		.owner	= THIS_MODULE,
+		.name	= DEV_NAME,
+	},
+};
+
+static struct platform_device *pdev;
+/* Module initialize entry */
+static int __init pushsection_init(void)
+{
+	int ret;
+
+	/* Register platform driver */
+	ret = platform_driver_register(&pushsection_driver);
+	if (ret) {
+		printk("Unable register Platform driver.\n");
+		return -EBUSY;
+	}
+
+	/* Register platform device */
+	pdev = platform_device_register_simple(DEV_NAME, 1, NULL, 0);
+	if (IS_ERR(pdev)) {
+		printk("Error: Platform device register\n");
+		return PTR_ERR(pdev);
 	}
 
 	return 0;
 }
 
 /* Module exit entry */
-static void __exit mov_exit(void)
+static void __exit pushsection_exit(void)
 {
+	platform_device_unregister(pdev);
+	platform_driver_unregister(&pushsection_driver);
 }
 
-module_init(mov_init);
-module_exit(mov_exit);
+module_init(pushsection_init);
+module_exit(pushsection_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("ARM inline-assembly/Assembly");
+MODULE_DESCRIPTION(".pushsection/.popsection DD");
