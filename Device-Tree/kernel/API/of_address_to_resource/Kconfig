@@ -1,0 +1,2 @@
+config PLATFORM_DTS
+	tristate "DTS"
