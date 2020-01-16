@@ -1,0 +1,2 @@
+config BISCUITOS_LDD_PLATFORM_CORE
+	tristate "LDD: Platform Core Device Driver"
