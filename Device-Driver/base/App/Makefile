@@ -28,7 +28,7 @@ OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 
 # FLAGS
-CFLAGS += -I./ -I$(PWD)/include
+LCFLAGS += -I./ -I$(PWD)/include
 
 # SRC
 SRC := $(wildcard $(PWD)/src/*.c)
@@ -42,7 +42,7 @@ TARGET=$(TARGETA)
 endif
 
 all:
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+	$(CC) $(LCFLAGS) -o $(TARGET) $(SRC)
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
