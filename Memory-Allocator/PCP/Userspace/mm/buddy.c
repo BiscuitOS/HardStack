@@ -25,6 +25,8 @@ struct page *mem_map;
 unsigned int pageblock_order = 10;
 /* Emulate Zone */
 struct zone BiscuitOS_zone;
+/* Boot pageset */
+static struct per_cpu_pageset boot_pageset;
 
 /*
  * Locate the struct page for both the matching buddy in our
@@ -206,9 +208,35 @@ static void __free_pages_ok(struct page *page, unsigned int order)
 	__free_one_page(page_zone(page), page, pfn, order);
 }
 
+static void free_unref_page_commit(struct page *page, unsigned long pfn)
+{
+	struct zone *zone = page_zone(page);
+	struct per_cpu_pages *pcp;
+
+	//pcp = zone->pageset->pcp;
+	list_add(&page->lru, &pcp->lists[0]);
+	pcp->count++;
+	if (pcp->count >= pcp->high) {
+		;
+	}
+}
+
+/*
+ * Free a 0-order page
+ */
+void free_unref_page(struct page *page)
+{
+	unsigned long pfn = page_to_pfn(page);
+
+	free_unref_page_commit(page, pfn);
+}
+
 static inline void free_the_page(struct page *page, unsigned int order)
 {
-	__free_pages_ok(page, order);
+	if (order == 0)		/* Via pcp? */
+		free_unref_page(page);
+	else
+		__free_pages_ok(page, order);
 }
 
 void __free_pages(struct page *page, unsigned int order)
@@ -320,6 +348,46 @@ struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order)
 	return page;	
 }
 
+static void pageset_init(struct per_cpu_pageset *p)
+{
+	struct per_cpu_pages *pcp;
+
+	memset(p, 0, sizeof(*p));
+
+	pcp = &p->pcp;
+	INIT_LIST_HEAD(&pcp->lists[0]);
+}
+
+static void pageset_update(struct per_cpu_pages *pcp, unsigned long high,
+				unsigned long batch)
+{
+	/* start with a fail safe value for batch */
+	pcp->batch = 1;
+
+	/* Update high, then batch, in order */
+	pcp->high = high;
+
+	pcp->batch = batch;
+}
+
+/* a companion to pageset_set_high() */
+static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
+{
+	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
+}
+
+static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
+{
+	pageset_init(p);
+	pageset_set_batch(p, batch);
+}
+
+static int zone_batchsize(struct zone *zone)
+{
+	/* Emulate */
+	return 31;
+}
+
 /*
  * PHYS_OFFSET                                         
  * | <--------------------- MEMORY_SIZE ----------------------> |
@@ -358,6 +426,10 @@ int memory_init(void)
 		zone->free_area[order].nr_free = 0;
 	}
 
+	/* PCP initialize */
+	setup_pageset(&boot_pageset, 0);
+	zone->pageset = &boot_pageset;
+
 	/* free all page into Buddy Allocator */
 	start_pfn = PFN_UP(PHYS_OFFSET);
 	end_pfn = PFN_DOWN(PHYS_OFFSET + MEMORY_SIZE);
@@ -379,6 +451,7 @@ int memory_init(void)
 					(unsigned long)(PHYS_OFFSET + MEMORY_SIZE));
 	printf("mem_map[] contains %#lx pages, page size %#lx\n", nr_pages,
 						(unsigned long)PAGE_SIZE);
+	printf("LIFO batch: %u\n", zone_batchsize(zone));
 
 	return 0;
 }

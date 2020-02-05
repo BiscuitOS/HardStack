@@ -28,6 +28,19 @@
 typedef unsigned long phys_addr_t;
 typedef unsigned long gfp_t;
 
+struct per_cpu_pages {
+	int count;		/* number of pages in the list */
+	int high;		/* high watermark, emptying needed */
+	int batch;		/* chunk size for buddy add/remove */
+
+	/* Lists of pages, one per migrate type stored on the pcp-lists */
+	struct list_head lists[1];
+};
+
+struct per_cpu_pageset {
+	struct per_cpu_pages pcp;
+};
+
 struct free_area {
 	struct list_head free_list[1];
 	unsigned long nr_free;
@@ -36,12 +49,14 @@ struct free_area {
 struct zone {
 	/* free areas of different sizes */
 	struct free_area free_area[MAX_ORDER];
+	struct per_cpu_pageset *pageset;
 };
 
 struct page {
 	unsigned int page_type;
 	unsigned long private;
 	struct list_head lru;
+	unsigned long managed_pages;
 };
 
 /* PFN and PHYS */
@@ -67,6 +82,9 @@ static inline void *phys_to_virt(phys_addr_t x)
 		type __min1 = (x);		\
 		type __min2 = (y);		\
 		__min1 < __min2 ? __min1 : __min2; })
+
+#define max(x, y) ({				\
+		x > y ? x : y; })
 
 static inline unsigned long __ffs(unsigned long word)
 {
