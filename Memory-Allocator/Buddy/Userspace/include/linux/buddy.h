@@ -22,6 +22,9 @@
 /* Buddy Allocator Order */
 #define MAX_ORDER	11
 
+/* GFP flag combinations */
+#define GFP_KERNEL	0x10000000
+
 typedef unsigned long phys_addr_t;
 typedef unsigned long gfp_t;
 
@@ -138,4 +141,5 @@ extern void memory_exit(void);
 /* Huge page sizes are variable */
 extern unsigned int pageblock_order;
 extern void __free_pages(struct page *page, unsigned int order);
+extern struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order);
 #endif

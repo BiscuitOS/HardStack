@@ -158,14 +158,13 @@ continue_merging:
 		 * Our buddy is free and meger with it and move up
 		 * one order.
 		 */
+		list_del(&buddy->lru);
+		zone->free_area[order].nr_free--;
 		rmv_page_order(buddy);
 		combined_pfn = buddy_pfn & pfn;
 		page = page + (combined_pfn - pfn);
 		pfn = combined_pfn;
 		order++;
-	}
-	if (max_order < MAX_ORDER) {
-		printf("WWWWW\n");
 	}
 
 done_merging:
@@ -183,7 +182,15 @@ done_merging:
 		struct page *higher_page, *higher_buddy;
 
 		combined_pfn = buddy_pfn & pfn;
-		printf("XXXXXX\n");
+		higher_page = page + (combined_pfn - pfn);
+		buddy_pfn = __find_buddy_pfn(combined_pfn, order + 1);
+		higher_buddy = higher_page + (buddy_pfn - combined_pfn);
+		if (pfn_valid_within(buddy_pfn) &&
+		    page_is_buddy(higher_page, higher_buddy, order + 1)) {
+			list_add_tail(&page->lru,
+				&zone->free_area[order].free_list[0]);
+			goto out;
+		}
 		goto out;
 	}
 
@@ -342,6 +349,7 @@ int memory_init(void)
 		struct page *page = &mem_map[index];
 
 		INIT_LIST_HEAD(&page->lru);
+		page->page_type |= PAGE_TYPE_BASE;
 	}
 
 	/* Initialize Zone */
