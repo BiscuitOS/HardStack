@@ -1073,6 +1073,44 @@ static struct kmem_cache *bootstrap(struct kmem_cache *static_cache)
 	return s;
 }
 
+static inline unsigned int size_index_elem(unsigned int bytes)
+{
+	return (bytes - 1) / 8;
+}
+
+/*
+ * Conversion table for small slabs sizes / 8 to the index in the
+ * kmalloc array. This is necessary for slabs < 192 since we have non power
+ * of two cache sizes there. The size of larger slabs can be determined using
+ * fls.
+ */
+static u8 size_index[24] = {
+	3,	/* 8 */
+	4,	/* 16 */
+	5,	/* 24 */
+	5,	/* 32 */
+	6,	/* 40 */
+	6,	/* 48 */
+	6,	/* 56 */
+	6,	/* 64 */
+	1,	/* 72 */
+	1,	/* 80 */
+	1,	/* 88 */
+	1,	/* 96 */
+	7,	/* 104 */
+	7,	/* 112 */
+	7,	/* 120 */
+	7,	/* 128 */
+	2,	/* 136 */
+	2,	/* 144 */
+	2,	/* 152 */
+	2,	/* 160 */
+	2,	/* 168 */
+	2,	/* 176 */
+	2,	/* 184 */
+	2	/* 192 */
+};
+
 /*
  * Patch up the size_index table if we have strange large alignment
  * requirements for the kmalloc array. This is only the case for
@@ -1094,6 +1132,110 @@ static void setup_kmalloc_cache_index_table(void)
 
 	for (i = 8; i < KMALLOC_MIN_SIZE; i += 8) {
 		unsigned int elem = size_index_elem(i);
+
+		if (elem >= ARRAY_SIZE(size_index))
+			break;
+		size_index[elem] = KMALLOC_SHIFT_LOW;
+	}
+
+	if (KMALLOC_MIN_SIZE >= 64) {
+		/*
+		 * The 96 byte size cache is not used if the alignment
+		 * is 64 byte.
+		 */
+		for (i = 64 + 8; i < 96; i+= 8)
+			size_index[size_index_elem(i)] = 7;
+	}
+
+	if (KMALLOC_MIN_SIZE >= 128) {
+		/*
+		 * The 192 byte sized cache is not used for if the alignment
+		 * is 128 byte. Redirect kmalloc to use the 256 byte cache
+		 * instead.
+		 */
+		for (i = 128 + 8; i <= 192; i += 8)
+			size_index[size_index_elem(i)] = 8;
+	}
+}
+
+static struct kmem_cache *
+kmalloc_caches[NR_KMALLOC_TYPES][KMALLOC_SHIFT_HIGH + 1];
+
+/*
+ * kmalloc_info[] is to make slub_debug=,kmalloc-xx option work at boot time.
+ * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
+ * kmalloc-67108864.
+ */
+const struct kmalloc_info_struct kmalloc_info[] = {
+	{NULL,                      0},
+	{"kmalloc-96",             96},
+	{"kmalloc-192",           192},
+	{"kmalloc-8",               8},
+	{"kmalloc-16",             16},
+	{"kmalloc-32",             32},
+	{"kmalloc-64",             64},
+	{"kmalloc-128",           128},
+	{"kmalloc-256",           256},
+	{"kmalloc-512",           512},
+	{"kmalloc-1k",           1024},
+	{"kmalloc-2k",           2048},
+	{"kmalloc-4k",           4096},
+	{"kmalloc-8k",           8192},
+	{"kmalloc-16k",         16384},
+	{"kmalloc-32k",         32768},
+	{"kmalloc-64k",         65536},
+	{"kmalloc-128k",       131072},
+	{"kmalloc-256k",       262144},
+	{"kmalloc-512k",       524288},
+	{"kmalloc-1M",        1048576},
+	{"kmalloc-2M",        2097152},
+	{"kmalloc-4M",        4194304},
+	{"kmalloc-8M",        8388608},
+	{"kmalloc-16M",      16777216},
+	{"kmalloc-32M",      33554432},
+	{"kmalloc-64M",      67108864}
+};
+
+static const char *
+kmalloc_cache_name(const char *prefix, unsigned int size)
+{
+	static const char units[3] = "\0kM";
+	int idx = 0;
+
+	while (size >= 1024 && (size % 1024 == 0)) {
+		size /= 1024;
+		idx++;
+	}
+
+	return kasprintf(GFP_NOWAIT, "%a-%u%c", prefix, size, units[idx]);
+}
+
+static void
+new_kmalloc_cache(int idx, int type, slab_flags_t flags)
+{
+	const char *name;
+
+	if (type == KMALLOC_RECLAIM) {
+		flags |= SLAB_RECLAIM_ACCOUNT;
+		name = kmalloc_cache_name("kmalloc-rcl",
+						kmalloc_info[idx].size);
+	}
+}
+
+/*
+ * Create the kmalloc array. Some of the regular kmalloc arrays
+ * may already have been created because they were need to
+ * enable allocations for slab creation.
+ */
+void create_kmalloc_caches(slab_flags_t flags)
+{
+	int i, type;
+
+	for (type = KMALLOC_NORMAL; type <= KMALLOC_RECLAIM; type++) {
+		for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
+			if (!kmalloc_caches[type][i])
+				new_kmalloc_cache(i, type, flags);
+		}
 	}
 }
 
@@ -1121,6 +1263,7 @@ void kmem_cache_init(void)
 
 	/* Now we can use the kmem_cache to allocate kmalloc slabs */
 	setup_kmalloc_cache_index_table();
+	create_kmalloc_caches(0);
 }
 
 

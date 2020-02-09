@@ -3,6 +3,7 @@
 
 #include "linux/list.h"
 #include "linux/gfp.h"
+#include "linux/biscuitos.h"
 
 #define PAGE_SHIFT	12 /* 4KByte Page */
 #define PAGE_SIZE	(1 << PAGE_SHIFT)

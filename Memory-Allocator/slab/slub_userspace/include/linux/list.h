@@ -1,6 +1,8 @@
 #ifndef _LIST_H
 #define _LIST_H
 
+#define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
+
 struct list_head {
 	struct list_head *next, *prev;
 };
@@ -89,6 +91,5 @@ static inline void list_del(struct list_head *entry)
 		n = list_next_entry(pos, member);			\
 		&pos->member != (head);					\
 		pos = n, n = list_next_entry(n, member))
-
 
 #endif

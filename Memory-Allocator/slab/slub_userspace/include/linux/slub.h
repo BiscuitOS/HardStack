@@ -74,6 +74,14 @@ enum pageflags {
 
 #define MAX_NUMNODES	1
 
+/*
+ * SLUB directly allocates requests fitting in to an order-1 page
+ * (PAGE_SIZE*2). Larger requests are passed to the page allocator.
+ */
+#define KMALLOC_SHIFT_HIGH	(PAGE_SHIFT + 1)
+#define KMALLOC_SHIFT_MAX	(MAX_ORDER + PAGE_SHIFT - 1)
+#define KMALLOC_SHIFT_LOW	3
+
 /* Maximum allocation size */
 #define KMALLOC_MAX_SIZE	(1UL << KMALLOC_SHIFT_MAX)
 /* Maximum size for which we actually use a slab cache */
@@ -81,6 +89,26 @@ enum pageflags {
 /* Maximum order allocatable via the slab allocagtor */
 #define KMALLOC_MAX_ORDER	(KMALLOC_SHIFT_MAX - PAGE_SHIFT)
 
+/*
+ * Kmalloc subsystem.
+ */
+#define KMALLOC_MIN_SIZE	(1 << KMALLOC_SHIFT_LOW)
+
+/*
+ * Whenever changing this, take care of that kmalloc_type() and
+ * create_kmalloc_caches() still work as intended.
+ */
+enum kmalloc_cache_type {
+	KMALLOC_NORMAL = 0,
+	KMALLOC_RECLAIM,
+	NR_KMALLOC_TYPES
+};
+
+/* A table of kmalloc cache names and sizes */
+struct kmalloc_info_struct {
+	const char *name;
+	unsigned int size;
+};
 
 /*
  * State of the slab allocator.
