@@ -318,6 +318,15 @@ static inline void *get_freepointer(struct kmem_cache *s, void *object)
 	return freelist_dereference(s, object + s->offset);
 }
 
+static inline void *get_freepointer_safe(struct kmem_cache *s, void *object)
+{
+	unsigned long freepointer_addr;
+	void *p;
+
+	freepointer_addr = (unsigned long)object + s->offset;
+	return freelist_ptr(s, p, freepointer_addr);
+}
+
 static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
 {
 	struct page *page;
@@ -746,7 +755,15 @@ static inline void *slab_alloc_node(struct kmem_cache *s,
 		object = __slab_alloc(s, gfpflags, node, addr, c);
 		stat(s, ALLOC_SLOWPATH);
 	} else {
-		printk("Need %s\n", __func__);
+		void *next_obect = get_freepointer_safe(s, object);
+
+		/*
+		 * The cmpxchg will only match if there was no additional
+		 * operation and if we are on the right processor.
+		 *
+		 * The cmpxchg does the following atomically (without lock
+		 * semantics!)
+		 */
 	}
 
 	if (unlikely(gfpflags & __GFP_ZERO) && object)
@@ -1207,7 +1224,14 @@ kmalloc_cache_name(const char *prefix, unsigned int size)
 		idx++;
 	}
 
-	return kasprintf(GFP_NOWAIT, "%a-%u%c", prefix, size, units[idx]);
+	return kasprintf(GFP_NOWAIT, "%s-%u%c", prefix, size, units[idx]);
+}
+
+struct kmem_cache *create_kmalloc_cache(const char *name,
+		unsigned int size, slab_flags_t flags,
+		unsigned int useroffset, unsigned int usersize)
+{
+	struct kmem_cache *s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
 }
 
 static void
@@ -1219,7 +1243,13 @@ new_kmalloc_cache(int idx, int type, slab_flags_t flags)
 		flags |= SLAB_RECLAIM_ACCOUNT;
 		name = kmalloc_cache_name("kmalloc-rcl",
 						kmalloc_info[idx].size);
+	} else {
+		name = kmalloc_info[idx].name;
 	}
+	
+	kmalloc_caches[type][idx] = create_kmalloc_cache(name,
+					kmalloc_info[idx].size, flags, 0,
+					kmalloc_info[idx].size);
 }
 
 /*
@@ -1237,6 +1267,42 @@ void create_kmalloc_caches(slab_flags_t flags)
 				new_kmalloc_cache(i, type, flags);
 		}
 	}
+}
+
+/*
+ * Find the kmem_cache structure that serves a given size of
+ * allocation
+ */
+struct kmem_cache *kmalloc_slab(size_t size, gfp_t flags)
+{
+	unsigned int index;
+
+	if (size <= 192) {
+		if (!size)
+			return ZERO_SIZE_PTR;
+		index = size_index[size_index_elem(size)];
+	} else {
+		if (size > KMALLOC_MAX_CACHE_SIZE)
+			return NULL;
+		index = fls(size - 1);
+	}
+
+	return kmalloc_caches[kmalloc_type(flags)][index];
+}
+
+void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, unsigned long caller)
+{
+	struct kmem_cache *s;
+	void *ret;
+
+	if (size > KMALLOC_MAX_CACHE_SIZE)
+		printk("Need %s\n", __func__);
+
+	s = kmalloc_slab(size, gfpflags);
+	if (unlikely(ZERO_OR_NULL_PTR(s)))
+		return s;
+
+	printk("NEED %s\n", __func__);
 }
 
 void kmem_cache_init(void)

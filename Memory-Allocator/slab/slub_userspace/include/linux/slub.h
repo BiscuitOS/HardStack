@@ -294,6 +294,15 @@ static inline void stat(const struct kmem_cache *s, enum stat_item si)
 	for (__node = 0; __node < nr_node_ids; __node++)	\
 		if ((__n = get_node(__s, __node)))
 
+extern void *__kmalloc_track_caller(size_t, gfp_t, unsigned long);
+#define kmalloc_track_caller(size, flags)	\
+	__kmalloc_track_caller(size, flags, _RET_IP_)
+
+static inline enum kmalloc_cache_type kmalloc_type(gfp_t flags)
+{
+	return flags & __GFP_RECLAIMABLE ? KMALLOC_RECLAIM : KMALLOC_NORMAL;
+}
+
 extern void kmem_cache_init(void);
 
 static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c);
