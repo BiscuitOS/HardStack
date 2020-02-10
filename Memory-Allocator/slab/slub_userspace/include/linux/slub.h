@@ -3,6 +3,7 @@
 
 #include "linux/list.h"
 #include "linux/gfp.h"
+#include "linux/getorder.h"
 
 typedef unsigned slab_flags_t;
 typedef int bool;
@@ -15,8 +16,9 @@ typedef int bool;
  * so make that the default here. Architectures with larger
  * cache lines need to provide their own cache.h.
  */
-#define L1_CACHE_SHIFT		5
+#define L1_CACHE_SHIFT		CONFIG_L1_CACHE_SHIFT
 #define L1_CACHE_BYTES		(1 << L1_CACHE_SHIFT)
+#define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
 #define cache_line_size()	L1_CACHE_BYTES
 
 #define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
@@ -74,7 +76,7 @@ typedef int bool;
  */
 #define KMALLOC_SHIFT_HIGH	(PAGE_SHIFT + 1)
 #define KMALLOC_SHIFT_MAX	(MAX_ORDER + PAGE_SHIFT - 1)
-#define KMALLOC_SHIFT_LOW	3
+#define KMALLOC_SHIFT_LOW	ilog2(ARCH_DMA_MINALIGN)
 
 /* Maximum allocation size */
 #define KMALLOC_MAX_SIZE	(1UL << KMALLOC_SHIFT_MAX)
@@ -86,7 +88,7 @@ typedef int bool;
 /*
  * Kmalloc subsystem.
  */
-#define KMALLOC_MIN_SIZE	(1 << KMALLOC_SHIFT_LOW)
+#define KMALLOC_MIN_SIZE	(ARCH_DMA_MINALIGN)
 
 /*
  * Whenever changing this, take care of that kmalloc_type() and
@@ -365,6 +367,9 @@ static inline void *kmalloc(size_t size, gfp_t flags)
 }
 
 extern void kmem_cache_init(void);
+
+/* The slab cache that manages slab cache information */
+extern struct kmem_cache *kmem_cache;
 
 static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c);
 static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,

@@ -79,7 +79,6 @@ struct page {
 					unsigned frozen:1;
 				};
 			};
-			
 		};
 		struct {	/* Tail pages of compound page */
 			unsigned long compound_head;	/* Bit zero is set */

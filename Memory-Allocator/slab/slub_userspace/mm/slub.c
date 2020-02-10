@@ -876,11 +876,13 @@ static inline void *slab_alloc_node(struct kmem_cache *s,
 	page = c->page;
 
 	if (unlikely(!object)) {
+		printk("N2\n");
 		object = __slab_alloc(s, gfpflags, node, addr, c);
 		stat(s, ALLOC_SLOWPATH);
 	} else {
 		void *next_object = get_freepointer_safe(s, object);
 
+		printk("Y2\n");
 		/*
 		 * The cmpxchg will only match if there was no additional
 		 * operation and if we are on the right processor.
@@ -944,6 +946,7 @@ static int init_kmem_cache_nodes(struct kmem_cache *s)
 
 static inline int alloc_kmem_cache_cpus(struct kmem_cache *s)
 {
+	/* I don't have pcpu allocator, using malloc to emulate func */
 	s->cpu_slab = malloc(ALIGN(sizeof(struct kmem_cache_cpu), 
 					2 * sizeof(void *)));
 
@@ -1633,9 +1636,23 @@ void kmem_cache_init(void)
 			offsetof(struct kmem_cache, node) +
 			nr_node_ids * sizeof(struct kmem_cache_node *),
 				SLAB_HWCACHE_ALIGN, 0, 0);
+	
+	if (1) {
+		struct kmem_cache *s;
 
+		printk("DEBUGSTART..........................\n");
+		s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
+		printk("S1 %#lx\n", (unsigned long)s);
+		s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
+		printk("S2 %#lx\n", (unsigned long)s);
+		s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
+		printk("S3 %#lx\n", (unsigned long)s);
+		printk("DEBUGEND...........................\n");
+	}
 	kmem_cache = bootstrap(&boot_kmem_cache);
 	kmem_cache_node = bootstrap(&boot_kmem_cache_node);
+
+	printk("Kmem_cache and Kmem_cache_node initialize finish.\n");
 
 	/* Now we can use the kmem_cache to allocate kmalloc slabs */
 	setup_kmalloc_cache_index_table();
