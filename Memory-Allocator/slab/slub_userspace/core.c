@@ -22,6 +22,7 @@ int main()
 	/* Initialize Slub Allocator */
 	kmem_cache_init();
 
+
 	memory_exit();
 	return 0;
 }

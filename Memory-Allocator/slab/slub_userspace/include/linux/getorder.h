@@ -9,12 +9,6 @@ typedef unsigned int u32;
 typedef unsigned long long u64;
 typedef unsigned long long __u64;
 
-#ifdef CONFIG_64BIT
-#define BITS_PER_LONG	64
-#else
-#define BITS_PER_LONG	32
-#endif
-
 static inline int fls(unsigned int x)
 {
 	return x ? sizeof(x) * 8 - __builtin_clz(x) : 0;

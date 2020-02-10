@@ -4,6 +4,7 @@
 #include "linux/list.h"
 #include "linux/gfp.h"
 #include "linux/biscuitos.h"
+#include "linux/bitmap.h"
 
 #define PAGE_SHIFT	12 /* 4KByte Page */
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
@@ -63,6 +64,17 @@ struct page {
 	};
 	struct kmem_cache *slab_cache; /* not slob */
 	struct page *next;
+	struct {	/* Tail pages of compound page */
+		unsigned long compound_head;	/* Bit zero is set */
+
+		/* First tail page only */
+		unsigned char compound_dtor;
+		unsigned char compound_order;
+		unsigned long compound_mapcount;
+	};
+
+	/* Usage count. */
+	unsigned long _refcount;
 };
 
 extern struct page *mem_map;
@@ -87,9 +99,9 @@ static inline void *phys_to_virt(phys_addr_t x)
 	return (void *)((x - PHYS_OFFSET) + (unsigned long)memory);
 }
 
-static inline virt_to_pfn(const volatile void *x)
+static inline unsigned long virt_to_pfn(const volatile void *x)
 {
-	return PHYS_PFN(virt_to_phys(x));
+	return PHYS_PFN((unsigned long)virt_to_phys(x));
 }
 
 #define page_to_virt(page)	phys_to_virt(PFN_PHYS(page_to_pfn(page)))
@@ -100,11 +112,20 @@ static inline void *lowmem_page_address(const struct page *page)
 	return page_to_virt(page);
 }
 
+static inline struct page *compound_head(struct page *page)
+{
+	unsigned long head = page->compound_head;
+
+	if (head & 1)
+		return (struct page *)(head - 1);
+	return page;
+}
+
 static inline struct page *virt_to_head_page(const void *x)
 {
 	struct page *page = virt_to_page(x);
 
-	return 
+	return compound_head(page); 
 }
 
 #define page_address(page)	lowmem_page_address(page)
@@ -163,6 +184,42 @@ static inline void __ClearPageBuddy(struct page *page)
 	page->page_type |= PG_buddy;
 }
 
+enum pageflags {
+	PG_slab,
+	PG_head,
+	__NR_PAGEFLAGS,
+};
+
+static inline int PageSlab(struct page *page)
+{
+	return test_bit(PG_slab, &page->flags);
+}
+
+static inline void __SetPageSlab(struct page *page)
+{
+	__set_bit(PG_slab, &page->flags);
+}
+
+static inline void __ClearPageSlab(struct page *page)
+{
+	__clear_bit(PG_slab, &page->flags);
+}
+
+static inline int PageHead(struct page *page)
+{
+	return test_bit(PG_head, &page->flags);
+}
+
+static inline void __SetPageHead(struct page *page)
+{
+	__set_bit(PG_head, &page->flags);
+}
+
+static inline void __ClearPageHead(struct page *page)
+{
+	__clear_bit(PG_head, &page->flags);
+}
+
 static inline void set_page_order(struct page *page, unsigned int order)
 {
 	set_page_private(page, order);
@@ -184,10 +241,67 @@ static inline struct zone *page_zone(const struct page *page)
 	return &BiscuitOS_zone;
 }
 
+static inline void set_page_count(struct page *page, int v)
+{
+	page->_refcount = v;
+}
+
+/*
+ * Compound pages have a destructor function. Provide a
+ * prototype for that function and accessor functions.
+ * These are _only_ valid on the head of a compound page.
+ */
+typedef void compound_page_dtor(struct page *);
+
+/* Keep the enum in sync with compound_page_dtors array in mm/page_alloc.c */
+enum compound_dtor_id {
+        NULL_COMPOUND_DTOR,
+        COMPOUND_PAGE_DTOR,
+        NR_COMPOUND_DTORS,
+}; 
+
+extern compound_page_dtor * const compound_page_dtors[];
+
+static inline void set_compound_page_dtor(struct page *page,
+		enum compound_dtor_id compound_dtor)
+{
+	page[1].compound_dtor = compound_dtor;
+}
+
+static inline compound_page_dtor *get_compound_page_dtor(struct page *page)
+{
+	return compound_page_dtors[page[1].compound_dtor];
+}
+
+static inline unsigned int compound_order(struct page *page)
+{
+	if (!PageHead(page))
+		return 0;
+	return page[1].compound_order;
+}
+
+static inline void set_compound_order(struct page *page, unsigned int order)
+{
+	page[1].compound_order = order;
+}
+
+static inline void set_compound_head(struct page *page, struct page *head)
+{
+	page->compound_head = (unsigned long)head + 1;
+}
+
+static inline unsigned long *compound_mapcount_ptr(struct page *page)
+{
+	return &page[1].compound_mapcount;
+}
+
 extern int memory_init(void);
 extern void memory_exit(void);
 /* Huge page sizes are variable */
 extern unsigned int pageblock_order;
 extern void __free_pages(struct page *page, unsigned int order);
 extern struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order);
+
+static void prep_new_page(struct page *page, unsigned int order,
+							gfp_t gfp_flags);
 #endif

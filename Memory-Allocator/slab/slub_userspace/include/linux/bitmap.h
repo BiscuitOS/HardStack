@@ -1,8 +1,6 @@
 #ifndef _BISCUITOS_BITMAP_H
 #define _BISCUITOS_BITMAP_H
 
-#include "linux/getorder.h"
-
 #define BIT_MASK(nr)	(1UL << ((nr) % BITS_PER_LONG))
 #define BIT_WORD(nr)	((nr) / BITS_PER_LONG)
 
@@ -26,5 +24,9 @@ static inline void __clear_bit(int nr, volatile unsigned long *addr)
 
 	*p &= ~mask;
 }
+
+#define ATOMIC_BITOP(name,nr,p)		__##name(nr,p)
+
+#define clear_bit(nr,p)	ATOMIC_BITOP(clear_bit,nr,p)
 
 #endif

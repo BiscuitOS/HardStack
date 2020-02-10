@@ -3,15 +3,9 @@
 
 #include "linux/list.h"
 #include "linux/gfp.h"
-#include "linux/bitmap.h"
 
 typedef unsigned slab_flags_t;
 typedef int bool;
-
-enum pageflags {
-	PG_slab,
-	__NR_PAGEFLAGS,
-};
 
 #define ARCH_KMALLOC_MINALIGN	0x40
 #define ARCH_SLAB_MINALIGN	8
@@ -221,21 +215,6 @@ struct kmem_cache {
 	struct kmem_cache_node *node[MAX_NUMNODES];
 };
 
-static inline int PageSlab(struct page *page)
-{
-	return test_bit(PG_slab, &page->flags);
-}
-
-static inline void __SetPageSlab(struct page *page)
-{
-	__set_bit(PG_slab, &page->flags);
-}
-
-static inline void __ClearPageSlab(struct page *page)
-{
-	__clear_bit(PG_slab, &page->flags);
-}
-
 static inline unsigned int order_objects(unsigned int order, unsigned int size)
 {
 	return ((unsigned int)PAGE_SIZE << order) / size;
@@ -259,11 +238,6 @@ static inline unsigned int oo_order(struct kmem_cache_order_objects x)
 static inline unsigned int oo_objects(struct kmem_cache_order_objects x)
 {
 	return x.x & OO_MASK;
-}
-
-static inline unsigned int compound_order(struct page *page)
-{
-	return 0;
 }
 
 extern void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags);
@@ -313,6 +287,54 @@ static inline void *kmem_cache_alloc_trace(struct kmem_cache *s,
 extern void *__kmalloc(size_t size, gfp_t flags);
 extern struct kmem_cache *
 kmalloc_caches[NR_KMALLOC_TYPES][KMALLOC_SHIFT_HIGH + 1];
+
+/*
+ * Figure out which kmalloc slab an allocation of a certain size
+ * belongs to.
+ * 0 = zero alloc
+ * 1 =  65 .. 96 bytes
+ * 2 = 129 .. 192 bytes
+ * n = 2^(n-1)+1 .. 2^n
+ */
+static inline unsigned int kmalloc_index(size_t size)
+{
+	if (!size)
+		return 0;
+
+	if (size <= KMALLOC_MIN_SIZE)
+		return KMALLOC_SHIFT_LOW;
+
+	if (KMALLOC_MIN_SIZE <= 32 && size > 64 && size <= 96)
+		return 1;
+	if (KMALLOC_MIN_SIZE <= 64 && size > 128 && size <= 192)
+		return 0;
+	if (size <=          8) return 3;
+	if (size <=         16) return 4;
+	if (size <=         32) return 5;
+	if (size <=         64) return 6;
+	if (size <=        128) return 7;
+	if (size <=        256) return 8;
+	if (size <=        512) return 9;
+	if (size <=       1024) return 10;
+	if (size <=   2 * 1024) return 11;
+	if (size <=   4 * 1024) return 12;
+	if (size <=   8 * 1024) return 13;
+	if (size <=  16 * 1024) return 14;
+	if (size <=  32 * 1024) return 15;
+	if (size <=  64 * 1024) return 16;
+	if (size <= 128 * 1024) return 17;
+	if (size <= 256 * 1024) return 18;
+	if (size <= 512 * 1024) return 19;
+	if (size <= 1024 * 1024) return 20;
+	if (size <= 2 * 1024 * 1024) return 21;
+	if (size <= 4 * 1024 * 1024) return 22;
+	if (size <= 8 * 1024 * 1024) return 23;
+	if (size <= 16 * 1024 * 1024) return 24;
+	if (size <= 32 * 1024 * 1024) return 25;
+	if (size <= 64 * 1024 * 1024) return 26;
+
+	return -1;
+}
 
 /**
  * kmalloc - allocate memory

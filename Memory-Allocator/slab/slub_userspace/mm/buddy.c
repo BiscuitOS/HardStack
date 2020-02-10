@@ -305,6 +305,10 @@ get_page_from_freelist(gfp_t gfp_mask, unsigned int order)
 	struct page *page;
 
 	page = rmqueue(zone, order, gfp_mask);
+	if (page) {
+		prep_new_page(page, order, gfp_mask);
+	}
+	
 	return page;
 }
 
@@ -382,6 +386,45 @@ int memory_init(void)
 
 	return 0;
 }
+
+void prep_compound_page(struct page *page, unsigned int order)
+{
+	int i;
+	int nr_pages = 1 << order;
+
+	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
+	set_compound_order(page, order);
+	__SetPageHead(page);
+	for (i = 1; i < nr_pages; i++) {
+		struct page *p = page + i;
+
+		set_page_count(p, 0);
+		set_compound_head(p, page);
+	}
+	*(unsigned long *)(compound_mapcount_ptr(page)) = -1;
+}
+
+static void prep_new_page(struct page *page, unsigned int order,
+							gfp_t gfp_flags)
+{
+	int i;
+
+	if (gfp_flags & __GFP_ZERO)
+		printk("NEED clear %s\n", __func__);
+
+	if (order && (gfp_flags & __GFP_COMP))
+		prep_compound_page(page, order);
+}
+
+void free_compound_page(struct page *page)
+{
+	printk("NEED... %s\n", __func__);
+}
+
+compound_page_dtor * const compound_page_dtors[] = {
+	NULL,
+	free_compound_page,
+};
 
 void memory_exit(void)
 {

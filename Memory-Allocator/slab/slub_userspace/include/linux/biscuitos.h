@@ -5,6 +5,12 @@
 
 #define NULL	((void *)0)
 
+#ifdef CONFIG_64BIT
+#define BITS_PER_LONG   64
+#else
+#define BITS_PER_LONG   32
+#endif
+
 typedef unsigned short __u16;
 typedef unsigned short u16;
 typedef __u16 __le16;
