@@ -303,6 +303,45 @@ static inline enum kmalloc_cache_type kmalloc_type(gfp_t flags)
 	return flags & __GFP_RECLAIMABLE ? KMALLOC_RECLAIM : KMALLOC_NORMAL;
 }
 
+static inline void *kmem_cache_alloc_trace(struct kmem_cache *s,
+			gfp_t flags, size_t size)
+{
+	void *ret = kmem_cache_alloc(s, flags);
+	return ret;
+}
+
+extern void *__kmalloc(size_t size, gfp_t flags);
+extern struct kmem_cache *
+kmalloc_caches[NR_KMALLOC_TYPES][KMALLOC_SHIFT_HIGH + 1];
+
+/**
+ * kmalloc - allocate memory
+ * @size: how many bytes of memory are required.
+ * @flags: the type of memory to allocate.
+ *
+ * kmalloc is the normal method of allocating memory
+ * for object smaller than page size in the kernel.
+ */
+static inline void *kmalloc(size_t size, gfp_t flags)
+{
+	if (__builtin_constant_p(size)) {
+		unsigned int index;
+
+		if (size > KMALLOC_MAX_CACHE_SIZE)
+			printk("Need Large page\n");
+
+		index = kmalloc_index(size);
+
+		if (!index)
+			return ZERO_SIZE_PTR;
+
+		return kmem_cache_alloc_trace(
+				kmalloc_caches[kmalloc_type(flags)][index],
+				flags, size);
+	}
+	return __kmalloc(size, flags);
+}
+
 extern void kmem_cache_init(void);
 
 static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c);

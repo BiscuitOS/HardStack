@@ -627,7 +627,7 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 					num = va_arg(args, size_t);
 				break;
 			case FORMAT_TYPE_PTRDIFF:
-				num = va_arg(args, ptrdiff_t);
+				num = va_arg(args, long);
 				break;
 			case FORMAT_TYPE_UBYTE:
 				num = (unsigned char) va_arg(args, int);

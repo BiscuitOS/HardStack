@@ -87,11 +87,24 @@ static inline void *phys_to_virt(phys_addr_t x)
 	return (void *)((x - PHYS_OFFSET) + (unsigned long)memory);
 }
 
+static inline virt_to_pfn(const volatile void *x)
+{
+	return PHYS_PFN(virt_to_phys(x));
+}
+
 #define page_to_virt(page)	phys_to_virt(PFN_PHYS(page_to_pfn(page)))
+#define virt_to_page(kaddr)	pfn_to_page(virt_to_pfn(kaddr))
 
 static inline void *lowmem_page_address(const struct page *page)
 {
 	return page_to_virt(page);
+}
+
+static inline struct page *virt_to_head_page(const void *x)
+{
+	struct page *page = virt_to_page(x);
+
+	return 
 }
 
 #define page_address(page)	lowmem_page_address(page)

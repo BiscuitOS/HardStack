@@ -5,7 +5,6 @@
 
 #define NULL	((void *)0)
 
-typedef long ptrdiff_t;
 typedef unsigned short __u16;
 typedef unsigned short u16;
 typedef __u16 __le16;
@@ -23,6 +22,7 @@ enum {
 
 #define __packed		__attribute__((__packed__))
 #define __aligned(x)		__attribute__((__aligned__(x)))
+#define prefetch(x)		__builtin_prefetch(x)
 
 #define __swab16(x)		(__u16)__builtin_bswap16((__u16)(x))
 #define cpu_to_le16(x)		((__le16)__swab16((x)))

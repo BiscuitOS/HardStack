@@ -318,6 +318,11 @@ static inline void *get_freepointer(struct kmem_cache *s, void *object)
 	return freelist_dereference(s, object + s->offset);
 }
 
+static void prefetch_freepointer(const struct kmem_cache *s, void *object)
+{
+	prefetch(object + s->offset);
+}
+
 static inline void *get_freepointer_safe(struct kmem_cache *s, void *object)
 {
 	unsigned long freepointer_addr;
@@ -755,7 +760,7 @@ static inline void *slab_alloc_node(struct kmem_cache *s,
 		object = __slab_alloc(s, gfpflags, node, addr, c);
 		stat(s, ALLOC_SLOWPATH);
 	} else {
-		void *next_obect = get_freepointer_safe(s, object);
+		void *next_object = get_freepointer_safe(s, object);
 
 		/*
 		 * The cmpxchg will only match if there was no additional
@@ -763,7 +768,16 @@ static inline void *slab_alloc_node(struct kmem_cache *s,
 		 *
 		 * The cmpxchg does the following atomically (without lock
 		 * semantics!)
+		 * 1. Relocate first pointer to the current per cpu area.
+		 * 2. Verify that tid and freelist have not been changed.
+		 * 3. If they were not changed replace tid and freelist.
+		 *
+		 * Since this is without lock semantics the protection is only
+		 * against code executing on this cpu *not* from access by
+		 * other cpus.
 		 */
+		prefetch_freepointer(s, next_object);
+		stat(s, ALLOC_FASTPATH);
 	}
 
 	if (unlikely(gfpflags & __GFP_ZERO) && object)
@@ -1175,7 +1189,7 @@ static void setup_kmalloc_cache_index_table(void)
 	}
 }
 
-static struct kmem_cache *
+struct kmem_cache *
 kmalloc_caches[NR_KMALLOC_TYPES][KMALLOC_SHIFT_HIGH + 1];
 
 /*
@@ -1232,6 +1246,14 @@ struct kmem_cache *create_kmalloc_cache(const char *name,
 		unsigned int useroffset, unsigned int usersize)
 {
 	struct kmem_cache *s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
+
+	if (!s)
+		printk("Out of memory when creating slab %s\n", name);
+
+	create_boot_cache(s, name, size, flags, useroffset, usersize);
+	list_add(&s->list, &slab_caches);
+	s->refcount = 1;
+	return s;
 }
 
 static void
@@ -1265,8 +1287,23 @@ void create_kmalloc_caches(slab_flags_t flags)
 		for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
 			if (!kmalloc_caches[type][i])
 				new_kmalloc_cache(i, type, flags);
+
+			/*
+			 * Caches that are not of the two-to-the-power-of size.
+			 * These have to be created immediately after the
+			 * earlier power of two caches.
+			 */
+			if (KMALLOC_MIN_SIZE <= 32 && i == 6 &&
+					!kmalloc_caches[type][1])
+				new_kmalloc_cache(1, type, flags);
+			if (KMALLOC_MIN_SIZE <= 64 && i == 7 &&
+					!kmalloc_caches[type][2])
+				new_kmalloc_cache(2, type, flags);
 		}
 	}
+
+	/* Kmalloc array is now useable */
+	slab_state = UP;
 }
 
 /*
@@ -1302,7 +1339,38 @@ void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, unsigned long caller)
 	if (unlikely(ZERO_OR_NULL_PTR(s)))
 		return s;
 
-	printk("NEED %s\n", __func__);
+	ret = slab_alloc(s, gfpflags, caller);
+
+	return ret;
+}
+
+void *__kmalloc(size_t size, gfp_t flags)
+{
+	struct kmem_cache *s;
+	void *ret;
+
+	if (unlikely(size > KMALLOC_MAX_CACHE_SIZE))
+		printk("NEED LARGE.....\n");
+
+	s = kmalloc_slab(size, flags);
+
+	if (unlikely(ZERO_OR_NULL_PTR(s)))
+		return s;
+
+	ret = slab_alloc(s, flags, _RET_IP_);
+
+	return ret;
+}
+
+void kfree(const void *x)
+{
+	struct page *page;
+	void *object = (void *)x;
+
+	if (unlikely(ZERO_OR_NULL_PTR(x)))
+		return;
+
+	page = virt_to_head_page(x);
 }
 
 void kmem_cache_init(void)
@@ -1330,22 +1398,9 @@ void kmem_cache_init(void)
 	/* Now we can use the kmem_cache to allocate kmalloc slabs */
 	setup_kmalloc_cache_index_table();
 	create_kmalloc_caches(0);
+
+	printk("SLUB: HWalign=%d, Order=%u-%u, MinObjects=%u, CPUs=%u, Nodes=%d\n",
+		cache_line_size(),
+		slub_min_order, slub_max_order, slub_min_objects,
+		nr_cpu_ids, nr_node_ids);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
