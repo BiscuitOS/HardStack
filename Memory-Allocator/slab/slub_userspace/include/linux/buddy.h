@@ -42,37 +42,58 @@ struct zone {
 
 struct page {
 	unsigned long flags;	/* Atomic flags, some possible updated async */
-	unsigned int page_type;
-	unsigned long private;
-	struct list_head lru;
-	/* Double-word boundary */
-	void *freelist;		/* first free object */
 	union {
-		void *s_mem;	/* slab: first object */
-		unsigned long counters;	/* SLUB */
-		/*
-		 * 32       31                16                      0
-		 * +--------+-----------------+-----------------------+
-		 * | frozen |     objects     |         inuse         |
-		 * +--------+-----------------+-----------------------+
-		 */
 		struct {
-			unsigned inuse:16;
-			unsigned objects:15;
-			unsigned frozen:1;
+			struct list_head lru;
+			unsigned long private;
+		};
+		struct {
+			union {
+				struct list_head slab_list;
+				struct {
+					struct page *next;
+#ifdef CONFIG_64BIT
+					int pages;
+					int pobjects;
+#else
+					short int pages;
+					short int pobjects;
+#endif
+				};
+			};
+			struct kmem_cache *slab_cache; /* not slob */
+			/* Double-word boundary */
+			void *freelist;		/* first free object */
+			union {
+				void *s_mem;	/* slab: first object */
+				unsigned long counters;	/* SLUB */
+				/*
+		 		* 32       31            16                0
+		 		* +--------+-------------+-----------------+
+		 		* | frozen |   objects   |      inuse      |
+		 		* +--------+-------------+-----------------+
+		 		*/
+				struct {
+					unsigned inuse:16;
+					unsigned objects:15;
+					unsigned frozen:1;
+				};
+			};
+			
+		};
+		struct {	/* Tail pages of compound page */
+			unsigned long compound_head;	/* Bit zero is set */
+
+			/* First tail page only */
+			unsigned char compound_dtor;
+			unsigned char compound_order;
+			unsigned long compound_mapcount;
 		};
 	};
-	struct kmem_cache *slab_cache; /* not slob */
-	struct page *next;
-	struct {	/* Tail pages of compound page */
-		unsigned long compound_head;	/* Bit zero is set */
 
-		/* First tail page only */
-		unsigned char compound_dtor;
-		unsigned char compound_order;
-		unsigned long compound_mapcount;
+	union {		/* This union is 4 bytes in size. */
+		unsigned int page_type;
 	};
-
 	/* Usage count. */
 	unsigned long _refcount;
 };
@@ -218,6 +239,16 @@ static inline void __SetPageHead(struct page *page)
 static inline void __ClearPageHead(struct page *page)
 {
 	__clear_bit(PG_head, &page->flags);
+}
+
+static inline int PageTail(struct page *page)
+{
+	return page->compound_head & 1;
+}
+
+static inline int PageCompound(struct page *page)
+{
+	return test_bit(PG_head, &page->flags) || PageTail(page);
 }
 
 static inline void set_page_order(struct page *page, unsigned int order)

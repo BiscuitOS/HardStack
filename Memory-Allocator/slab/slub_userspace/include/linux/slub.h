@@ -369,4 +369,7 @@ extern void kmem_cache_init(void);
 static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c);
 static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
 				unsigned long addr, struct kmem_cache_cpu *c);
+static inline void add_partial(struct kmem_cache_node *n,
+				struct page *page, int tail);
+static void discard_slab(struct kmem_cache *s, struct page *page);
 #endif

@@ -17,11 +17,12 @@
 
 int main()
 {
+	unsigned long *p;
+
 	memory_init();
 
 	/* Initialize Slub Allocator */
 	kmem_cache_init();
-
 
 	memory_exit();
 	return 0;

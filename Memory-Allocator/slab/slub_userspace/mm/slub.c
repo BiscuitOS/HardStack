@@ -486,6 +486,22 @@ static inline bool __cmpxchg_double_slab(struct kmem_cache *s,
 	return 0;
 }
 
+static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
+		void *freelist_old, unsigned long counters_old,
+		void *freelist_new, unsigned long counters_new,
+		const char *n)
+{
+	unsigned long flags;
+
+	if (page->freelist == freelist_old &&
+			page->counters == counters_old) {
+		page->freelist = freelist_new;
+		page->counters = counters_new;
+		return true;
+	}
+	return false;
+}
+
 static inline void remove_partial(struct kmem_cache_node *n, struct page *page)
 {
 	list_del(&page->lru);
@@ -544,6 +560,109 @@ static inline void *acquire_slab(struct kmem_cache *s,
 
 	remove_partial(n, page);
 	return freelist;
+}
+
+/*
+ * Unfreeze all the cpu partial slabs.
+ *
+ * This function must be called with interrupts disabled
+ * for the cpu using c (or some other guarantee must be there
+ * to guarantee no concurrent accesses).
+ */
+static void unfreeze_partials(struct kmem_cache *s, struct kmem_cache_cpu *c)
+{
+	struct kmem_cache_node *n = NULL, *n2 = NULL;
+	struct page *page, *discard_page = NULL;
+
+	while ((page = c->partial)) {
+		struct page new;
+		struct page old;
+
+		c->partial = page->next;
+
+		n2 = get_node(s, 0);
+		if (n != n2) {
+			n = n2;
+		}
+
+		do {
+			old.freelist = page->freelist;
+			old.counters = page->counters;
+
+			new.counters = old.counters;
+			new.freelist = old.freelist;
+
+			new.frozen = 0;
+		} while (!__cmpxchg_double_slab(s, page,
+				old.freelist, old.counters,
+				new.freelist, new.counters,
+				"unfreezing slab"));
+
+		if (unlikely(!new.inuse && n->nr_partial >= s->min_partial)) {
+			page->next = discard_page;
+			discard_page = page;
+		} else {
+			add_partial(n, page, DEACTIVATE_TO_TAIL);
+			stat(s, FREE_ADD_PARTIAL);
+		}
+	}
+
+	while (discard_page) {
+		page = discard_page;
+		discard_page = discard_page->next;
+
+		stat(s, DEACTIVATE_EMPTY);
+		discard_slab(s, page);
+		stat(s, FREE_SLAB);
+	}
+}
+
+/*
+ * Put a page that was kust frozen (in __slab_free) into a partial page
+ * slot if available.
+ *
+ * If we did not find a slot them simply move all the partials to the
+ * per node partial list.
+ */
+static void put_cpu_partial(struct kmem_cache *s, struct page *page, int drain)
+{
+	struct page *oldpage;
+	int pages;
+	int pobjects;
+
+	do {
+		pages = 0;
+		pobjects = 0;
+		oldpage = s->cpu_slab->partial;
+
+		if (oldpage) {
+			pobjects = oldpage->pobjects;
+			pages = oldpage->pages;
+			if (drain && pobjects > s->cpu_partial) {
+				unsigned long flags;
+				/*
+				 * partial array is full. Move the existing
+				 * set to the per node partial list.
+				 */
+				unfreeze_partials(s, s->cpu_slab);
+				oldpage = NULL;
+				pobjects = 0;
+				pages = 0;
+				stat(s, CPU_PARTIAL_DRAIN);
+			}
+		}
+
+		pages++;
+		pobjects += page->objects - page->inuse;
+
+		page->pages = pages;
+		page->pobjects = pobjects;
+		page->next = oldpage;
+	} while (0);
+
+	if (unlikely(!s->cpu_partial)) {
+		unfreeze_partials(s, s->cpu_slab);
+	}
 }
 
 /*
@@ -1043,22 +1162,6 @@ redo:
 	c->freelist = NULL;
 }
 
-/*
- * Unfreeze all the cpu partial slabs.
- *
- * This function must be called with interrupts disabled
- * for the cpu using c (or some other guarantee must be there
- * to guarantee no concurrent accesses).
- */
-static void unfreeze_partials(struct kmem_cache *s,
-			struct kmem_cache_cpu *c)
-{
-	struct page *page;
-
-	while ((page = c->partial))
-		printk("NEED %s\n", __func__);
-}
-
 static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
 {
 	stat(s, CPUSLAB_FLUSH);
@@ -1362,6 +1465,138 @@ void *__kmalloc(size_t size, gfp_t flags)
 	return ret;
 }
 
+/*
+ * Slow path handling. This may still be called frequently since objects
+ * have a longer lifetime than the cpu slabs in most processing loads.
+ *
+ * So we still attempt to reduce cache line usage. Just take the slab
+ * lock and free the item. If there is no additional partial page
+ * handling required them we can return immediately.
+ */
+static void __slab_free(struct kmem_cache *s, struct page *page,
+			void *head, void *tail, int cnt,
+			unsigned long addr)
+{
+	void *prior;
+	int was_frozen;
+	struct page new;
+	unsigned long counters;
+	struct kmem_cache_node *n = NULL;
+	unsigned long flags;
+
+	stat(s, FREE_SLOWPATH);
+
+	do {
+		prior = page->freelist;
+		counters = page->counters;
+		set_freepointer(s, tail, prior);
+		new.counters = counters;
+		was_frozen = new.frozen;
+		new.inuse -= cnt;
+		if ((!new.inuse || !prior) && !was_frozen) {
+			if (kmem_cache_has_cpu_partial(s) && !prior) {
+				/*
+				 * Slab was on no list before and will be
+				 * partially empty
+				 * We can defer the list move and instead
+				 * freeze it.
+				 */
+				new.frozen = 1;
+			}
+		}
+	} while (!cmpxchg_double_slab(s, page, prior, counters, head,
+				new.counters, "__slab_free"));
+
+	if (likely(!n)) {
+		/*
+		 * If we just froze the page then put it onto the
+		 * per cpu partial list.
+		 */
+		if (new.frozen && !was_frozen) {
+			put_cpu_partial(s, page, 1);
+			stat(s, CPU_PARTIAL_FREE);
+		}
+		/*
+		 * The list lock was not taken therefore no list activity
+		 * can be necessary.
+		 */
+		if (was_frozen)
+			stat(s, FREE_FROZEN);
+		return;
+	}
+
+	if (unlikely(!new.inuse && n->nr_partial >= s->min_partial))
+		goto slab_empty;
+
+	/*
+	 * Objects left in the slab. If it was not on the partial list before
+	 * then add it.
+	 */
+	if (!kmem_cache_has_cpu_partial(s) && unlikely(!prior)) {
+		add_partial(n, page, DEACTIVATE_TO_TAIL);
+		stat(s, FREE_ADD_PARTIAL);
+	}
+	return;
+
+slab_empty:
+	if (prior) {
+		/*
+		 * Slab on the partial list.
+		 */
+		remove_partial(n, page);
+		stat(s, FREE_REMOVE_PARTIAL);
+	} else {
+		/* Slab must be on the full list */
+		remove_full(s, n, page);
+	}
+
+	stat(s, FREE_SLAB);
+	discard_slab(s, page);
+}
+
+/*
+ * Fastpath with forced inlining to produce a kfree and kmem_cache_free that
+ * can perform fastpath freeing without additional function calls.
+ *
+ * The fastpath is only possible if we are freeing to the current cpu slab
+ * of this processor. This typically the case if we have just allocated
+ * the item before.
+ *
+ * If fastpath is not possible then fall back to __slab_free where we deal
+ * with all sorts of special processing.
+ *
+ * Bulk free of a freelist with several objects (all pointing to the
+ * same page) possible by specifying head and tail ptr, plus objects
+ * count (cnt). Bulk free indicated by tail pointer being set.
+ */
+static inline void do_slab_free(struct kmem_cache *s, struct page *page,
+			void *head, void *tail, int cnt, unsigned long addr)
+{
+	void *tail_obj = tail ? : head;
+	struct kmem_cache_cpu *c;
+	unsigned long tid;
+
+redo:
+	/*
+	 * Determine the currently cpus per cpu slab.
+	 * The cpu may change afterward. However that does not matter since
+	 * data is retrieved via this pointer. If we are on the same cpu
+	 * during the cmpxchg then free will succeed.
+	 */
+	c = s->cpu_slab;
+	if (likely(page == c->page)) {
+		set_freepointer(s, tail_obj, c->freelist);
+		stat(s, FREE_FASTPATH);
+	} else
+		__slab_free(s, page, head, tail_obj, cnt, addr);
+}
+
+static inline void slab_free(struct kmem_cache *s, struct page *page,
+			void *head, void *tail, int cnt, unsigned long addr)
+{
+	do_slab_free(s, page, head, tail, cnt, addr);
+}
+
 void kfree(const void *x)
 {
 	struct page *page;
@@ -1371,6 +1606,13 @@ void kfree(const void *x)
 		return;
 
 	page = virt_to_head_page(x);
+	if (unlikely(!PageSlab(page))) {
+		if (!PageCompound(page))
+			printk("BUG_ON() %s\n", __func__);
+		__free_pages(page, compound_order(page));
+		return;
+	}
+	slab_free(page->slab_cache, page, object, NULL, 1, _RET_IP_);
 }
 
 void kmem_cache_init(void)
