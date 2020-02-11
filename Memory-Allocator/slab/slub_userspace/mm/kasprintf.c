@@ -500,7 +500,7 @@ qualifier:
 
 	case 'n':
 	default:
-		spec->type == FORMAT_TYPE_INVALID;
+		spec->type = FORMAT_TYPE_INVALID;
 		return fmt - start;
 	}
 

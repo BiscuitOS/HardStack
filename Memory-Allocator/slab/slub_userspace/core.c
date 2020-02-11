@@ -15,18 +15,6 @@
 #include "linux/buddy.h"
 #include "linux/slub.h"
 
-/*
- * instance kmem_cache_zalloc() from kmem_cache
- */
-static int instance_kmem_call_zalloc(void)
-{
-	struct kmem_cache *s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
-
-	printk("S %#lx\n", s);
-
-	return 0;
-}
-
 int main()
 {
 	unsigned long *p;

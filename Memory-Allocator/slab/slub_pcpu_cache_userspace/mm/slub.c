@@ -323,15 +323,6 @@ static void prefetch_freepointer(const struct kmem_cache *s, void *object)
 	prefetch(object + s->offset);
 }
 
-static inline void *get_freepointer_safe(struct kmem_cache *s, void *object)
-{
-	unsigned long freepointer_addr;
-	void *p;
-
-	freepointer_addr = (unsigned long)object + s->offset;
-	return freelist_ptr(s, p, freepointer_addr);
-}
-
 static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
 {
 	struct page *page;
@@ -484,14 +475,6 @@ static inline bool __cmpxchg_double_slab(struct kmem_cache *s,
 
 	stat(s, CMPXCHG_DOUBLE_FAIL);
 	return 0;
-}
-
-static inline bool this_cpu_cmpxchg_double(void *freelist, 
-				void *freelist_old, void  *freelist_new)
-{
-	if (freelist == freelist_old)
-		freelist = freelist_new;
-	return 1;
 }
 
 static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
@@ -903,6 +886,7 @@ static inline void *slab_alloc_node(struct kmem_cache *s,
 		 * against code executing on this cpu *not* from access by
 		 * other cpus.
 		 */
+		s->cpu_slab->freelist = get_freepointer(s, object);
 		prefetch_freepointer(s, next_object);
 		stat(s, ALLOC_FASTPATH);
 	}
@@ -984,7 +968,7 @@ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
 
 	/* Initialize the per-computed randomized freelist if slab is up */
 	if (slab_state >= UP) {
-		printk("Need %s UP\n", __func__);
+		printk("SBBBB\n");
 	}
 
 	if (!init_kmem_cache_nodes(s))
@@ -992,9 +976,7 @@ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
 
 	if (alloc_kmem_cache_cpus(s))
 		return 0;
-
 	
-	printk("Kmem_cache_open failed...\n");
 	free_kmem_cache_nodes(s);
 	return 0;
 error:
@@ -1648,11 +1630,13 @@ void kmem_cache_init(void)
 	kmem_cache = bootstrap(&boot_kmem_cache);
 	kmem_cache_node = bootstrap(&boot_kmem_cache_node);
 
+
 	/* Now we can use the kmem_cache to allocate kmalloc slabs */
 	setup_kmalloc_cache_index_table();
 	create_kmalloc_caches(0);
 
-	printk("SLUB: HWalign=%d, Order=%u-%u, MinObjects=%u, CPUs=%u, Nodes=%d\n",
+	printk("SLUB: HWalign=%d, Order=%u-%u, MinObjects=%u, "
+		"CPUs=%u, Nodes=%d\n",
 		cache_line_size(),
 		slub_min_order, slub_max_order, slub_min_objects,
 		nr_cpu_ids, nr_node_ids);

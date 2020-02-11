@@ -126,7 +126,6 @@ struct kmem_cache_cpu {
 	void **freelist;	/* Pointer to next available object */
 	unsigned long tid;	/* Globally unique transaction id */
 	struct page *page;	/* The slab from which we are allocating */
-	struct page *partial;	/* Partially allocated fronzen slabs */
 };
 
 enum stat_item {
@@ -159,12 +158,11 @@ enum stat_item {
 	NR_SLUB_STAT_ITEMS
 };
 
-#define slub_cpu_partial(s)	((s)->cpu_partial)
-#define slub_percpu_partial(c)	((c)->partial)
-#define slub_set_percpu_partial(c, p)		\
-({						\
-	slub_percpu_partial(c) = (p)->next;	\
-})
+#define slub_cpu_partial(s)			(0)
+#define slub_set_cpu_partial(s, n)
+#define slub_percpu_partial(c)			NULL
+#define slub_set_percpu_partial(c, p)
+#define slub_percpu_partial_read_once(c)	NULL
 
 /*
  * Word size structure that can be atomically updated or read and that
@@ -209,9 +207,6 @@ struct kmem_cache {
 
 	unsigned int useroffset;	/* Usercopy region offset */
 	unsigned int usersize;		/* Usercopy region size */
-
-	/* Number of per cpu partial objects to keep around */
-	unsigned int cpu_partial;
 
 	/* Must locate on tail of struct kmem_cache */
 	struct kmem_cache_node *node[MAX_NUMNODES];

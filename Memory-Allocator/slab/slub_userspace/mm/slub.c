@@ -245,38 +245,11 @@ static void set_min_partial(struct kmem_cache *s, unsigned long min)
 
 static inline int kmem_cache_has_cpu_partial(struct kmem_cache *s)
 {
-	return 1;
+	return false;
 }
 
 static void set_cpu_partial(struct kmem_cache *s)
 {
-	/*
-	 * cpu_partial determined the maximum number of objects kept in the
-	 * per cpu partial lists of a processor.
-	 *
-	 * Per cpu partial lists mainly contain slabs that just have one
-	 * object freed. If they are used for allocation then they can be
-	 * filled up again with minimal effort. The slab will never hit the
-	 * per node partial lists and therefore no locking will be required
-	 *
-	 * This setting also determines
-	 *
-	 * A) The number of objects from per cpu partial slabs dumped to the
-	 *    per node list when we reach the limit.
-	 * B) The number of objects in cpu partial slabs to extract from the
-	 *    per node list when we run out of per cpu objects. We only fetch
-	 *    50% to keep some capacity around for frees.
-	 */
-	if (!kmem_cache_has_cpu_partial(s))
-		s->cpu_partial = 0;
-	else if (s->size >= PAGE_SIZE)
-		s->cpu_partial = 2;
-	else if (s->size >= 1024)
-		s->cpu_partial = 6;
-	else if (s->size >= 256)
-		s->cpu_partial = 13;
-	else
-		s->cpu_partial = 30;
 }
 
 /*
@@ -321,15 +294,6 @@ static inline void *get_freepointer(struct kmem_cache *s, void *object)
 static void prefetch_freepointer(const struct kmem_cache *s, void *object)
 {
 	prefetch(object + s->offset);
-}
-
-static inline void *get_freepointer_safe(struct kmem_cache *s, void *object)
-{
-	unsigned long freepointer_addr;
-	void *p;
-
-	freepointer_addr = (unsigned long)object + s->offset;
-	return freelist_ptr(s, p, freepointer_addr);
 }
 
 static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
@@ -571,50 +535,6 @@ static inline void *acquire_slab(struct kmem_cache *s,
  */
 static void unfreeze_partials(struct kmem_cache *s, struct kmem_cache_cpu *c)
 {
-	struct kmem_cache_node *n = NULL, *n2 = NULL;
-	struct page *page, *discard_page = NULL;
-
-	while ((page = c->partial)) {
-		struct page new;
-		struct page old;
-
-		c->partial = page->next;
-
-		n2 = get_node(s, 0);
-		if (n != n2) {
-			n = n2;
-		}
-
-		do {
-			old.freelist = page->freelist;
-			old.counters = page->counters;
-
-			new.counters = old.counters;
-			new.freelist = old.freelist;
-
-			new.frozen = 0;
-		} while (!__cmpxchg_double_slab(s, page,
-				old.freelist, old.counters,
-				new.freelist, new.counters,
-				"unfreezing slab"));
-
-		if (unlikely(!new.inuse && n->nr_partial >= s->min_partial)) {
-			page->next = discard_page;
-			discard_page = page;
-		} else {
-			add_partial(n, page, DEACTIVATE_TO_TAIL);
-			stat(s, FREE_ADD_PARTIAL);
-		}
-	}
-
-	while (discard_page) {
-		page = discard_page;
-		discard_page = discard_page->next;
-
-		stat(s, DEACTIVATE_EMPTY);
-		discard_slab(s, page);
-		stat(s, FREE_SLAB);
-	}
 }
 
 /*
@@ -626,43 +546,6 @@ static void unfreeze_partials(struct kmem_cache *s, struct kmem_cache_cpu *c)
  */
 static void put_cpu_partial(struct kmem_cache *s, struct page *page, int drain)
 {
-	struct page *oldpage;
-	int pages;
-	int pobjects;
-
-	do {
-		pages = 0;
-		pobjects = 0;
-		oldpage = s->cpu_slab->partial;
-
-		if (oldpage) {
-			pobjects = oldpage->pobjects;
-			pages = oldpage->pages;
-			if (drain && pobjects > s->cpu_partial) {
-				unsigned long flags;
-				/*
-				 * partial array is full. Move the existing
-				 * set to the per node partial list.
-				 */
-				unfreeze_partials(s, s->cpu_slab);
-				oldpage = NULL;
-				pobjects = 0;
-				pages = 0;
-				stat(s, CPU_PARTIAL_DRAIN);
-			}
-		}
-
-		pages++;
-		pobjects += page->objects - page->inuse;
-
-		page->pages = pages;
-		page->pobjects = pobjects;
-		page->next = oldpage;
-	} while (0);
-
-	if (unlikely(!s->cpu_partial)) {
-		unfreeze_partials(s, s->cpu_slab);
-	}
 }
 
 /*
@@ -876,13 +759,11 @@ static inline void *slab_alloc_node(struct kmem_cache *s,
 	page = c->page;
 
 	if (unlikely(!object)) {
-		printk("N2\n");
 		object = __slab_alloc(s, gfpflags, node, addr, c);
 		stat(s, ALLOC_SLOWPATH);
 	} else {
-		void *next_object = get_freepointer_safe(s, object);
+		void *next_object = get_freepointer(s, object);
 
-		printk("Y2\n");
 		/*
 		 * The cmpxchg will only match if there was no additional
 		 * operation and if we are on the right processor.
@@ -897,6 +778,7 @@ static inline void *slab_alloc_node(struct kmem_cache *s,
 		 * against code executing on this cpu *not* from access by
 		 * other cpus.
 		 */
+		s->cpu_slab->freelist = get_freepointer(s, object);
 		prefetch_freepointer(s, next_object);
 		stat(s, ALLOC_FASTPATH);
 	}
@@ -1356,6 +1238,7 @@ struct kmem_cache *create_kmalloc_cache(const char *name,
 	if (!s)
 		printk("Out of memory when creating slab %s\n", name);
 
+	printk("NAME %s\t SIZE %d\n", name, size);
 	create_boot_cache(s, name, size, flags, useroffset, usersize);
 	list_add(&s->list, &slab_caches);
 	s->refcount = 1;
@@ -1637,28 +1520,16 @@ void kmem_cache_init(void)
 			nr_node_ids * sizeof(struct kmem_cache_node *),
 				SLAB_HWCACHE_ALIGN, 0, 0);
 	
-	if (1) {
-		struct kmem_cache *s;
-
-		printk("DEBUGSTART..........................\n");
-		s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
-		printk("S1 %#lx\n", (unsigned long)s);
-		s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
-		printk("S2 %#lx\n", (unsigned long)s);
-		s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
-		printk("S3 %#lx\n", (unsigned long)s);
-		printk("DEBUGEND...........................\n");
-	}
 	kmem_cache = bootstrap(&boot_kmem_cache);
 	kmem_cache_node = bootstrap(&boot_kmem_cache_node);
 
-	printk("Kmem_cache and Kmem_cache_node initialize finish.\n");
 
 	/* Now we can use the kmem_cache to allocate kmalloc slabs */
 	setup_kmalloc_cache_index_table();
 	create_kmalloc_caches(0);
 
-	printk("SLUB: HWalign=%d, Order=%u-%u, MinObjects=%u, CPUs=%u, Nodes=%d\n",
+	printk("SLUB: HWalign=%d, Order=%u-%u, MinObjects=%u, "
+		"CPUs=%u, Nodes=%d\n",
 		cache_line_size(),
 		slub_min_order, slub_max_order, slub_min_objects,
 		nr_cpu_ids, nr_node_ids);
