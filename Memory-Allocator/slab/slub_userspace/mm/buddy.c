@@ -381,6 +381,8 @@ int memory_init(void)
 
 	printf("BiscuitOS Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
 					(unsigned long)(PHYS_OFFSET + MEMORY_SIZE));
+	printk("Virtual Memory:   %#lx - %#lx\n", (unsigned long)memory,
+					(unsigned long)memory + MEMORY_SIZE);
 	printf("mem_map[] contains %#lx pages, page size %#lx\n", nr_pages,
 						(unsigned long)PAGE_SIZE);
 

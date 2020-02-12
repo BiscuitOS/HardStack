@@ -26,12 +26,13 @@ enum {
 #define ZERO_OR_NULL_PTR(x)	((unsigned long)(x) <=	\
 					(unsigned long)ZERO_SIZE_PTR)
 
+#define likely(x)		__builtin_expect(!!(x), 1)
+#define unlikely(x)		__builtin_expect(!!(x), 0)
 #define __packed		__attribute__((__packed__))
 #define __aligned(x)		__attribute__((__aligned__(x)))
 #define prefetch(x)		__builtin_prefetch(x)
 
-#define __swab16(x)		(__u16)__builtin_bswap16((__u16)(x))
-#define cpu_to_le16(x)		((__le16)__swab16((x)))
+#define cpu_to_le16(x)		((__le16)(__u16)(x))
 
 #define do_div(n, base)					\
 ({							\
@@ -77,6 +78,26 @@ static inline char _tolower(const char c)
 {
 	return c | 0x20;
 }
+
+#define MAX_ERRNO	4095
+#define IS_ERR_VALUE(x)	unlikely((unsigned long)(void *)(x) >= (unsigned long)-MAX_ERRNO)
+
+static inline void * ERR_PTR(long error)
+{
+	return (void *) error;
+}
+
+static inline long PTR_ERR(const void *ptr)
+{
+	return (long) ptr;
+}
+
+static inline bool IS_ERR(const void *ptr)
+{
+	return IS_ERR_VALUE((unsigned long)ptr);
+}
+
+#define is_kernel_rodata(x)	(0)
 
 extern char *kasprintf(gfp_t gfp, const char *fmt, ...);
 

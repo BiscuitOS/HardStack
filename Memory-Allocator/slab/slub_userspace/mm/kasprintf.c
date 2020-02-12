@@ -14,6 +14,7 @@
 
 #include "linux/buddy.h"
 #include "linux/slub.h"
+#include "linux/biscuitos.h"
 
 #define SIGN    1               /* unsigned/signed, must be 1 */
 #define LEFT    2               /* left justified */
@@ -694,4 +695,53 @@ char *kasprintf(gfp_t gfp, const char *fmt, ...)
 	va_end(ap);
 
 	return p;
+}
+
+/**
+ * kstrdup - allocate space for and copy an existing string
+ * @s: the string to duplicate
+ * @gfp: the GFP mask used in the kmalloc() call when allocating memory
+ */
+char *kstrdup(const char *s, gfp_t gfp)
+{
+	size_t len;
+	char *buf;
+
+	if (!s)
+		return NULL;
+
+	len = strlen(s) + 1;
+	buf = kmalloc_track_caller(len, gfp);
+	if (buf)
+		memcpy(buf, s, len);
+	return buf;
+}
+
+/**
+ * kstrdup_const - conditionally duplicate an existing const string
+ * @s: the string to duplicate
+ * @gfp: the GFP mask used in the kmalloc() call when allocating memory
+ *
+ * Function returns source string if it is in .rodata section otherwise it
+ * fallbacks to kstrdup.
+ * Strings allocated by kstrdup_const should be freed by kfree_const.
+ */
+const char *kstrdup_const(const char *s, gfp_t gfp)
+{
+	if (is_kernel_rodata((unsigned long)s))
+		return s;
+
+	return kstrdup(s, gfp);
+}
+
+/**
+ * kfree_const - conditionally free memory
+ * @x: pointer to the memory
+ *
+ * Function calls kfree only if @x is not in .rodata section
+ */
+void kfree_const(const void *x)
+{
+	if (!is_kernel_rodata((unsigned long)x))
+		kfree(x);
 }

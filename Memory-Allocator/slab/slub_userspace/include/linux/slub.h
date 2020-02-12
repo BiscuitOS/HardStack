@@ -8,6 +8,9 @@
 typedef unsigned slab_flags_t;
 typedef int bool;
 
+#define ENOMEM			12	/* Out of memory */
+#define EINVAL			22	/* Invalid argument */
+
 #define ARCH_KMALLOC_MINALIGN	0x40
 #define ARCH_SLAB_MINALIGN	8
 
@@ -37,9 +40,47 @@ typedef int bool;
 #define SLAB_CACHE_DMA		((slab_flags_t)0x00004000U)
 /* DEBUG: Store the last owner for bug hunting */
 #define SLAB_STORE_USER		((slab_flags_t)0x00010000U)
-/* The following flags affect the page allocator grouping pages by
- * mobility Objects are reclaimable */
+/* Panic if kmem_cache_create() fails */
+#define SLAB_PANIC		((slab_flags_t)0x00040000U)
+/* Defer freelist slabs to RCU */
+#define SLAB_TYPESAFE_BY_RCU	((slab_flags_t)0x00080000U)
+/* Avoid kmemleak tracing */
+#define SLAB_NOLEAKTRACE	((slab_flags_t)0x00800000U)
+/* DEBUG: Red zone objs on a cache */
+#define SLAB_RED_ZONE		((slab_flags_t)0x00000400U)
+/* Trace allocations and frees */
+#define SLAB_TRACE		((slab_flags_t)0x00200000U)
+/* DEBUG: Perform (expensive) checks on alloc/free */
+#define SLAB_CONSISTENCY_CHECKS	((slab_flags_t)0x00000100U)
+/* Spread some memory over cpuset */
+#define SLAB_MEM_SPREAD		((slab_flags_t)0x00100000U)
+/* Objects are reclaimable */
 #define SLAB_RECLAIM_ACCOUNT	((slab_flags_t)0x00020000U)
+#define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT
+#define SLAB_ACCOUNT		0
+#define SLAB_DEBUG_OBJECTS	0
+#define SLAB_DEBUG_FLAGS	0
+
+#define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE | SLAB_RECLAIM_ACCOUNT | \
+			SLAB_TEMPORARY | SLAB_ACCOUNT)
+
+#define SLAB_CORE_FLAGS (SLAB_HWCACHE_ALIGN | SLAB_CACHE_DMA | SLAB_PANIC | \
+	SLAB_TYPESAFE_BY_RCU | SLAB_DEBUG_OBJECTS)
+
+#define CACHE_CREATE_MASK (SLAB_CORE_FLAGS | SLAB_DEBUG_FLAGS | SLAB_CACHE_FLAGS)
+
+/* Common flags permitted for kmem_cache_create */
+#define SLAB_FLAGS_PERMITTED	(SLAB_CORE_FLAGS		| \
+				 SLAB_RED_ZONE			| \
+				 SLAB_POISON			| \
+				 SLAB_STORE_USER		| \
+				 SLAB_TRACE			| \
+				 SLAB_CONSISTENCY_CHECKS	| \
+				 SLAB_MEM_SPREAD		| \
+				 SLAB_NOLEAKTRACE		| \
+				 SLAB_RECLAIM_ACCOUNT		| \
+				 SLAB_TEMPORARY			| \
+				 SLAB_ACCOUNT)
 
 #define _RET_IP_	(unsigned long)__builtin_return_address(0)
 
@@ -212,6 +253,10 @@ struct kmem_cache {
 	struct kmem_cache_node *node[MAX_NUMNODES];
 };
 
+struct mem_cgroup {
+	unsigned long high;
+};
+
 static inline unsigned int order_objects(unsigned int order, unsigned int size)
 {
 	return ((unsigned int)PAGE_SIZE << order) / size;
@@ -361,6 +406,22 @@ static inline void *kmalloc(size_t size, gfp_t flags)
 	return __kmalloc(size, flags);
 }
 
+/**
+ * kzalloc - allocate memory. The memory is set to zero
+ * @size: how many bytes of memory are required.
+ * @flags: the type of memory to allocate (see kmalloc).
+ */
+static inline void *kzalloc(size_t size, gfp_t flags)
+{
+	return kmalloc(size, flags | __GFP_ZERO);
+}
+
+#define for_each_memcg_cache(iter, root)	\
+	for ((void)(iter), (void)(root); 0; )
+
+#define slab_root_cache		slab_caches
+#define root_cache_node		list
+
 extern void kmem_cache_init(void);
 
 /* The slab cache that manages slab cache information */
@@ -372,4 +433,21 @@ static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
 static inline void add_partial(struct kmem_cache_node *n,
 				struct page *page, int tail);
 static void discard_slab(struct kmem_cache *s, struct page *page);
+
+extern struct kmem_cache *
+kmem_cache_create(const char *name, unsigned int size, unsigned int align,
+			slab_flags_t flags, void (*ctor)(void *));
+void kmem_cache_free(struct kmem_cache *s, void *x);
+
+extern struct kmem_cache *
+kmem_cache_create_usercopy(const char *name,
+		unsigned int size, unsigned int align,
+		slab_flags_t flags,
+		unsigned int useroffset, unsigned int usersize,
+		void (*ctor)(void *));
+extern const char *kstrdup_const(const char *, gfp_t gfp);
+extern void kfree_const(const void *x);
+extern void kfree(const void *x);
+extern void kmem_cache_destroy(struct kmem_cache *s);
+extern char *kstrdup(const char *s, gfp_t gfp);
 #endif

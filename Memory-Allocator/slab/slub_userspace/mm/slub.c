@@ -691,7 +691,6 @@ static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
 		goto new_slab;
 
 redo:
-	printk("Need %s\n", __func__);
 	/* Must check again c->freelist in case of cpu migration or IRQ */
 	freelist = c->freelist;
 	if (freelist)
@@ -857,11 +856,6 @@ static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
 	set_min_partial(s, ilog2(s->size) / 2);
 
 	set_cpu_partial(s);
-
-	/* Initialize the per-computed randomized freelist if slab is up */
-	if (slab_state >= UP) {
-		printk("SBBBB\n");
-	}
 
 	if (!init_kmem_cache_nodes(s))
 		goto error;
@@ -1238,7 +1232,6 @@ struct kmem_cache *create_kmalloc_cache(const char *name,
 	if (!s)
 		printk("Out of memory when creating slab %s\n", name);
 
-	printk("NAME %s\t SIZE %d\n", name, size);
 	create_boot_cache(s, name, size, flags, useroffset, usersize);
 	list_add(&s->list, &slab_caches);
 	s->refcount = 1;
@@ -1472,6 +1465,7 @@ redo:
 	c = s->cpu_slab;
 	if (likely(page == c->page)) {
 		set_freepointer(s, tail_obj, c->freelist);
+		set_freepointer(s, s->cpu_slab->freelist, head);
 		stat(s, FREE_FASTPATH);
 	} else
 		__slab_free(s, page, head, tail_obj, cnt, addr);
@@ -1533,4 +1527,221 @@ void kmem_cache_init(void)
 		cache_line_size(),
 		slub_min_order, slub_max_order, slub_min_objects,
 		nr_cpu_ids, nr_node_ids);
+}
+
+struct kmem_cache *find_mergeable(unsigned int size, unsigned int align,
+		slab_flags_t flags, const char *name, void (*ctor)(void *))
+{
+	return NULL;
+}
+
+struct kmem_cache *
+__kmem_cache_alias(const char *name, unsigned int size, unsigned int align,
+			slab_flags_t flags, void (*ctor)(void *))
+{
+	struct kmem_cache *s, *c;
+
+	s = find_mergeable(size, align, flags, name, ctor);
+	if (s) {
+		/* No Slub merge */
+		printk("Need slub merge.\n");
+	}
+
+	return s;
+}
+
+static inline bool slab_equal_or_root(struct kmem_cache *s,
+					struct kmem_cache *p)
+{
+	return p == s;
+}
+
+static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
+{
+	struct kmem_cache *cachep;
+	struct page *page;
+
+	page = virt_to_head_page(x);
+	cachep = page->slab_cache;
+	if (slab_equal_or_root(cachep, s))
+		return cachep;
+
+	printk("%s: Wrong slab cache. %s but object is from %s\n",
+			__func__, s->name, cachep->name);
+	return s;
+}
+
+void kmem_cache_free(struct kmem_cache *s, void *x)
+{
+	s = cache_from_obj(s, x);
+	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
+}
+
+
+static struct kmem_cache *create_cache(const char *name,
+		unsigned int object_size, unsigned int align,
+		slab_flags_t flags, unsigned int useroffset,
+		unsigned int usersize, void (*ctor)(void *),
+		struct mem_cgroup *memcg, struct kmem_cache *root_cache)
+{
+	struct kmem_cache *s;
+	int err;
+
+	if (useroffset + usersize > object_size)
+		useroffset = usersize = 0;
+
+	err = -ENOMEM;
+	s = kmem_cache_zalloc(kmem_cache, GFP_KERNEL);
+	if (!s)
+		goto out;
+
+	s->name = name;
+	s->size = s->object_size = object_size;
+	s->align = align;
+	s->ctor = ctor;
+	s->useroffset = useroffset;
+	s->usersize = usersize;
+
+	err = __kmem_cache_create(s, flags);
+	if (err)
+		goto out_free_cache;
+
+	s->refcount = 1;
+	list_add(&s->list, &slab_caches);
+out:
+	if (err)
+		return ERR_PTR(err);
+	return s;
+
+out_free_cache:
+	kmem_cache_free(kmem_cache, s);
+	goto out;
+}
+
+/**
+ * kmem_cache_create_usercopy - Create a cache with a region suitable
+ * for copying to userspace.
+ * @name: A string which is used in /proc/slabinfo to identify this cache.
+ * @size: The size of objects to be created in this cache.
+ * @align: The required alignment for the objects.
+ * @flags: SLAB flags.
+ * @useroffset: Usercopy region offset
+ * @usersize: Usercopy region size
+ * @ctor: A constructor for the objects.
+ *
+ * Cannot be called within a interrupt, but can be interrupted.
+ * The @ctor is run when new pages are allocated by the cache.
+ *
+ * The flags are
+ *
+ * %SLAB_POISON - Poison the slab with a know test pattern (a5a5a5a5)
+ * to catch references to uninitalised memory.
+ *
+ * %SLAB_RED_ZONE - Insert `Red` zones around the allocated memory to check
+ * for buffer overruns.
+ *
+ * %SLAB_HWCACHE_ALIGN - Align the objects in this cache to a hardware
+ * cacheline. This can be beneficial if you're counting cycles as closely
+ * as davem.
+ *
+ * Return: a pointer to the cache on success, NULL on failure.
+ */
+struct kmem_cache *
+kmem_cache_create_usercopy(const char *name,
+		unsigned int size, unsigned int align,
+		slab_flags_t flags,
+		unsigned int useroffset, unsigned int usersize,
+		void (*ctor)(void *))
+{
+	struct kmem_cache *s = NULL;
+	const char *cache_name;
+	int err = 0;
+
+	/* Refuse requests with allocator specific flags */
+	if (flags & ~SLAB_FLAGS_PERMITTED) {
+		err = -EINVAL;
+		goto out_unlock;
+	}
+
+	/*
+	 * Some allocators will constraint the set of valid flags to a subset
+	 * of all flags. We expect them to define CACHE_CREATE_MASK in this
+	 * case, and we'll just provide them with a sanitized version of the
+	 * passed flags.
+	 */
+	flags &= CACHE_CREATE_MASK;
+
+	/* Fail closed on bad usersize of useroffset values */
+	if (!usersize && useroffset || size < usersize || 
+			size - usersize < useroffset)
+		usersize = useroffset = 0;
+
+	if (!usersize)
+		s = __kmem_cache_alias(name, size, align, flags, ctor);
+	if (s)
+		goto out_unlock;
+
+	cache_name = kstrdup_const(name, GFP_KERNEL);
+	if (!cache_name) {
+		err = -ENOMEM;
+		goto out_unlock;
+	}
+
+	s = create_cache(cache_name, size,
+			calculate_alignment(flags, align, size),
+			flags, useroffset, usersize, ctor, NULL, NULL);
+	if (IS_ERR(s)) {
+		err = PTR_ERR(s);
+		kfree_const(cache_name);
+	}
+
+out_unlock:
+	if (err)
+		printk("kmem_cache_create: Failed to create slab "
+					"'%s'. Error %d\n", name, err);
+
+	return s;
+}
+
+/**
+ * kmem_cache_create - Create a cache
+ * @name: A string wich is used in /proc/slabinfo to identify this cache.
+ * @size: The size of objects to be created in this cache.
+ * @align: the required alignment for the objects.
+ * @flags: SLAB flags
+ * @ctor: A constructor for the objects.
+ *
+ * Cannot be called within a interrupt, but can be interrupted.
+ * The @ctor is run when new page are allocated by the cache.
+ *
+ * The flags are
+ *
+ * %SLAB_POISON - Poison the slab with a know test pattern
+ * to catch references to uninitialized memory.
+ *
+ * %SLAB_RED_ZONE - Insert `Red` zones around the allocated memory to check
+ * for buffer overruns.
+ *
+ * %SLAB_HWCACHE_ALIGN - Align the objects in this cache to a hardware
+ * cacheline. This can be beneficial if you're counting cycles as closely
+ * as davem.
+ *
+ * Return: a pointer to the cache on success, NULL on failure.
+ */
+struct kmem_cache *
+kmem_cache_create(const char *name, unsigned int size, unsigned int align,
+			slab_flags_t flags, void (*ctor)(void *))
+{
+	return kmem_cache_create_usercopy(name, size, align, flags,
+						0, 0, ctor);
+}
+
+void kmem_cache_destroy(struct kmem_cache *s)
+{
+	int err;
+
+	if (unlikely(!s))
+		return;
+
+	s->refcount--;
 }

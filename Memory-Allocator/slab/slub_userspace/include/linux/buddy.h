@@ -262,9 +262,6 @@ static inline void rmv_page_order(struct page *page)
 	set_page_private(page, 0);
 }
 
-#define likely(x)	__builtin_expect(!!(x), 1)
-#define unlikely(x)	__builtin_expect(!!(x), 0)
-
 extern struct zone BiscuitOS_zone;
 static inline struct zone *page_zone(const struct page *page)
 {
