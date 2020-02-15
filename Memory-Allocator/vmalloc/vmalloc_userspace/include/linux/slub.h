@@ -416,6 +416,39 @@ static inline void *kzalloc(size_t size, gfp_t flags)
 	return kmalloc(size, flags | __GFP_ZERO);
 }
 
+extern void *kmem_cache_alloc_trace(struct kmem_cache *s, 
+					gfp_t gfpflags, size_t size);
+static inline void *kmem_cache_alloc_node_trace(struct kmem_cache *s,
+				gfp_t gfpflags, int node, size_t size)
+{
+	return kmem_cache_alloc_trace(s, gfpflags, size);
+}
+
+static inline void *__kmalloc_node(size_t size, gfp_t flags, int node)
+{
+	return __kmalloc(size, flags);
+}
+
+static inline void *kmalloc_node(size_t size, gfp_t flags, int node)
+{
+	if (__builtin_constant_p(size) &&
+			size <= KMALLOC_MAX_CACHE_SIZE) {
+		unsigned int i = kmalloc_index(size);
+
+		if (!i)
+			return ZERO_SIZE_PTR;
+		return kmem_cache_alloc_node_trace(
+			kmalloc_caches[kmalloc_type(flags)][i],
+					flags, node, size);
+	}
+	return __kmalloc_node(size, flags, node);
+}
+
+static inline void *kzalloc_node(size_t size, gfp_t flags, int node)
+{
+	return kmalloc_node(size, flags | __GFP_ZERO, node);
+}
+
 #define for_each_memcg_cache(iter, root)	\
 	for ((void)(iter), (void)(root); 0; )
 

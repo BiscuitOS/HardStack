@@ -11,6 +11,7 @@
 #define BITS_PER_LONG   32
 #endif
 
+typedef unsigned int u32;
 typedef unsigned short __u16;
 typedef unsigned short u16;
 typedef __u16 __le16;
@@ -99,5 +100,8 @@ static inline bool IS_ERR(const void *ptr)
 
 #define is_kernel_rodata(x)	(0)
 #define for_each_possible_cpu(i)	for(i = 0; i < 1; i++)
+
+#define NUMA_NO_NODE		(-1)
+#define _AT(T,X)		(X)
 
 #endif

@@ -20,6 +20,7 @@ struct vmap_area {
 	unsigned long va_end;
 	unsigned long flags;
 	struct rb_node rb_node;
+	struct list_head list;		/* address sorted list */
 	struct vm_struct *vm;
 };
 
@@ -31,6 +32,36 @@ struct vfree_deferred {
 	struct llist_head list;
 };
 
+/* bits in flags of vmalloc's vm_struct below */
+#define VM_IOREMAP		0x00000001	/* ioremap() and firends */
+#define VM_ALLOC		0x00000002	/* vmalloc() */
+#define VM_MAP			0x00000004	/* vmap()ed pages */
+#define VM_USERMAP		0x00000008	/* suitable for remap_vmalloc_range */
+#define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
+#define VM_NO_GUARD		0x00000040	/* don't add guard page */
+#define VM_KASAN		0x00000080	/* has allocated kasan shadow memory */
+/* bits [20..32] reserved for arch specific ioremap internals */
+
+extern void *high_memory;
+/*
+ * Just any arbitrary offset to the start of the vmalloc VM area: the
+ * current 8MB value just means that there will be a 8MB "hole" after the
+ * physical memory until the kernel virtual memory starts. That means that
+ * any out-of-bounds memory accesses will hopefully be caught.
+ * The vmalloc() routines leaves a hole of 4KB between each vmalloced
+ * area for the same reason. ;)
+ */
+#define VMALLOC_OFFSET		(8*1024*1024)
+#define VMALLOC_START		(((unsigned long)high_memory + \
+				VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1))
+#define VMALLOC_END		0xff800000UL
+
+/*
+ * Alloc 16MB-aligned ioremap pages
+ */
+#define IOREMAP_MAX_ORDER	24
+
 extern void vmalloc_init(void);
+extern void *vmalloc(unsigned long size);
 
 #endif

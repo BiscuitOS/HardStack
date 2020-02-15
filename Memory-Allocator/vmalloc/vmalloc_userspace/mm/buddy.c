@@ -14,6 +14,7 @@
 #include <malloc.h>
 
 #include "linux/buddy.h"
+#include "linux/vmalloc.h"
 
 /* nr_pages for memory */
 unsigned long nr_pages;
@@ -25,6 +26,8 @@ struct page *mem_map;
 unsigned int pageblock_order = 10;
 /* Emulate Zone */
 struct zone BiscuitOS_zone;
+
+void *high_memory;
 
 /*
  * Locate the struct page for both the matching buddy in our
@@ -378,11 +381,13 @@ int memory_init(void)
 
 		start_pfn += (1UL << order);
 	}
+	high_memory = (void *)((unsigned long)PAGE_OFFSET + 
+					(unsigned long)MEMORY_SIZE);
 
-	printf("BiscuitOS Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
+	printk("BiscuitOS VMALLOC Memory Allocator.\n");
+	printf("Physical Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
 					(unsigned long)(PHYS_OFFSET + MEMORY_SIZE));
-	printk("Virtual Memory:   %#lx - %#lx\n", (unsigned long)memory,
-					(unsigned long)memory + MEMORY_SIZE);
+	printk("VMALLOC Memory:  %#lx - %#lx\n", VMALLOC_START, VMALLOC_END);
 	printf("mem_map[] contains %#lx pages, page size %#lx\n", nr_pages,
 						(unsigned long)PAGE_SIZE);
 

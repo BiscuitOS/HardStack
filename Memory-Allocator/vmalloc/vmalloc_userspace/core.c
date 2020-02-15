@@ -26,6 +26,7 @@ int main()
 	/* Initialize Vmalloc Allocator */
 	vmalloc_init();
 
+	vmalloc(PAGE_SIZE);
 	memory_exit();
 	return 0;
 }
