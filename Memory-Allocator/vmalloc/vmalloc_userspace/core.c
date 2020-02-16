@@ -16,6 +16,16 @@
 #include "linux/slub.h"
 #include "linux/vmalloc.h"
 
+static int instance_vmalloc(void)
+{
+	unsigned long *vaddr;
+
+	vaddr = vmalloc(4 * PAGE_SIZE);
+
+
+	return 0;
+}
+
 int main()
 {
 	memory_init();
@@ -26,7 +36,9 @@ int main()
 	/* Initialize Vmalloc Allocator */
 	vmalloc_init();
 
-	vmalloc(PAGE_SIZE);
+	/* Running instance */
+	instance_vmalloc();
+
 	memory_exit();
 	return 0;
 }

@@ -1332,7 +1332,7 @@ void *__kmalloc(size_t size, gfp_t flags)
 	void *ret;
 
 	if (unlikely(size > KMALLOC_MAX_CACHE_SIZE))
-		printk("NEED LARGE.....\n");
+		return kmalloc_large(size, flags);
 
 	s = kmalloc_slab(size, flags);
 
@@ -1745,3 +1745,29 @@ void kmem_cache_destroy(struct kmem_cache *s)
 
 	s->refcount--;
 }
+
+void *kmalloc_order(size_t size, gfp_t flags, unsigned int order)
+{
+	void *ret;
+	struct page *page;
+
+	flags |= __GFP_COMP;
+	page = alloc_pages(flags, order);
+	ret = page ? page_address(page) : NULL;
+	return ret;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

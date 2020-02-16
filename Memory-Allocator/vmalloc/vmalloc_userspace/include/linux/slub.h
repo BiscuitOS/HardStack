@@ -9,6 +9,7 @@ typedef unsigned slab_flags_t;
 typedef int bool;
 
 #define ENOMEM			12	/* Out of memory */
+#define EBUSY			16	/* Device or resource busy */
 #define EINVAL			22	/* Invalid argument */
 
 #define ARCH_KMALLOC_MINALIGN	0x40
@@ -444,9 +445,22 @@ static inline void *kmalloc_node(size_t size, gfp_t flags, int node)
 	return __kmalloc_node(size, flags, node);
 }
 
+extern void *kmalloc_order(size_t size, gfp_t flags, unsigned int order);
 static inline void *kzalloc_node(size_t size, gfp_t flags, int node)
 {
 	return kmalloc_node(size, flags | __GFP_ZERO, node);
+}
+
+static inline void *kmalloc_order_trace(size_t size, gfp_t flags,
+						unsigned int order)
+{
+	return kmalloc_order(size, flags, order);
+}
+
+static inline void *kmalloc_large(size_t size, gfp_t flags)
+{
+	unsigned int order = get_order(size);
+	return kmalloc_order_trace(size, flags, order);
 }
 
 #define for_each_memcg_cache(iter, root)	\

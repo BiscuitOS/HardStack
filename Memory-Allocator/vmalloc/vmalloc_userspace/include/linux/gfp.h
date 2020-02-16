@@ -4,6 +4,8 @@
 typedef unsigned long gfp_t;
 
 #define ___GFP_DMA		0x01u
+#define ___GFP_HIGHMEM		0x02u
+#define ___GFP_DMA32		0x04u
 #define ___GFP_RECLAIMABLE	0x10u
 #define ___GFP_HIGH		0x20u
 #define ___GFP_IO		0x40u
@@ -27,6 +29,7 @@ typedef unsigned long gfp_t;
 #define __GFP_ZERO	((gfp_t)___GFP_ZERO)
 #define __GFP_COMP	((gfp_t)___GFP_COMP)
 #define __GFP_DMA	((gfp_t)___GFP_DMA)
+#define __GFP_DMA32	((gfp_t)___GFP_DMA32)
 #define __GFP_ATOMIC	((gfp_t)___GFP_ATOMIC)
 #define __GFP_IO	((gfp_t)___GFP_IO)
 #define __GFP_HIGH	((gfp_t)___GFP_HIGH)
@@ -37,6 +40,7 @@ typedef unsigned long gfp_t;
 #define __GFP_MEMALLOC	((gfp_t)___GFP_MEMALLOC)
 #define __GFP_HARDWALL	((gfp_t)___GFP_HARDWALL)
 #define __GFP_THISNODE	((gfp_t)___GFP_THISNODE)
+#define __GFP_HIGHMEM	((gfp_t)___GFP_HIGHMEM)
 #define __GFP_RETRY_MAYFAIL	((gfp_t)___GFP_RETRY_MAYFAIL)
 #define __GFP_NOMEMALLOC	((gfp_t)___GFP_NOMEMALLOC)
 #define __GFP_KSWAPD_RECLAIM	((gfp_t)___GFP_KSWAPD_RECLAIM)
@@ -49,6 +53,7 @@ typedef unsigned long gfp_t;
 #define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
 #define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
 #define GFP_DMA		__GFP_DMA
+#define GFP_DMA32	__GFP_DMA32
 
 /*
  * The set of flags that only affect watermark checking and reclaim

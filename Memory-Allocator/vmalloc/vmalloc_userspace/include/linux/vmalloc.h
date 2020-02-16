@@ -9,7 +9,7 @@ struct vm_struct {
 	void			*addr;
 	unsigned long		size;
 	unsigned long		flags;
-	struct page		**page;
+	struct page		**pages;
 	unsigned int		nr_pages;
 	phys_addr_t		phys_addr;
 	const void		*caller;
@@ -61,7 +61,28 @@ extern void *high_memory;
  */
 #define IOREMAP_MAX_ORDER	24
 
+static inline size_t get_vm_area_size(const struct vm_struct *area)
+{
+	if (!(area->flags & VM_NO_GUARD))
+		/* return actual size without grard page */
+		return area->size - PAGE_SIZE;
+	else
+		return area->size;
+}
+
+static inline bool is_vmalloc_addr(const void *x)
+{
+	unsigned long addr = (unsigned long)x;
+
+	return addr >= VMALLOC_START && addr < VMALLOC_END;
+}
+
+extern void kvfree(const void *addr);
 extern void vmalloc_init(void);
 extern void *vmalloc(unsigned long size);
+extern void vfree(const void *addr);
+static void *__vmalloc_node(unsigned long size, unsigned long align,
+		gfp_t gfp_mask, pgprot_t prot,
+		int node, const void *caller);
 
 #endif

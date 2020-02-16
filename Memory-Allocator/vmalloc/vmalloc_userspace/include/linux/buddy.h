@@ -16,6 +16,9 @@
 #define PFN_PHYS(x)	((phys_addr_t)(x) << PAGE_SHIFT)
 #define PHYS_PFN(x)	((unsigned long)(x) >> PAGE_SHIFT)
 
+#define IS_ALIGNED(x, a)	(((x) & ((typeof(x))(a) - 1)) == 0)
+#define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)
+
 /* Configuration Memory Region */
 #define MEMORY_SIZE	CONFIG_MEMORY_SIZE
 /* Configuration Basic Physical Address */
@@ -24,6 +27,7 @@
 #define PAGE_OFFSET	(PHYS_OFFSET + (unsigned long)CONFIG_PAGE_OFFSET)
 
 #define PFN_OFFSET	PHYS_PFN(PHYS_OFFSET)
+#define PHYS_MASK	(~0UL)
 
 typedef u32 pteval_t;
 typedef u32 pmdval_t;
@@ -97,6 +101,10 @@ typedef struct { pgd_t pgd; } pud_t;
 #define PMD_MASK		(~(PMD_SIZE-1))
 #define PGDIR_SIZE		(1UL << PGDIR_SHIFT)
 #define PGDIR_MASK		(~(PGDIR_SIZE-1))
+
+#define PUD_SHIFT		PGDIR_SHIFT
+#define PUD_SIZE		(1UL << PUD_SHIFT)
+#define PUD_MASK		(~(PUD_SIZE-1))
 
 /*
  * Hardware page table definitions
@@ -179,7 +187,119 @@ typedef struct { pgd_t pgd; } pud_t;
 #define _MOD_PROT(p, b)		__pgprot(pgprot_val(p) | (b))
 extern pgprot_t			pgprot_kernel;
 
+#define DOMAIN_KERNEL		2
+
 #define PAGE_KERNEL		_MOD_PROT(pgprot_kernel, L_PTE_XN)
+#define _PAGE_KERNEL_TABLE	(PMD_TYPE_TABLE | PMD_BIT4 | \
+				 PMD_DOMAIN(DOMAIN_KERNEL))
+
+/*** Page-table ***/
+extern struct mm_struct init_mm;
+
+/* to find an entry in a page-table-directory */
+#define pgd_index(addr)		((addr) >> PGDIR_SHIFT)
+
+#define pgd_offset(mm, addr)	((mm)->pgd + pgd_index(addr))
+
+/* to find an entry in a kernel page-table-directory */
+#define pgd_offset_k(addr)	pgd_offset(&init_mm, addr);
+
+#define pgd_addr_end(addr, end)						\
+({	unsigned long __boundary = ((addr) + PGDIR_SIZE) & PGDIR_MASK;	\
+	(__boundary - 1 < (end) - 1)? __boundary : (end);		\
+})
+
+#define pud_addr_end(addr, end)						\
+({	unsigned long __boundary = ((addr) + PUD_SIZE) & PUD_MASK;	\
+	(__boundary - 1 < (end) - 1)? __boundary : (end);		\
+})
+
+#define pmd_addr_end(addr, end)						\
+({	unsigned long __boundary = ((addr) + PMD_SIZE) & PMD_MASK;	\
+	(__boundary - 1 < (end) - 1)? __boundary : (end);		\
+})
+
+static inline int pgd_none(pgd_t pgd)		{ return 0; }
+static inline int pgd_bad(pgd_t pgd)		{ return 0; }
+static inline int pgd_present(pgd_t pgd)	{ return 1; }
+static inline void pgd_clear(pgd_t *pgd)	{ }
+
+static inline void pgd_clear_bad(pgd_t *pgd)
+{
+	pgd_clear(pgd);
+}
+
+static inline int pgd_none_or_clear_bad(pgd_t *pgd)
+{
+	if (pgd_none(*pgd))
+		return 1;
+	if (unlikely(pgd_bad(*pgd))) {
+		pgd_clear_bad(pgd);
+		return 1;
+	}
+	return 0;
+}
+
+#define pud_none(pud)		(0)
+#define pud_bad(pud)		(0)
+#define pud_present(pud)	(1)
+#define pud_clear(pudp)		do {} while (0)
+#define set_pud(pud,pudp)	do {} while (0)
+
+static inline pud_t *pud_offset(pgd_t *pgd, unsigned long address)
+{
+	return (pud_t *)pgd;
+}
+
+static inline int pud_clear_huge(pud_t *pud)
+{
+	return 0;
+}
+
+static inline int pud_none_or_clear_bad(pud_t *pud)
+{
+	if (pud_none(*pud))
+		return 1;
+	if (unlikely(pud_bad(*pud))) {
+		pud_clear(pud);
+		return 1;
+	}
+	return 0;
+}
+
+#define pmd_none(pmd)		(!pmd_val(pmd))
+#define pmd_bad(pmd)		(pmd_val(pmd) & 2)
+#define pmd_large(pmd)		(pmd_val(pmd) & 2)
+#define pmd_present(pmd)	(pmd_val(pmd))
+
+#define pmd_clear(pmdp)				\
+	do {					\
+		pmdp[0] = __pmd(0);		\
+		pmdp[1] = __pmd(0);		\
+	} while (0)
+
+static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
+{
+	return (pmd_t *)pud;
+}
+
+static inline int pmd_clear_huge(pmd_t *pmd)
+{
+	return 0;
+}
+
+static inline int pmd_none_or_clear_bad(pmd_t *pmd)
+{
+	if (pmd_none(*pmd))
+		return 1;
+	if (unlikely(pmd_bad(*pmd))) {
+		pmd_clear(pmd);
+		return 1;
+	}
+	return 0;
+}
+
+#define PG_DIR_SIZE		0x4000
 
 /* Buddy Allocator Order */
 #define MAX_ORDER	11
@@ -265,6 +385,12 @@ extern struct page *mem_map;
 
 #define pfn_valid_within(pfn)	(1)
 
+struct mm_struct {
+	struct {
+		pgd_t *pgd;
+	};
+};
+
 /* Physical and Virtual */
 extern unsigned char *memory;
 static inline phys_addr_t virt_to_phys(const volatile void *x)
@@ -285,6 +411,98 @@ static inline unsigned long virt_to_pfn(const volatile void *x)
 
 #define page_to_virt(page)	phys_to_virt(PFN_PHYS(page_to_pfn(page)))
 #define virt_to_page(kaddr)	pfn_to_page(virt_to_pfn(kaddr))
+
+#define __va(x)			((void *)phys_to_virt((phys_addr_t)(x)))
+#define __pa(x)			virt_to_phys((void *)(unsigned long)(x))
+
+static inline pte_t *pmd_page_vaddr(pmd_t pmd)
+{
+	return __va(pmd_val(pmd) & PHYS_MASK & (unsigned long)PAGE_MASK);
+}
+
+#define pte_none(pte)			(!pte_val(pte))
+
+#define set_pte_ext(ptep, pte, ext)	do {} while (0)
+#define pte_clear(mm, addr, ptep)	set_pte_ext(ptep, __pte(0), 0)
+
+#define pte_index(addr)			(((addr) >> PAGE_SHIFT) & \
+							(PTRS_PER_PTE - 1))
+#define pte_offset_kernel(pmd,addr)	(pmd_page_vaddr(*(pmd)) + \
+							pte_index(addr))
+
+static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
+			unsigned long address, pte_t *ptep)
+{
+	pte_t pte = *ptep;
+	pte_clear(mm, address, ptep);
+	return pte;
+}
+
+static inline pud_t *pud_alloc(struct mm_struct *mm, pgd_t *pgd,
+				unsigned long address)
+{
+	return pud_offset(pgd, address);
+}
+
+static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud,
+		unsigned long address)
+{
+	return pmd_offset(pud, address);
+}
+
+extern int __pte_alloc_kernel(pmd_t *pmd);
+extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
+
+#define pte_alloc_kernel(pmd, address)			\
+	((unlikely(pmd_none(*(pmd))) && __pte_alloc_kernel(pmd)) ? \
+		NULL : pte_offset_kernel(pmd, address))
+
+#define __get_free_page(gfp_mask) \
+			__get_free_pages((gfp_mask), 0)
+
+#define PGALLOC_GFP	(GFP_KERNEL | __GFP_ZERO)
+
+/*
+ * Allocate one PTE table.
+ *
+ * This actually allocates two hardware PTE tables, but we wrap this up
+ * into one table thus:
+ *
+ *  +------------+
+ *  | Linux pt 0 |
+ *  +------------+
+ *  | Linux pt 1 |
+ *  +------------+
+ *  |  h/w pt 0  |
+ *  +------------+
+ *  |  h/w pt 1  |
+ *  +------------+
+ */
+static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
+{
+	pte_t *pte;
+
+	pte = (pte_t *)__get_free_page(PGALLOC_GFP);
+
+	return pte;
+}
+
+static inline void __pmd_populate(pmd_t *pmdp, phys_addr_t pte,
+							pmdval_t prot)
+{
+	pmdval_t pmdval = (pte + PTE_HWTABLE_OFF) | prot;
+	pmdp[0] = __pmd(pmdval);
+}
+
+static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmdp,
+							pte_t *ptep)
+{
+	/*
+	 * The pmd must be loaded with the physical address of the PTE table
+	 */
+	__pmd_populate(pmdp, __pa(ptep), _PAGE_KERNEL_TABLE);
+}
+
 
 static inline void *lowmem_page_address(const struct page *page)
 {
@@ -488,18 +706,44 @@ static inline unsigned long *compound_mapcount_ptr(struct page *page)
 }
 
 extern unsigned long nr_pages;;
+extern struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order);
 static inline unsigned long totalram_pages(void)
 {
 	return (unsigned long)nr_pages;
+}
+
+static inline struct page *__alloc_pages_node(int nid, gfp_t gfp_mask,
+                                        unsigned int order)
+{
+	return __alloc_pages(gfp_mask, order);
+}
+
+static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+							unsigned int order)
+{
+	return __alloc_pages_node(0, gfp_mask, order);
+}
+
+extern void free_pages(unsigned long addr, unsigned int order);
+
+#define alloc_page(gfp_mask)	alloc_pages(gfp_mask, 0)
+#define alloc_pages(gfp_mask, order) \
+				alloc_pages_node(0, gfp_mask, order)
+#define free_page(addr)		free_pages((addr), 0)
+
+/* Free one PTE table */
+static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+{
+	if (pte)
+		free_page((unsigned long)pte);
 }
 
 extern int memory_init(void);
 extern void memory_exit(void);
 /* Huge page sizes are variable */
 extern unsigned int pageblock_order;
+extern void __create_page_table(void);
 extern void __free_pages(struct page *page, unsigned int order);
-extern struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order);
-
 static void prep_new_page(struct page *page, unsigned int order,
 							gfp_t gfp_flags);
 #endif

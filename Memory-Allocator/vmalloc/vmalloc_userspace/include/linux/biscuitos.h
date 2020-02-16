@@ -103,5 +103,7 @@ static inline bool IS_ERR(const void *ptr)
 
 #define NUMA_NO_NODE		(-1)
 #define _AT(T,X)		(X)
+#define BUG()			printk("BUG(): %s\n", __func__)
+#define BUG_ON(condition)	do { if (condition) BUG(); } while (0)
 
 #endif

@@ -437,3 +437,20 @@ void memory_exit(void)
 {
 	free(memory);
 }
+
+unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
+{
+	struct page *page;
+
+	page = alloc_pages(gfp_mask & ~__GFP_HIGHMEM, order);
+	if (!page)
+		return 0;
+	return (unsigned long) page_address(page);
+}
+
+void free_pages(unsigned long addr, unsigned int order)
+{
+	if (addr != 0) {
+		__free_pages(virt_to_page((void *)addr), order);
+	}
+}
