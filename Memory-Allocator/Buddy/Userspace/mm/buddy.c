@@ -170,6 +170,10 @@ continue_merging:
 done_merging:
 	set_page_order(page, order);
 
+	/* We have no PCP, so only goto pcp_emulate */
+	if (order == 0)
+		goto pcp_emulate;
+
 	/*
 	 * If this is not the largest possible page, check if the buddy
 	 * of the next-highest order is free. If it is, it's possible
@@ -191,9 +195,10 @@ done_merging:
 				&zone->free_area[order].free_list[0]);
 			goto out;
 		}
-		goto out;
+		goto pcp_emulate;
 	}
 
+pcp_emulate:
 	list_add(&page->lru, &zone->free_area[order].free_list[0]);
 out:
 	zone->free_area[order].nr_free++;

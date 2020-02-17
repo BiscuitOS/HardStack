@@ -1465,7 +1465,7 @@ redo:
 	c = s->cpu_slab;
 	if (likely(page == c->page)) {
 		set_freepointer(s, tail_obj, c->freelist);
-		set_freepointer(s, s->cpu_slab->freelist, head);
+		c->freelist = tail_obj;
 		stat(s, FREE_FASTPATH);
 	} else
 		__slab_free(s, page, head, tail_obj, cnt, addr);

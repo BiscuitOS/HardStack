@@ -40,7 +40,8 @@ CONFIG += -DCONFIG_PHYS_BASE=0x60000000
 
 # Target
 ifeq ($(TARGETA), )
-TARGET=demo
+TARGET=biscuitos
+LCFLAGS += -m32
 else
 TARGET=$(TARGETA)
 endif

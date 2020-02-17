@@ -41,7 +41,8 @@ CONFIG += -DCONFIG_L1_CACHE_SHIFT=6
 
 # Target
 ifeq ($(TARGETA), )
-TARGET=demo
+TARGET=biscuitos
+LCFLAGS += -m32
 else
 TARGET=$(TARGETA)
 endif

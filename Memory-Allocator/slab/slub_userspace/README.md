@@ -3,5 +3,5 @@ Slub on userspace
 
 ```
 make
-./demo
+./biscuitos
 ```
