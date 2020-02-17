@@ -81,6 +81,7 @@ extern void kvfree(const void *addr);
 extern void vmalloc_init(void);
 extern void *vmalloc(unsigned long size);
 extern void vfree(const void *addr);
+extern void dup_RBTREE(void);
 static void *__vmalloc_node(unsigned long size, unsigned long align,
 		gfp_t gfp_mask, pgprot_t prot,
 		int node, const void *caller);

@@ -173,7 +173,7 @@ nocache:
 		if (addr + cached_hole_size < first->va_start)
 			cached_hole_size = first->va_start - addr;
 		addr = ALIGN(first->va_end, align);
-		if (addr + size < addr);
+		if (addr + size < addr)
 			goto overflow;
 
 		if (list_is_last(&first->list, &vmap_area_list))
@@ -341,9 +341,39 @@ static void unmap_vmap_area(struct vmap_area *va)
 	vunmap_page_range(va->va_start, va->va_end);
 }
 
-static void free_vmap_area_noflush(struct vmap_area *va)
+static void __free_vmap_area(struct vmap_area *va)
 {
-	printk("Need %s\n", __func__);
+	BUG_ON(RB_EMPTY_NODE(&va->rb_node));
+	
+	if (free_vmap_cache) {
+		if (va->va_end < cached_vstart) {
+			free_vmap_cache = NULL;
+		} else {
+			struct vmap_area *cache;
+			cache = rb_entry(free_vmap_cache, struct vmap_area,
+								rb_node);
+			if (va->va_start <= cache->va_start) {
+				free_vmap_cache = rb_prev(&va->rb_node);
+				/*
+				 * We don't try to update cached_hole_size or
+				 * cached_align, but it won't go very wrong.
+				 */
+			}
+		}
+	}
+	rb_erase(&va->rb_node, &vmap_area_root);
+	RB_CLEAR_NODE(&va->rb_node);
+	list_del(&va->list);
+
+	/*
+	 * Track the highest possible candidata for pcpu area
+	 * allocation. Areas outside of vmalloc area can be returned
+	 * here too, consider only end addresses which fall inside
+	 * vmalloc area proper.
+	 */
+	if (va->va_end > VMALLOC_START && va->va_end <= VMALLOC_END)
+		vmap_area_pcpu_hole = max(vmap_area_pcpu_hole, va->va_end);
+	kfree(va);
 }
 
 /*
@@ -353,7 +383,8 @@ static void free_unmap_vmap_area(struct vmap_area *va)
 {
 	unmap_vmap_area(va);
 
-	free_vmap_area_noflush(va);
+	/* no lazy free, come on now! */
+	__free_vmap_area(va);
 }
 
 /*
@@ -411,7 +442,7 @@ static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
 			return -EBUSY;
 		if (!page)
 			return -ENOMEM;
-		printk("NEED %s\n", __func__);
+		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
 		(*nr)++;
 	} while (pte++, addr += PAGE_SIZE, addr != end);
 	return 0;
@@ -484,6 +515,7 @@ static int vmap_page_range(unsigned long start, unsigned long end,
 	int ret;
 
 	ret = vmap_page_range_noflush(start, end, prot, pages);
+	return ret;
 }
 
 int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page **pages)
@@ -499,10 +531,7 @@ int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page **pages)
 
 void kvfree(const void *addr)
 {
-	if (is_vmalloc_addr(addr))
-		vfree(addr);
-	else
-		kfree(addr);
+	kfree(addr);
 }
 
 static void __vunmap(const void *addr, int deallocate_pages)
@@ -604,6 +633,11 @@ fail:
 	return NULL;
 }
 
+static void clear_vm_uninitialized_flag(struct vm_struct *vm)
+{
+	vm->flags &= ~VM_UNINITIALIZED;
+}
+
 void *__vmalloc_node_range(unsigned long size, unsigned long align,
 		unsigned long start, unsigned long end, gfp_t gfp_mask,
 		pgprot_t prot, unsigned long vm_flags, int node,
@@ -625,6 +659,15 @@ void *__vmalloc_node_range(unsigned long size, unsigned long align,
 	addr = __vmalloc_area_node(area, gfp_mask, prot, node);
 	if (!addr)
 		return NULL;
+
+	/*
+	 * In this function, newly allocated vm_struct has VM_UNINITIALIZED
+	 * flags. It means that vm_struct is not fully initialized.
+	 * Now, it is fully initialized, so remove this flag here.
+	 */
+	clear_vm_uninitialized_flag(area);
+
+	return addr;
 
 fail:
 	return NULL;
@@ -667,4 +710,62 @@ void __create_page_table(void)
 	/* clear page table */
 	memset(swapper_pg_dir, 0, PG_DIR_SIZE);
 	init_mm.pgd = swapper_pg_dir;
+	printk("PAGE-Table-Directory: %#lx - %#lx\n", 
+			(unsigned long)swapper_pg_dir,
+			(unsigned long)swapper_pg_dir + PG_DIR_SIZE);
+	printk("VMALLOC Page-Direct:  %#lx - %#lx\n", 
+			(unsigned long)pgd_offset_k(VMALLOC_START),
+			(unsigned long)pgd_offset_k(VMALLOC_END));
+}
+
+/* Emulate paging */
+unsigned long *mmu_vaddr_to_addr(unsigned long vaddr)
+{
+	unsigned long addr;
+	pgd_t *pgd;
+	pud_t *pud;
+	pmd_t *pmd;
+	pte_t *pte;
+
+	pgd = pgd_offset_k(vaddr);
+	if (pgd_none(*pgd)) {
+		printk("BUG(): %#lx none pgd entry\n", vaddr);
+		return NULL;
+	}
+
+	pud = pud_offset(pgd, vaddr);
+	if (pud_none(*pud)) {
+		printk("BUG(): %#lx none pud entry\n", vaddr);
+		return NULL;
+	}
+
+	pmd = pmd_offset(pud, vaddr);
+	if (pmd_none(*pmd)) {
+		printk("BUG(): %#lx none pmd entry\n", vaddr);
+		return NULL;
+	}
+
+	pte = pte_offset_kernel(pmd, vaddr);
+	if (pte_none(*pte)) {
+		printk("BUG(): %#lx none pte entry\n", vaddr);
+		return NULL;
+	}
+	/* set_pte_at */
+	addr = pte_val(*pte) & PAGE_MASK;
+	addr |= vaddr & PAGE_UMASK;
+	return phys_to_virt(addr);
+}
+
+/* dup RB-TREE */
+void dup_RBTREE(void)
+{
+	struct rb_node *node;
+
+        /* dup RB-tree */
+	for(node = rb_first(&vmap_area_root); node; node = rb_next(node)) {
+		struct vmap_area *va;
+
+		va = rb_entry(node, struct vmap_area, rb_node);
+		printk("RB AREA: %#lx - %#lx\n", va->va_start, va->va_end);
+	}
 }

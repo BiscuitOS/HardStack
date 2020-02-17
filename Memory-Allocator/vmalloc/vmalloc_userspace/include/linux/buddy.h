@@ -9,6 +9,7 @@
 #define PAGE_SHIFT	12 /* 4KByte Page */
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
 #define PAGE_MASK	(~((1 << PAGE_SHIFT) - 1))
+#define PAGE_UMASK	(PAGE_SIZE - 1)
 #define PAGE_ALIGN(addr) ALIGN(addr, PAGE_SIZE)
 #define PFN_ALIGN(x)	(((unsigned long)(x) + (PAGE_SIZE - 1)) & PAGE_MASK)
 #define PFN_UP(x)	(((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
@@ -202,7 +203,7 @@ extern struct mm_struct init_mm;
 #define pgd_offset(mm, addr)	((mm)->pgd + pgd_index(addr))
 
 /* to find an entry in a kernel page-table-directory */
-#define pgd_offset_k(addr)	pgd_offset(&init_mm, addr);
+#define pgd_offset_k(addr)	pgd_offset(&init_mm, addr)
 
 #define pgd_addr_end(addr, end)						\
 ({	unsigned long __boundary = ((addr) + PGDIR_SIZE) & PGDIR_MASK;	\
@@ -422,7 +423,6 @@ static inline pte_t *pmd_page_vaddr(pmd_t pmd)
 
 #define pte_none(pte)			(!pte_val(pte))
 
-#define set_pte_ext(ptep, pte, ext)	do {} while (0)
 #define pte_clear(mm, addr, ptep)	set_pte_ext(ptep, __pte(0), 0)
 
 #define pte_index(addr)			(((addr) >> PAGE_SHIFT) & \
@@ -434,7 +434,8 @@ static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
 			unsigned long address, pte_t *ptep)
 {
 	pte_t pte = *ptep;
-	pte_clear(mm, address, ptep);
+	if (pte_val(pte))
+		*ptep = __pte(0);
 	return pte;
 }
 
@@ -462,6 +463,12 @@ extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
 
 #define PGALLOC_GFP	(GFP_KERNEL | __GFP_ZERO)
 
+static inline void clean_pte_table(pte_t *pte)
+{
+	if (pte)
+		memset(pte, 0, PAGE_SIZE);
+}
+
 /*
  * Allocate one PTE table.
  *
@@ -483,6 +490,8 @@ static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
 	pte_t *pte;
 
 	pte = (pte_t *)__get_free_page(PGALLOC_GFP);
+	if (pte)
+		clean_pte_table(pte);
 
 	return pte;
 }
@@ -503,6 +512,18 @@ static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmdp,
 	__pmd_populate(pmdp, __pa(ptep), _PAGE_KERNEL_TABLE);
 }
 
+#define pfn_pte(pfn,prot)	__pte(PFN_PHYS(pfn) | pgprot_val(prot))
+#define mk_pte(page,prot)	pfn_pte(page_to_pfn(page), prot)
+
+static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+			pte_t *ptep, pte_t pteval)
+{
+	/* cpu_ca9mp_set_pte_ext */
+	unsigned long ext = 0;
+
+	/* Emulate hardware setup pte */
+	*ptep = pteval;
+}
 
 static inline void *lowmem_page_address(const struct page *page)
 {
@@ -726,9 +747,9 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
 
 extern void free_pages(unsigned long addr, unsigned int order);
 
-#define alloc_page(gfp_mask)	alloc_pages(gfp_mask, 0)
 #define alloc_pages(gfp_mask, order) \
 				alloc_pages_node(0, gfp_mask, order)
+#define alloc_page(gfp_mask)	alloc_pages(gfp_mask, 0)
 #define free_page(addr)		free_pages((addr), 0)
 
 /* Free one PTE table */
@@ -743,6 +764,7 @@ extern void memory_exit(void);
 /* Huge page sizes are variable */
 extern unsigned int pageblock_order;
 extern void __create_page_table(void);
+extern unsigned long *mmu_vaddr_to_addr(unsigned long vaddr);
 extern void __free_pages(struct page *page, unsigned int order);
 static void prep_new_page(struct page *page, unsigned int order,
 							gfp_t gfp_flags);

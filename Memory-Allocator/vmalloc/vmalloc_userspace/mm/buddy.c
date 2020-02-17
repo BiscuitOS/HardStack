@@ -173,6 +173,10 @@ continue_merging:
 done_merging:
 	set_page_order(page, order);
 
+	/* We have no PCP, so only goto pcp_emulate */
+	if (order == 0)
+		goto pcp_emulate;
+
 	/*
 	 * If this is not the largest possible page, check if the buddy
 	 * of the next-highest order is free. If it is, it's possible
@@ -194,8 +198,9 @@ done_merging:
 				&zone->free_area[order].free_list[0]);
 			goto out;
 		}
-		goto out;
+		goto pcp_emulate;
 	}
+pcp_emulate:
 
 	list_add(&page->lru, &zone->free_area[order].free_list[0]);
 out:
@@ -217,6 +222,14 @@ static inline void free_the_page(struct page *page, unsigned int order)
 void __free_pages(struct page *page, unsigned int order)
 {
 	free_the_page(page, order);
+}
+
+static inline bool set_page_guard(struct zone *zone, struct page *page,
+			unsigned int order)
+{
+	INIT_LIST_HEAD(&page->lru);
+	set_page_private(page, order);
+	return true;
 }
 
 /*
@@ -416,8 +429,10 @@ static void prep_new_page(struct page *page, unsigned int order,
 {
 	int i;
 
-	if (gfp_flags & __GFP_ZERO)
-		printk("NEED clear %s\n", __func__);
+	if (gfp_flags & __GFP_ZERO) {
+		unsigned long addr = (unsigned long)page_address(page);
+		memset((void *)addr, 0, PAGE_SIZE);
+	}
 
 	if (order && (gfp_flags & __GFP_COMP))
 		prep_compound_page(page, order);

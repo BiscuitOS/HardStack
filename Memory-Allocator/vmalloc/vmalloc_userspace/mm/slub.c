@@ -839,7 +839,7 @@ static inline int alloc_kmem_cache_cpus(struct kmem_cache *s)
 
 static void free_kmem_cache_nodes(struct kmem_cache *s)
 {
-	printk("SDFASDFDDD\n");
+	printk("NEED %s\n", __func__);
 }
 
 static int kmem_cache_open(struct kmem_cache *s, slab_flags_t flags)
@@ -1465,7 +1465,7 @@ redo:
 	c = s->cpu_slab;
 	if (likely(page == c->page)) {
 		set_freepointer(s, tail_obj, c->freelist);
-		set_freepointer(s, s->cpu_slab->freelist, head);
+		c->freelist = tail_obj;
 		stat(s, FREE_FASTPATH);
 	} else
 		__slab_free(s, page, head, tail_obj, cnt, addr);

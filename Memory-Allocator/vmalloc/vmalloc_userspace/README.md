@@ -1,7 +1,9 @@
-Slub on userspace
+VMALLOC Memory Allocator on userspace
 ------------------------------
+
+#### Usage
 
 ```
 make
-./demo
+./biscuitos
 ```
