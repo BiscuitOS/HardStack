@@ -25,8 +25,6 @@ struct page *mem_map;
 unsigned int pageblock_order = 10;
 /* Emulate Zone */
 struct zone BiscuitOS_zone;
-/* Boot pageset */
-static struct per_cpu_pageset boot_pageset;
 
 /*
  * Locate the struct page for both the matching buddy in our
@@ -172,6 +170,10 @@ continue_merging:
 done_merging:
 	set_page_order(page, order);
 
+	/* We have no PCP, so only goto pcp_emulate */
+	if (order == 0)
+		goto pcp_emulate;
+
 	/*
 	 * If this is not the largest possible page, check if the buddy
 	 * of the next-highest order is free. If it is, it's possible
@@ -193,9 +195,10 @@ done_merging:
 				&zone->free_area[order].free_list[0]);
 			goto out;
 		}
-		goto out;
+		goto pcp_emulate;
 	}
 
+pcp_emulate:
 	list_add(&page->lru, &zone->free_area[order].free_list[0]);
 out:
 	zone->free_area[order].nr_free++;
@@ -208,16 +211,52 @@ static void __free_pages_ok(struct page *page, unsigned int order)
 	__free_one_page(page_zone(page), page, pfn, order);
 }
 
+static void free_pcppages_bulk(struct zone *zone, int count, 
+					struct per_cpu_pages *pcp)
+{
+	int batch_free = 0;
+	int prefetch_nr = 0;
+	struct page *page, *tmp;
+	LIST_HEAD(head);
+	struct list_head *list;
+
+	/*
+	 * Remove pages from lists in a round-robin fashion. A
+	 * batch_free count is maintained that is incremented when an
+	 * empty list is encountered. This is so more pages area freed
+	 * off fuller lists instead of spinning execessively around
+	 * empty lists.
+	 */
+	list = &pcp->lists[0];
+
+	do {
+		page = list_last_entry(list, struct page, lru);
+		list_del(&page->lru);
+		pcp->count--;
+
+		list_add_tail(&page->lru, &head);
+	} while (--count && !list_empty(list));
+
+	/*
+	 * Use safe version since after __free_one_page(),
+	 * page->lru.next will not point to original list.
+	 */
+	list_for_each_entry_safe(page, tmp, &head, lru)
+		__free_one_page(zone, page, page_to_pfn(page), 0);
+
+}
+
 static void free_unref_page_commit(struct page *page, unsigned long pfn)
 {
 	struct zone *zone = page_zone(page);
 	struct per_cpu_pages *pcp;
 
-	//pcp = zone->pageset->pcp;
+	pcp = zone->pcp;
 	list_add(&page->lru, &pcp->lists[0]);
 	pcp->count++;
 	if (pcp->count >= pcp->high) {
-		;
+		unsigned long batch = pcp->batch;
+		free_pcppages_bulk(zone, batch, pcp);
 	}
 }
 
@@ -226,6 +265,7 @@ static void free_unref_page_commit(struct page *page, unsigned long pfn)
  */
 void free_unref_page(struct page *page)
 {
+	unsigned long flags;
 	unsigned long pfn = page_to_pfn(page);
 
 	free_unref_page_commit(page, pfn);
@@ -302,6 +342,75 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order)
 }
 
 /*
+ * Obtain a specified number of elements from the buddy allocator, all under
+ * a single hold of the lock, for efficiency. Add them to the supplied list.
+ * Returns the number of new pages which were placed at *list.
+ */
+static int rmqueue_bulk(struct zone *zone, unsigned int order,
+			unsigned long count, struct list_head *list,
+			unsigned int alloc_flags)
+{
+	int i, alloced = 0;
+
+	for (i = 0; i < count; ++i) {
+		struct page *page = __rmqueue_smallest(zone, 0);
+
+		if (unlikely(page == NULL))
+			break;
+
+		/*
+		 * Split buddy pages returned by expand() are received here in
+		 * physical page order. The page is added to the tail of
+		 * caller's list. From the callers perspective, the linked list
+		 * is ordered by page number under some conditions. This is
+		 * useful for IO devices that can forward direction from the
+		 * head, thus also in the physical page order. This is useful
+		 * for IO devices that can merge IO requests if the physical
+		 * pages are ordered properly.
+		 */
+		list_add_tail(&page->lru, list);
+		alloced++;
+	}
+	return alloced;
+}
+
+/* Remove page from the per-cpu list, caller must protect the list */
+static struct page *__rmqueue_pcplist(struct zone *zone, 
+			unsigned int alloc_flags, struct per_cpu_pages *pcp,
+			struct list_head *list)
+{
+	struct page *page;
+
+	do {
+		if (list_empty(list)) {
+			pcp->count += rmqueue_bulk(zone, 0,
+					pcp->batch, list, alloc_flags);
+			if (unlikely(list_empty(list)))
+				return NULL;
+		}
+		page = list_first_entry(list, struct page, lru);
+		list_del(&page->lru);
+		pcp->count--;
+	} while (0);
+
+	return page;
+}
+
+static struct page *rmqueue_pcplist(struct zone *zone, unsigned int order,
+						gfp_t gfp_flags)
+{
+	struct per_cpu_pages *pcp;
+	struct list_head *list;
+	struct page *page;
+	unsigned long flags;
+
+	pcp = zone->pcp;
+	list = &pcp->lists[0];
+	page = __rmqueue_pcplist(zone, 0, pcp, list);
+	return page;
+}
+
+/*
  * Allocate a page from the given zone. Use pcplists for order-0
  * allocations.
  */
@@ -312,7 +421,8 @@ struct page *rmqueue(struct zone *zone, unsigned int order,
 	struct page *page;
 
 	if (likely(order == 0)) {
-		/* via PCP */;
+		page = rmqueue_pcplist(zone, order, gfp_flags);
+		return page;
 	}
 
 	/* We most definitely don't want callers attempting to
@@ -348,44 +458,36 @@ struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order)
 	return page;	
 }
 
-static void pageset_init(struct per_cpu_pageset *p)
+/*
+ * page_address - get the mapped virtual address of a page
+ */
+void *page_address(const struct page *page)
 {
-	struct per_cpu_pages *pcp;
-
-	memset(p, 0, sizeof(*p));
-
-	pcp = &p->pcp;
-	INIT_LIST_HEAD(&pcp->lists[0]);
+	return lowmem_page_address(page);
 }
 
 static void pageset_update(struct per_cpu_pages *pcp, unsigned long high,
 				unsigned long batch)
 {
-	/* start with a fail safe value for batch */
-	pcp->batch = 1;
-
 	/* Update high, then batch, in order */
 	pcp->high = high;
-
 	pcp->batch = batch;
 }
 
-/* a companion to pageset_set_high() */
-static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
+static void pageset_init(void)
 {
-	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
-}
+	struct zone *zone = &BiscuitOS_zone;
+	struct per_cpu_pages *pcp;
+	unsigned long batch = BATCH_SIZE;
 
-static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
-{
-	pageset_init(p);
-	pageset_set_batch(p, batch);
-}
+	zone->pcp = (struct per_cpu_pages *)malloc(
+				sizeof(struct per_cpu_pages));
+	memset(zone->pcp, 0, sizeof(struct per_cpu_pages));
+	pcp = zone->pcp;
 
-static int zone_batchsize(struct zone *zone)
-{
-	/* Emulate */
-	return 31;
+	INIT_LIST_HEAD(&pcp->lists[0]);
+
+	pageset_update(pcp, 6 * batch, max(1UL, batch));
 }
 
 /*
@@ -413,6 +515,7 @@ int memory_init(void)
 
 	/* Initialize all pages */
 	nr_pages = MEMORY_SIZE / PAGE_SIZE;
+	zone->managed_pages = nr_pages;
 	for (index = 0; index < nr_pages; index++) {
 		struct page *page = &mem_map[index];
 
@@ -425,10 +528,6 @@ int memory_init(void)
 		INIT_LIST_HEAD(&zone->free_area[order].free_list[0]);
 		zone->free_area[order].nr_free = 0;
 	}
-
-	/* PCP initialize */
-	setup_pageset(&boot_pageset, 0);
-	zone->pageset = &boot_pageset;
 
 	/* free all page into Buddy Allocator */
 	start_pfn = PFN_UP(PHYS_OFFSET);
@@ -446,12 +545,14 @@ int memory_init(void)
 
 		start_pfn += (1UL << order);
 	}
+	/* PCP init */
+	pageset_init();
 
-	printf("BiscuitOS Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
+	printk("BiscuitOS PCP Memory Allocator.\n");
+	printk("Physical Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
 					(unsigned long)(PHYS_OFFSET + MEMORY_SIZE));
-	printf("mem_map[] contains %#lx pages, page size %#lx\n", nr_pages,
+	printk("mem_map[] contains %#lx pages, page size %#lx\n", nr_pages,
 						(unsigned long)PAGE_SIZE);
-	printf("LIFO batch: %u\n", zone_batchsize(zone));
 
 	return 0;
 }

@@ -1,5 +1,5 @@
 #
-# Application Project
+# Buddy Memory Allocator
 #
 # (C) 2020.02.02 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -32,21 +32,23 @@ LCFLAGS += -I./ -I$(PWD)/include
 
 # SRC
 SRC := $(wildcard $(PWD)/mm/*.c)
-SRC += core.c
+SRC += main.c
 
 # Configuration
 CONFIG += -DCONFIG_MEMORY_SIZE=0x1000000
 CONFIG += -DCONFIG_PHYS_BASE=0x60000000
+CONFIG += -DCONFIG_BATCH_SIZE=2
 
 # Target
 ifeq ($(TARGETA), )
-TARGET=demo
+TARGET=biscuitos
+LCFLAGS += -m32
 else
 TARGET=$(TARGETA)
 endif
 
 all:
-	$(CC) $(LCFLAGS) $(CONFIG) -o $(TARGET) $(SRC)
+	@$(CC) $(LCFLAGS) $(CONFIG) -o $(TARGET) $(SRC)
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)

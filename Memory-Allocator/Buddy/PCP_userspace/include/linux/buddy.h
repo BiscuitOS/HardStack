@@ -16,6 +16,8 @@
 #define MEMORY_SIZE	CONFIG_MEMORY_SIZE
 /* Configuration Basic Physical Address */
 #define PHYS_OFFSET	CONFIG_PHYS_BASE
+/* Configuration BATCH size */
+#define BATCH_SIZE	CONFIG_BATCH_SIZE
 
 #define PFN_OFFSET	PHYS_PFN(PHYS_OFFSET)
 
@@ -25,38 +27,37 @@
 /* GFP flag combinations */
 #define GFP_KERNEL	0x10000000
 
+#define printk(...)	printf(__VA_ARGS__)
+#define max(x, y)	((x) > (y) ? (x) : (y))
+
 typedef unsigned long phys_addr_t;
 typedef unsigned long gfp_t;
-
-struct per_cpu_pages {
-	int count;		/* number of pages in the list */
-	int high;		/* high watermark, emptying needed */
-	int batch;		/* chunk size for buddy add/remove */
-
-	/* Lists of pages, one per migrate type stored on the pcp-lists */
-	struct list_head lists[1];
-};
-
-struct per_cpu_pageset {
-	struct per_cpu_pages pcp;
-};
 
 struct free_area {
 	struct list_head free_list[1];
 	unsigned long nr_free;
 };
 
+struct per_cpu_pages {
+	int count;	/* number of pages in the list */
+	int high;	/* high watermark, emptying needed */
+	int batch;	/* chunk size for buddy add/remove */
+
+	/* List of pages */
+	struct list_head lists[1];
+};
+
 struct zone {
+	struct per_cpu_pages *pcp;
 	/* free areas of different sizes */
 	struct free_area free_area[MAX_ORDER];
-	struct per_cpu_pageset *pageset;
+	unsigned long managed_pages;
 };
 
 struct page {
 	unsigned int page_type;
 	unsigned long private;
 	struct list_head lru;
-	unsigned long managed_pages;
 };
 
 /* PFN and PHYS */
@@ -67,6 +68,7 @@ struct page {
 
 /* Physical and Virtual */
 extern unsigned char *memory;
+extern struct page *mem_map;
 static inline phys_addr_t virt_to_phys(const volatile void *x)
 {
 	return ((unsigned long)(x) - (unsigned long)memory) + 
@@ -82,9 +84,6 @@ static inline void *phys_to_virt(phys_addr_t x)
 		type __min1 = (x);		\
 		type __min2 = (y);		\
 		__min1 < __min2 ? __min1 : __min2; })
-
-#define max(x, y) ({				\
-		x > y ? x : y; })
 
 static inline unsigned long __ffs(unsigned long word)
 {
@@ -153,9 +152,23 @@ static inline struct zone *page_zone(const struct page *page)
 	return &BiscuitOS_zone;
 }
 
+#define __va(x)			((void *)phys_to_virt((phys_addr_t)(x)))
+#define page_to_virt(x)		__va(PFN_PHYS(page_to_pfn(x)))
+
+static inline void *lowmem_page_address(const struct page *page)
+{
+	return page_to_virt(page);
+}
+
+static inline unsigned long zone_managed_pages(struct zone *zone)
+{
+	return zone->managed_pages;
+}
+
 extern struct page *mem_map;
 extern int memory_init(void);
 extern void memory_exit(void);
+extern void *page_address(const struct page *page);
 /* Huge page sizes are variable */
 extern unsigned int pageblock_order;
 extern void __free_pages(struct page *page, unsigned int order);
