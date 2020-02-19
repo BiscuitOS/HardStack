@@ -77,8 +77,9 @@ static int instance_16_pages(void)
 		return -1;
 	}
 
-	printk("16-Pages Phys:  %#lx PFN: %#lx\n", virt_to_phys(page), 
-						page_to_pfn(page));
+	printk("16-Pages Phys:  %#lx PFN: %#lx\n",
+				PFN_PHYS(page_to_pfn(page)), 
+				page_to_pfn(page));
 
 	/* Free 16 pages */
 	__free_pages(page, order);
@@ -191,10 +192,12 @@ static int instance_16_128_pages(void)
 		return -1;
 	}
 
-	printk("16-Pages Phys:  %#lx PFN: %#lx\n", virt_to_phys(page16),
-						page_to_pfn(page16));
-	printk("128-Pages Phys: %#lx PFN: %#lx\n", virt_to_phys(page128),
-						page_to_pfn(page128));
+	printk("16-Pages Phys:  %#lx PFN: %#lx\n", 
+					PFN_PHYS(page_to_pfn(page16)),
+					page_to_pfn(page16));
+	printk("128-Pages Phys: %#lx PFN: %#lx\n", 
+					PFN_PHYS(page_to_pfn(page128)),
+					page_to_pfn(page128));
 
 	/* free 16-pages */
 	printk("Freeing 16-pages.\n");
