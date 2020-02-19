@@ -408,7 +408,7 @@ int memory_init(void)
 		start_pfn += (1UL << order);
 	}
 
-	printk("BiscuitOS High-Memory\n");
+	printk("BiscuitOS Kmap Memory Allocator\n");
 	printf("Real Physical Memory:  %#lx - %#lx\n", 
 		(unsigned long)PHYS_OFFSET, 
 		(unsigned long)(PHYS_OFFSET + MEMORY_SIZE + HIGHMEM_SIZE));
