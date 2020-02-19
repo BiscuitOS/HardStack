@@ -416,11 +416,40 @@ static inline void *kzalloc(size_t size, gfp_t flags)
 	return kmalloc(size, flags | __GFP_ZERO);
 }
 
+extern void *kmalloc_order(size_t size, gfp_t flags, unsigned int order);
+
+static inline void *kmalloc_order_trace(size_t size, gfp_t flags,
+						unsigned int order)
+{
+	return kmalloc_order(size, flags, order);
+}
+
+static inline void *kmalloc_large(size_t size, gfp_t flags)
+{
+	unsigned int order = get_order(size);
+	return kmalloc_order_trace(size, flags, order);
+}
+
+static inline struct page *__alloc_pages_node(int nid, gfp_t gfp_mask,
+					unsigned int order)
+{
+	return __alloc_pages(gfp_mask, order);
+}
+
+static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+						unsigned int order)
+{
+	return __alloc_pages_node(nid, gfp_mask, order);
+}
+
 #define for_each_memcg_cache(iter, root)	\
 	for ((void)(iter), (void)(root); 0; )
 
 #define slab_root_cache		slab_caches
 #define root_cache_node		list
+
+#define alloc_pages(gfp_mask, order)	\
+			alloc_pages_node(0, gfp_mask, order);
 
 extern void kmem_cache_init(void);
 

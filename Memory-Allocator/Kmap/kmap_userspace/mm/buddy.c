@@ -14,6 +14,7 @@
 #include <malloc.h>
 
 #include "linux/buddy.h"
+#include "linux/slub.h"
 
 /* nr_pages for memory */
 unsigned long nr_pages;
@@ -23,8 +24,14 @@ unsigned char *memory;
 struct page *mem_map;
 /* Huge page sizes are variable */
 unsigned int pageblock_order = 10;
-/* Emulate Zone */
-struct zone BiscuitOS_zone;
+/* Emulate Normal Zone */
+struct zone BiscuitOS_zone = { .zone_name = "Normal", };
+/* Emulate Highmem Zone */
+struct zone BiscuitOS_highmem_zone = { .zone_name = "HighMem", };
+/* pfn */
+unsigned long low_max_pfn;
+unsigned long low_pfn;
+unsigned long high_pfn;
 
 /*
  * Locate the struct page for both the matching buddy in our
@@ -107,8 +114,11 @@ __find_buddy_pfn(unsigned long page_pfn, unsigned int order)
 static inline int page_is_buddy(struct page *page, struct page *buddy,
 					unsigned int order)
 {
-	if (PageBuddy(buddy) && page_order(buddy) == order)
+	if (PageBuddy(buddy) && page_order(buddy) == order) {
+		if (page_zone(page) != page_zone(buddy))
+			return 0;
 		return 1;
+	}
 }
 
 /*
@@ -309,6 +319,9 @@ get_page_from_freelist(gfp_t gfp_mask, unsigned int order)
 	struct zone *zone = &BiscuitOS_zone;
 	struct page *page;
 
+	if (gfp_mask & __GFP_HIGHMEM)
+		zone = &BiscuitOS_highmem_zone;
+
 	page = rmqueue(zone, order, gfp_mask);
 	if (page) {
 		prep_new_page(page, order, gfp_mask);
@@ -331,29 +344,29 @@ struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order)
 
 /*
  * PHYS_OFFSET                                         
- * | <--------------------- MEMORY_SIZE ----------------------> |
- * +---------------+--------------------------------------------+
- * |               |                                            |
- * |               |                                            |
- * |               |                                            |
- * +---------------+--------------------------------------------+
+ * | <----------------- MEMORY_SIZE ------------------> | <- HighMem ->|
+ * +---------------+------------------------------------+--------------+
+ * |               |                                    |              |
+ * |               |                                    |              |
+ * |               |                                    |              |
+ * +---------------+------------------------------------+--------------+
  * | <- mem_map -> |
  *
  */
 int memory_init(void)
 {
 	unsigned long start_pfn, end_pfn;
-	struct zone *zone = &BiscuitOS_zone;
+	struct zone *zone;
 	int order, index;
 
 	/* Emulate Memory Region */
-	memory = (unsigned char *)malloc(MEMORY_SIZE);
+	memory = (unsigned char *)malloc(MEMORY_SIZE + HIGHMEM_SIZE);
 
 	/* Establish mem_map[] */
 	mem_map = (struct page *)(unsigned long)memory;
 
 	/* Initialize all pages */
-	nr_pages = MEMORY_SIZE / PAGE_SIZE;
+	nr_pages = (MEMORY_SIZE + HIGHMEM_SIZE) / PAGE_SIZE;
 	for (index = 0; index < nr_pages; index++) {
 		struct page *page = &mem_map[index];
 
@@ -363,6 +376,12 @@ int memory_init(void)
 
 	/* Initialize Zone */
 	for (order = 0; order < MAX_ORDER; order++) {
+		/* Normal zone */
+		zone = &BiscuitOS_zone;
+		INIT_LIST_HEAD(&zone->free_area[order].free_list[0]);
+		zone->free_area[order].nr_free = 0;
+		/* HighMem zone */
+		zone = &BiscuitOS_highmem_zone;
 		INIT_LIST_HEAD(&zone->free_area[order].free_list[0]);
 		zone->free_area[order].nr_free = 0;
 	}
@@ -370,6 +389,11 @@ int memory_init(void)
 	/* free all page into Buddy Allocator */
 	start_pfn = PFN_UP(PHYS_OFFSET);
 	end_pfn = PFN_DOWN(PHYS_OFFSET + MEMORY_SIZE);
+	/* defind zone high and normal */
+	low_pfn = start_pfn;
+	low_max_pfn = end_pfn;
+	high_pfn = end_pfn;
+	end_pfn = PFN_DOWN(PHYS_OFFSET + MEMORY_SIZE + HIGHMEM_SIZE);
 
 	while (start_pfn < end_pfn) {
 		int order = min_t(unsigned int,
@@ -384,13 +408,25 @@ int memory_init(void)
 		start_pfn += (1UL << order);
 	}
 
-	printf("BiscuitOS Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
-					(unsigned long)(PHYS_OFFSET + MEMORY_SIZE));
-	printk("Virtual Memory:   %#lx - %#lx\n", (unsigned long)memory,
+	printk("BiscuitOS High-Memory\n");
+	printf("Real Physical Memory:  %#lx - %#lx\n", 
+		(unsigned long)PHYS_OFFSET, 
+		(unsigned long)(PHYS_OFFSET + MEMORY_SIZE + HIGHMEM_SIZE));
+	printk("Normal Physical Areas: %#lx - %#lx\n",
+			PFN_PHYS(low_pfn), PFN_PHYS(low_max_pfn));
+	printk("HighMem Physical Area: %#lx - %#lx\n",
+			PFN_PHYS(low_max_pfn), PFN_PHYS(end_pfn));
+	printk("Virtual Memory:        %#lx - %#lx\n", 
+					(unsigned long)memory,
 					(unsigned long)memory + MEMORY_SIZE);
 	printf("mem_map[] contains %#lx pages, page size %#lx\n", nr_pages,
 						(unsigned long)PAGE_SIZE);
 
+	page_address_init();
+	/* Kmem cache init */
+	kmem_cache_init();
+	/* Establish page-table-directory */
+	__create_page_table();
 	return 0;
 }
 

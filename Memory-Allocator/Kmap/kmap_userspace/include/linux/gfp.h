@@ -4,6 +4,7 @@
 typedef unsigned long gfp_t;
 
 #define ___GFP_DMA		0x01u
+#define ___GFP_HIGHMEM		0x02u
 #define ___GFP_RECLAIMABLE	0x10u
 #define ___GFP_HIGH		0x20u
 #define ___GFP_IO		0x40u
@@ -26,6 +27,7 @@ typedef unsigned long gfp_t;
 
 #define __GFP_ZERO	((gfp_t)___GFP_ZERO)
 #define __GFP_COMP	((gfp_t)___GFP_COMP)
+#define __GFP_HIGHMEM	((gfp_t)___GFP_HIGHMEM)
 #define __GFP_DMA	((gfp_t)___GFP_DMA)
 #define __GFP_ATOMIC	((gfp_t)___GFP_ATOMIC)
 #define __GFP_IO	((gfp_t)___GFP_IO)

@@ -19,6 +19,10 @@
 #define MEMORY_SIZE	CONFIG_MEMORY_SIZE
 /* Configuration Basic Physical Address */
 #define PHYS_OFFSET	CONFIG_PHYS_BASE
+/* Configuration Highmem Region */
+#define HIGHMEM_SIZE	CONFIG_HIGHMEM_SIZE
+/* Configuration PAGE_OFFSET */
+#define MMU_PAGE_OFFSET	CONFIG_PAGE_OFFSET
 
 #define PFN_OFFSET	PHYS_PFN(PHYS_OFFSET)
 
@@ -36,6 +40,7 @@ struct free_area {
 };
 
 struct zone {
+	char *zone_name;
 	/* free areas of different sizes */
 	struct free_area free_area[MAX_ORDER];
 };
@@ -127,6 +132,9 @@ static inline unsigned long virt_to_pfn(const volatile void *x)
 #define page_to_virt(page)	phys_to_virt(PFN_PHYS(page_to_pfn(page)))
 #define virt_to_page(kaddr)	pfn_to_page(virt_to_pfn(kaddr))
 
+#define __va(x)			((void *)phys_to_virt((phys_addr_t)(x)))
+#define __pa(x)			virt_to_phys((void *)(unsigned long)(x))
+
 static inline void *lowmem_page_address(const struct page *page)
 {
 	return page_to_virt(page);
@@ -147,8 +155,6 @@ static inline struct page *virt_to_head_page(const void *x)
 
 	return compound_head(page); 
 }
-
-#define page_address(page)	lowmem_page_address(page)
 
 #define min_t(type, x, y)	({		\
 		type __min1 = (x);		\
@@ -263,8 +269,14 @@ static inline void rmv_page_order(struct page *page)
 }
 
 extern struct zone BiscuitOS_zone;
+extern struct zone BiscuitOS_highmem_zone;
+extern unsigned long low_max_pfn;
+extern unsigned long low_pfn;
+extern unsigned long high_pfn;
 static inline struct zone *page_zone(const struct page *page)
 {
+	if (page_to_pfn(page) >= high_pfn)
+		return &BiscuitOS_highmem_zone;
 	return &BiscuitOS_zone;
 }
 
@@ -326,7 +338,9 @@ extern int memory_init(void);
 extern void memory_exit(void);
 /* Huge page sizes are variable */
 extern unsigned int pageblock_order;
+extern void page_address_init(void);
 extern void __free_pages(struct page *page, unsigned int order);
+extern void __create_page_table(void);
 extern struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order);
 
 static void prep_new_page(struct page *page, unsigned int order,
