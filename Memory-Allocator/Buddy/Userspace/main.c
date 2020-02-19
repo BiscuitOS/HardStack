@@ -73,11 +73,11 @@ static int instance_16_pages(void)
 	/* alloc 16 pages */
 	page = __alloc_pages(GFP_KERNEL, order);
 	if (!page) {
-		printf("Error: can't alloc pages from buddy.\n");
+		printk("Error: can't alloc pages from buddy.\n");
 		return -1;
 	}
 
-	printf("16-Pages Phys: %#lx PFN: %#lx\n", virt_to_phys(page), 
+	printk("16-Pages Phys:  %#lx PFN: %#lx\n", virt_to_phys(page), 
 						page_to_pfn(page));
 
 	/* Free 16 pages */
@@ -179,28 +179,50 @@ static int instance_16_128_pages(void)
 	/* alloc 16 pages */
 	page16 = __alloc_pages(GFP_KERNEL, 4);
 	if (!page16) {
-		printf("Error: can't alloc 16 pages from buddy.\n");
+		printk("Error: can't alloc 16 pages from buddy.\n");
 		return -1;
 	}
 
 	/* alloc 128 pages */
 	page128 = __alloc_pages(GFP_KERNEL, 7);
 	if (!page128) {
-		printf("Error: can't alloc 128 pages from buddy.\n");
+		printk("Error: can't alloc 128 pages from buddy.\n");
 		__free_pages(page16, 4);
 		return -1;
 	}
 
-	printf("16-Pages Phys: %#lx PFN: %#lx\n", virt_to_phys(page16),
+	printk("16-Pages Phys:  %#lx PFN: %#lx\n", virt_to_phys(page16),
 						page_to_pfn(page16));
-	printf("128-Pages Phys: %#lx PFN: %#lx\n", virt_to_phys(page128),
+	printk("128-Pages Phys: %#lx PFN: %#lx\n", virt_to_phys(page128),
 						page_to_pfn(page128));
 
 	/* free 16-pages */
-	printf("Freeing 16-pages.\n");
+	printk("Freeing 16-pages.\n");
 	__free_pages(page16, 4);
-	printf("Freeing 128-pages.\n");
+	printk("Freeing 128-pages.\n");
 	__free_pages(page128, 7);
+	return 0;
+}
+
+/* page usage */
+static int instance_page_address(void)
+{
+	struct page *page;
+	void *vpage;
+
+	/* alloc */
+	page = __alloc_pages(GFP_KERNEL, 0);
+
+	/* address */
+	vpage = page_address(page);
+	printk("Page-PFN: %#lx Address %#lx\n", page_to_pfn(page),
+			(unsigned long)page_address(page));
+	/* use */
+	sprintf(vpage, "BiscuitOs-%x", 0x88);
+	printk("Buddy Output: %s\n", (char *)vpage);
+
+	/* free */
+	__free_pages(page, 0);
 }
 
 int main()
@@ -210,6 +232,7 @@ int main()
 	/* Running instance */
 	instance_16_pages();
 	instance_16_128_pages();
+	instance_page_address();
 
 	memory_exit();
 	return 0;

@@ -25,6 +25,8 @@
 /* GFP flag combinations */
 #define GFP_KERNEL	0x10000000
 
+#define printk(...)	printf(__VA_ARGS__)
+
 typedef unsigned long phys_addr_t;
 typedef unsigned long gfp_t;
 
@@ -52,6 +54,7 @@ struct page {
 
 /* Physical and Virtual */
 extern unsigned char *memory;
+extern struct page *mem_map;
 static inline phys_addr_t virt_to_phys(const volatile void *x)
 {
 	return ((unsigned long)(x) - (unsigned long)memory) + 
@@ -135,9 +138,18 @@ static inline struct zone *page_zone(const struct page *page)
 	return &BiscuitOS_zone;
 }
 
+#define __va(x)			((void *)phys_to_virt((phys_addr_t)(x)))
+#define page_to_virt(x)		__va(PFN_PHYS(page_to_pfn(x)))
+
+static inline void *lowmem_page_address(const struct page *page)
+{
+	return page_to_virt(page);
+}
+
 extern struct page *mem_map;
 extern int memory_init(void);
 extern void memory_exit(void);
+extern void *page_address(const struct page *page);
 /* Huge page sizes are variable */
 extern unsigned int pageblock_order;
 extern void __free_pages(struct page *page, unsigned int order);

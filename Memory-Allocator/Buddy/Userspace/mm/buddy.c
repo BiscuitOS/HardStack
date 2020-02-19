@@ -326,6 +326,14 @@ struct page *__alloc_pages(gfp_t gfp_mask, unsigned int order)
 }
 
 /*
+ * page_address - get the mapped virtual address of a page
+ */
+void *page_address(const struct page *page)
+{
+	return lowmem_page_address(page);
+}
+
+/*
  * PHYS_OFFSET                                         
  * | <--------------------- MEMORY_SIZE ----------------------> |
  * +---------------+--------------------------------------------+
@@ -380,9 +388,10 @@ int memory_init(void)
 		start_pfn += (1UL << order);
 	}
 
-	printf("BiscuitOS Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
+	printk("BiscuitOS Buddy Memory Allocator.\n");
+	printk("Physical Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
 					(unsigned long)(PHYS_OFFSET + MEMORY_SIZE));
-	printf("mem_map[] contains %#lx pages, page size %#lx\n", nr_pages,
+	printk("mem_map[] contains %#lx pages, page size %#lx\n", nr_pages,
 						(unsigned long)PAGE_SIZE);
 
 	return 0;
