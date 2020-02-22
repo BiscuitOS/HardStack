@@ -54,7 +54,7 @@ static int parse_memblock_information(void)
 		return -ENOMEM;
 	}
 
-	printk("BiscuitOS - PERCPU(UP) Memory Allocator\n");
+	printk("BiscuitOS - PERCPU(SMP) Memory Allocator\n");
 	printk("Physcial Memory Range: %#lx - %#lx\n", 
 		(unsigned long)memblock_base,
 		(unsigned long)memblock_base + (unsigned long)memblock_size);
