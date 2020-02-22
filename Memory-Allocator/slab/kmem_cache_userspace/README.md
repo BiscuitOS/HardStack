@@ -1,4 +1,4 @@
-Slub on userspace
+KMEM_CACHE Memory Allocator on userspace
 ------------------------------
 
 ```

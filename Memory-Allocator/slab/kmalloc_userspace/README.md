@@ -1,4 +1,4 @@
-Slub on userspace
+Kmalloc Memory Allocator on userspace
 ------------------------------
 
 ```
