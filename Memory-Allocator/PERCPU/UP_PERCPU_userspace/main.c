@@ -40,12 +40,38 @@ static int instance_percpu_alloc(void)
 	return 0;
 }
 
+/* mult percpu alloc */
+static int instance_mult_percpu_alloc(void)
+{
+	struct bs_struct __percpu *bs[10];
+	struct bs_struct *bp;
+	unsigned int cpu, index;
+
+	for (index = 0; index < 10; index++) {
+		/* Alloc */
+		bs[index] = alloc_percpu(struct bs_struct);
+		for_each_possible_cpu(cpu) {
+			bp = per_cpu_ptr(bs[index], cpu);
+			printk("bs[%d]-cpu%d: %#lx\n", index, cpu, 
+							(unsigned long)bp);
+		}
+	}
+
+	/* free */
+	for (index = 0; index < 10; index++) {
+		free_percpu(bs[index]);
+	}
+
+	return 0;
+}
+
 int main()
 {
 	memory_init();
 
 	/* Running instance */
 	instance_percpu_alloc();
+	instance_mult_percpu_alloc();
 
 	memory_exit();
 

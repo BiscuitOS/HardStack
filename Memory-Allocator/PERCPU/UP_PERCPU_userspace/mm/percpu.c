@@ -89,6 +89,43 @@ void *pcpu_base_addr;
 
 /**
  * pcpu_alloc_alloc_info - allocate percpu allocation info
+ *
+ *    UP
+ *    pcpu_alloc_info
+ *    +-----------+
+ *    |           |
+ *    |           |
+ *    |           |
+ *    |           |
+ *    |           |
+ *    |           |
+ *    |           |
+ *    |           |
+ *    |           |
+ *    +-----------+                pcpu_group_info
+ *    | groups[0] |--------------->+-------------+
+ *    +-----------+                |   nr_units  |
+ *                                 +-------------+
+ *                                 | base_offset |
+ *                                 +-------------+
+ *                                 |  cpu_map[0] |--->+-----------------+
+ *                                 +-------------+    |                 |
+ *                                                    |                 |
+ *                                                    |                 |
+ *                                                    |                 |
+ *                                                    |    Free AREA    |
+ *                                                    |                 |
+ *                                                    |                 |
+ *                                                    |                 |
+ *                                                    |                 |
+ *                                                    |                 |
+ *                                                    +-----------------+
+ *
+ *
+ * Free AREA = PAGE_SIZE - sizeof(*ai) - nr_groups * sizeof(ai->groups[0])
+ *                       - nr_units * sizeof(ai->groups[0].cpu_map[0])
+ *                                
+ *
  */
 struct pcpu_alloc_info *pcpu_alloc_alloc_info(int nr_groups, int nr_units)
 {
@@ -452,11 +489,13 @@ static void pcpu_next_fit_region(struct pcpu_chunk *chunk, int alloc_bits,
 	for (block = chunk->md_blocks + i; i < pcpu_chunk_nr_blocks(chunk);
 		block++, i++) {
 		/* handles contig area accross blocks */
-		*bits += block->left_free;
-		if (*bits >= alloc_bits)
-			return;
-		if (block->left_free == PCPU_BITMAP_BLOCK_BITS)
-			continue;
+		if (*bits) {
+			*bits += block->left_free;
+			if (*bits >= alloc_bits)
+				return;
+			if (block->left_free == PCPU_BITMAP_BLOCK_BITS)
+				continue;
+		}
 
 		/* check block->contig_hint */
 		*bits = ALIGN(block->contig_hint_start, align) - 
@@ -1167,7 +1206,7 @@ static int pcpu_alloc_area(struct pcpu_chunk *chunk, int alloc_bits,
 	int bit_off, end, oslot;
 
 	oslot = pcpu_chunk_slot(chunk);
-
+	
 	/*
 	 * Search to find a fit.
 	 */
