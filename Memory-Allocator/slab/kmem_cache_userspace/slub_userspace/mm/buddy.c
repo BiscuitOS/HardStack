@@ -384,8 +384,7 @@ int memory_init(void)
 		start_pfn += (1UL << order);
 	}
 
-	printf("BiscuitOS Slub Memory Allocator.\n");
-	printf("Physical Memory:  %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
+	printf("BiscuitOS Memory: %#lx - %#lx\n", (unsigned long)PHYS_OFFSET, 
 					(unsigned long)(PHYS_OFFSET + MEMORY_SIZE));
 	printk("Virtual Memory:   %#lx - %#lx\n", (unsigned long)memory,
 					(unsigned long)memory + MEMORY_SIZE);
