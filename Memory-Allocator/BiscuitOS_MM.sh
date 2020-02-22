@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # BiscuitOS Memory Allocator Project
 #
