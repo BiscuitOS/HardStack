@@ -1,5 +1,5 @@
 #
-# Slub Memory Allocator
+# VMALLOC Memory Allocator
 #
 # (C) 2020.02.06 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -32,7 +32,7 @@ LCFLAGS += -I./ -I$(PWD)/include
 
 # SRC
 SRC := $(wildcard $(PWD)/mm/*.c)
-SRC += core.c
+SRC += main.c
 
 # Configuration
 CONFIG += -DCONFIG_MEMORY_SIZE=0x1000000
