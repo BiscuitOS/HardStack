@@ -19,7 +19,7 @@ The `CPUS` determine the number of CPUs on Emualte platform.
 ```
 make CPUS=2
 $ ./biscuitos 
-BiscuitOS - PERCPU(UP) Memory Allocator
+BiscuitOS - PERCPU(SMP) Memory Allocator
 Physcial Memory Range: 0x60000000 - 0x61000000
 Virtual Memory Ranges: 0xf6d91010 - 0xf7d91010
 Embedded 7 pages/cpu @0xf7d7f010 s0 r8192 d20480 u32768
@@ -54,7 +54,7 @@ bs[9]-cpu1: 0xf7d89130
 ```
 make CPUS=8
 $ ./biscuitos 
-BiscuitOS - PERCPU(UP) Memory Allocator
+BiscuitOS - PERCPU(SMP) Memory Allocator
 Physcial Memory Range: 0x60000000 - 0x61000000
 Virtual Memory Ranges: 0xf6cfb010 - 0xf7cfb010
 Embedded 7 pages/cpu @0xf7cb9010 s0 r8192 d20480 u32768
