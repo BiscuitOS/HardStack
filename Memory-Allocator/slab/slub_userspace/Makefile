@@ -32,7 +32,7 @@ LCFLAGS += -I./ -I$(PWD)/include
 
 # SRC
 SRC := $(wildcard $(PWD)/mm/*.c)
-SRC += core.c
+SRC += main.c
 
 # Configuration
 CONFIG += -DCONFIG_MEMORY_SIZE=0x1000000
