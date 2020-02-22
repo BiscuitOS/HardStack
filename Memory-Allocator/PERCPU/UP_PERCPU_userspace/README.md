@@ -25,5 +25,5 @@ CPU BiscuitOS-0
 
 ![](https://gitee.com/BiscuitOS_team/PictureSet/raw/Gitee/HK/HK000223.png)
 
-![](https://gitee.com/BiscuitOS_team/PictureSet/raw/Gitee/HK/HK000223.png)
+![](https://gitee.com/BiscuitOS_team/PictureSet/raw/Gitee/HK/HK000224.png)
 
