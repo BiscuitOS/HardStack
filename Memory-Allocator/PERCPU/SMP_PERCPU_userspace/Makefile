@@ -1,5 +1,5 @@
 #
-# PERCPU(UP) Memory Allocator
+# SMP-PERCPU Memory Allocator
 #
 # (C) 2020.02.02 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -30,14 +30,21 @@ OBJDUMP		= $(CROSS_COMPILE)objdump
 # FLAGS
 LCFLAGS += -I./ -I$(PWD)/include
 
+# CPUs
+ifeq ($(CPUS),)
+NR_CPUS=4
+else
+NR_CPUS=$(CPUS)
+endif
+
 # CONFIG
 CONFIG := -DCONFIG_MEMBLOCK_BASE=0x60000000
 CONFIG += -DCONFIG_MEMBLOCK_SIZE=0x1000000
-CONFIG += -DCONFIG_NR_CPUS=1
+CONFIG += -DCONFIG_NR_CPUS=$(NR_CPUS)
 # SMP Support
-#CONFIG += -DCONFIG_SMP
+CONFIG += -DCONFIG_SMP
 # UP Support 
-CONFIG += -DCONFIG_UP
+# CONFIG += -DCONFIG_UP
 
 # SRC
 SRC := $(wildcard $(PWD)/mm/*.c)
