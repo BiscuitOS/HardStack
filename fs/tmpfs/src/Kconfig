@@ -1,0 +1,2 @@
+menuconfig BISCUITOS_TMPFS_FS
+	bool "BiscuitOS Tmpfs filesystem"
