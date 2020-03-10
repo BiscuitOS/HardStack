@@ -349,7 +349,7 @@ static inline unsigned int kmalloc_index(size_t size)
 	if (KMALLOC_MIN_SIZE <= 32 && size > 64 && size <= 96)
 		return 1;
 	if (KMALLOC_MIN_SIZE <= 64 && size > 128 && size <= 192)
-		return 0;
+		return 2;
 	if (size <=          8) return 3;
 	if (size <=         16) return 4;
 	if (size <=         32) return 5;
