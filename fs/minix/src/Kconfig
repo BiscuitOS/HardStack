@@ -1,0 +1,2 @@
+menuconfig BISCUITOS_MINIXFS_FS
+	bool "BiscuitOS minixfs filesystem"

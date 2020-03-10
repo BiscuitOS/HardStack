@@ -31,6 +31,7 @@ struct word_at_a_time {
 
 #define WORD_AT_A_TIME_CONSTANTS { REPEAT_BYTE(0x01), REPEAT_BYTE(0x80) }
 
+static inline unsigned long find_zero(unsigned long mask);
 static inline unsigned long has_zero(unsigned long a, unsigned long *bits,
 			const struct word_at_a_time *c)
 {
@@ -95,7 +96,7 @@ static inline unsigned long find_zero(unsigned long mask)
 }
 
 static const char *name_array[] = { "BiscuitOS_fs", "BiscuitOS_mm",
-				    "BiscuitOS_proc", "BiscuitOS_ramfs"
+				    "BiscuitOS_proc", "BiscuitOS_ramfs",
 				    "BiscuitOS_tmpfs", "BiscuitOS_etc"
 };
 
@@ -284,6 +285,7 @@ static int __init Demo_init(void)
 	struct dentry *dentry_array[6];
 	struct fs_struct *fs = current->fs;
 	struct path *path = &fs->pwd;
+	struct inode *inode = path->dentry->d_inode;
 	int index;
 
 	/* init dcache init */
@@ -291,7 +293,7 @@ static int __init Demo_init(void)
 
 	for (index = 0; index < 6; index++) {
 		struct qstr name;
-		struct dentry *dentry = dentry_array[index];
+		struct dentry *dentry;
 		struct hlist_bl_head *b;
 
 		/* Calculate hast len */
@@ -304,6 +306,7 @@ static int __init Demo_init(void)
 			printk("dentry[%d]kzalloc() not free memory\n", index);
 			goto out_mem;
 		}
+		dentry_array[index] = dentry;
 		/* setup dentry name */
 		dentry->d_name.len = name.len;
 		dentry->d_name.hash = name.hash;
@@ -314,15 +317,51 @@ static int __init Demo_init(void)
 		INIT_HLIST_BL_NODE(&dentry->d_hash);
 		INIT_HLIST_NODE(&dentry->d_u.d_alias);
 
+		/* new dentry no inode */
+		inode = NULL;
+		/* add to inode */
+		if (inode) {
+			spin_lock(&inode->i_lock);
+			hlist_add_head(&dentry->d_u.d_alias, &inode->i_dentry);
+			dentry->d_inode = inode;
+			spin_unlock(&inode->i_lock);
+		}
+
+		spin_lock(&dentry->d_lock);
 		/* d_add */
 		b = d_hash(dentry->d_name.hash);
 		hlist_bl_lock(b);
 		hlist_bl_add_head_rcu(&dentry->d_hash, b);
 		hlist_bl_unlock(b);
+		spin_unlock(&dentry->d_lock);
+
+		/* parent */
+		spin_lock(&path->dentry->d_lock);
+		dentry->d_parent = path->dentry;
+		INIT_LIST_HEAD(&dentry->d_child);
+		list_add(&dentry->d_child, &dentry->d_parent->d_subdirs);
+		spin_unlock(&path->dentry->d_lock);
+
+		printk("Create Dentry: %s\n", dentry->d_iname);
+	}
+
+	/* Dentry lookup */
+	printk("Lookup.....\n");
+	for (index = 0; index < 6; index++) {
+		struct dentry *dentry;
+		struct dentry *hash_dentry = dentry_array[index];
+		struct hlist_bl_head *b = d_hash(hash_dentry->d_name.hash);
+		struct hlist_bl_node *node;
+
+		printk("Search hash: %#x\n", hash_dentry->d_name.hash);
+		hlist_bl_for_each_entry_rcu(dentry, node, b, d_hash)
+			printk("Dhash[%#x] %s\n", 
+					dentry->d_name.hash, dentry->d_iname);
 	}
 
 out_mem:
-	;
+	while (index--)
+		kfree(dentry_array[index]);
 	return 0;
 }
 
