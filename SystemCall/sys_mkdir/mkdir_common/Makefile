@@ -41,7 +41,7 @@ TARGET=$(TARGETA)
 endif
 
 all:
-	$(CC) $(LCFLAGS) -o $(TARGET) $(SRC)
+	@$(CC) $(LCFLAGS) -o $(TARGET) $(SRC)
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
