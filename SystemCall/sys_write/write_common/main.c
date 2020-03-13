@@ -83,7 +83,7 @@ static void usage(const char *program_name)
 	printf("\t\t\tS_IRWXO\n");
 	printf("\t-s\t--strings The strings for writing.\n");
 	printf("\ne.g:\n");
-	printf("%s -p BiscuitOS_file -f O_WRONLY,O_SYNC "
+	printf("%s -p BiscuitOS_file -f O_RDWR,O_CREAT "
 			"-m S_IRUSR,S_IRGRP -s Hello-BiscuitOS\n\n", 
 					program_name);
 }
