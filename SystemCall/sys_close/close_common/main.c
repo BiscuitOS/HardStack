@@ -1,7 +1,7 @@
 /*
- * sys_open in C
+ * sys_close in C
  *
- * (C) 2020.03.11 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2020.03.13 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -13,9 +13,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <getopt.h>
-/* open */
+/* open/close */
 #include <fcntl.h>
-/* __NR_open */
+/* __NR_close */
 #include <asm/unistd.h>
 /* syscall() */
 #include <unistd.h>
@@ -40,7 +40,7 @@
 
 static void usage(const char *program_name)
 {
-	printf("BiscuitOS: sys_open helper\n");
+	printf("BiscuitOS: sys_close helper\n");
 	printf("Usage:\n");
 	printf("      %s <-p pathname> <-f flags> <-m mode>\n", program_name);
 	printf("\n");

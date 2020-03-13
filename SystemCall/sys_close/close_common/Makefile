@@ -1,5 +1,5 @@
 #
-# Syscall: sys_open
+# Syscall: sys_close
 #
 # (C) 2020.03.10 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -35,7 +35,7 @@ SRC += main.c
 
 # Target
 ifeq ($(TARGETA), )
-TARGET=sys_open
+TARGET=sys_close
 else
 TARGET=$(TARGETA)
 endif
