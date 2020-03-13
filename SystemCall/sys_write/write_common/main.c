@@ -9,13 +9,16 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <getopt.h>
 /* open/write */
 #include <fcntl.h>
+/* __NR_write */
+#include <asm/unistd.h>
+/* syscall() */
+#include <unistd.h>
 
 /* Architecture flags */
 #ifndef O_TMPFILE
@@ -39,7 +42,7 @@ static void usage(const char *program_name)
 {
 	printf("BiscuitOS: sys_write helper\n");
 	printf("Usage:\n");
-	printf("      %s <-p pathname> <-f flags> [-m mode] <-s strings>\n", 
+	printf("      %s <-p pathname> <-f flags> <-m mode> <-s strings>\n", 
 							program_name);
 	printf("\n");
 	printf("\t-p\t--path    The full path for opening.\n");
@@ -132,7 +135,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (hflags || !path || !flags || !strings) {
+	if (hflags || !path || !flags || !strings || !mode) {
 		usage(argv[0]);
 		return 0;
 	}
@@ -210,24 +213,46 @@ int main(int argc, char *argv[])
 			omode |= S_IRWXO;
 	}
 
-	/* open file */
+	/*
+	 * sys_open() 
+	 *
+	 *    SYSCALL_DEFINE3(open, 
+	 *                    const char __user *, filename, 
+	 *                    int, flags,
+	 *                    umode_t, mode)
+	 */
 	if (mode) {
-		fd = open(path, oflags, omode);
+		fd = syscall(__NR_open, path, oflags, omode);
 	} else {
-		fd = open(path, oflags);
+		fd = syscall(__NR_open, path, oflags);
 	}
 	if (fd < 0) {
 		printf("Open: Can't open %s err %d\n", path, fd);
 		return -1;
 	}
 
-	/* Write */
-	len = write(fd, strings, strlen(strings));
+	/*
+	 * sys_write()
+	 *
+	 *    SYSCALL_DEFINE3(write,
+	 *                    unsigned int, fd,
+	 *                    const char __user *, buf,
+	 *                    size_t, count)
+	 */
+	len = syscall(__NR_write, fd, strings, strlen(strings));
 	if (len < 0) {
 		printf("Failed: Can't write %s to %s\n", strings, path);
 		return -1;
 	}
 	printf("Writings %d string %s to %s\n", len, strings, path);
 
+	/*
+	 * sys_close()
+	 *
+	 *    SYSCALL_DEFINE1(close,
+	 *                    unsigned int, fd)
+	 *
+	 */
+	syscall(__NR_close, (unsigned int)fd);
 	return 0;
 }
