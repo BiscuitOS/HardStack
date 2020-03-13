@@ -35,7 +35,7 @@ SRC += main.c
 
 # Target
 ifeq ($(TARGETA), )
-TARGET=open_demo
+TARGET=sys_mkdir
 else
 TARGET=$(TARGETA)
 endif
