@@ -9,13 +9,16 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <getopt.h>
 /* open */
 #include <fcntl.h>
+/* __NR_open */
+#include <asm/unistd.h>
+/* syscall() */
+#include <unistd.h>
 
 /* Architecture flags */
 #ifndef O_TMPFILE
@@ -202,16 +205,31 @@ int main(int argc, char *argv[])
 			omode |= S_IRWXO;
 	}
 
-	/* open file */
+	/*
+	 * sys_open() 
+	 *
+	 *    SYSCALL_DEFINE3(open, 
+	 *                    const char __user *, filename, 
+	 *                    int, flags,
+	 *                    umode_t, mode)
+	 */
 	if (mode) {
-		fd = open(path, oflags, omode);
+		fd = syscall(__NR_open, path, oflags, omode);
 	} else {
-		fd = open(path, oflags);
+		fd = syscall(__NR_open, path, oflags);
 	}
 	if (fd < 0) {
 		printf("Open: Can't open %s err %d\n", path, fd);
 		return -1;
 	}
 
+	/*
+	 * sys_close()
+	 *
+	 *    SYSCALL_DEFINE1(close,
+	 *                    unsigned int, fd)
+	 *
+	 */
+	syscall(__NR_close, (unsigned int)fd);
 	return 0;
 }
