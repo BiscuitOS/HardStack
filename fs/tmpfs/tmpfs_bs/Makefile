@@ -64,6 +64,8 @@ all: $(OBJS)
 install:
 	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
 		INSTALL_MOD_PATH=$(INSTALLDIR) modules_install
+	@chmod 755 RunBiscuitOS_ftrace.sh
+	@cp -rfa RunBiscuitOS_ftrace.sh $(BSROOT)/rootfs/rootfs/usr/bin
 
 clean:
 	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
