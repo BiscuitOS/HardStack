@@ -7,12 +7,21 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 
-# Install PATH
-ifeq ($(INSPATH), )
-INSTALL_PATH=./
+## Target
+ifeq ("$(origin TARGETA)", "command line")
+TARGET			:= $(TARGETA)
 else
-INSTALL_PATH=$(INSPATH)
+TARGET			:= BiscuitOS_app
 endif
+
+## Source Code
+SRC			:= $(wildcard $(PWD)/src/*.c)
+SRC			+= main.c
+
+## CFlags
+LCFLAGS			+= -DCONFIG_BISCUITOS_APP
+## Header
+LCFLAGS			+= -I./ -I$(PWD)/include
 
 # CROSS_COMPILE form argument
 
@@ -27,18 +36,11 @@ STRIP		= $(CROSS_COMPILE)strip
 OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 
-# FLAGS
-LCFLAGS += -I./ -I$(PWD)/include
-
-# SRC
-SRC := $(wildcard $(PWD)/src/*.c)
-SRC += core.c
-
-# Target
-ifeq ($(TARGETA), )
-TARGET=demo
+## Install PATH
+ifeq ("$(origin INSPATH)", "command line")
+INSTALL_PATH		:= $(INSPATH)
 else
-TARGET=$(TARGETA)
+INSTALL_PATH		:= ./
 endif
 
 all:
@@ -48,5 +50,4 @@ install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
 
 clean:
-	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
-               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd $(TARGET)
+	@rm -rf $(TARGET) *.o
