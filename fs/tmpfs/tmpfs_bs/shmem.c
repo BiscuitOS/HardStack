@@ -14,6 +14,7 @@
 #include <linux/shmem_fs.h>
 #include <linux/exportfs.h>
 #include <linux/ctype.h>
+#include <linux/module.h>
 
 #include "internal.h"
 
@@ -329,4 +330,13 @@ out:
 	shmem_destroy_inodecache_bs();
 	return error;
 }
-fs_initcall(shmem_init_bs);
+static void __exit shmem_exit_bs(void)
+{
+}
+
+module_init(shmem_init_bs);
+module_exit(shmem_exit_bs);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
+MODULE_DESCRIPTION("tmpfs_bs filesystem");
