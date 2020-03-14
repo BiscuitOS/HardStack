@@ -1,7 +1,7 @@
 #
-# Device Driver
+# Module Common
 #
-# (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+# (C) 2020.03.14 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -12,9 +12,26 @@ ifneq ($(KERNELRELEASE),)
 obj-m	:= core.o
 
 else
+#### 
+## Parse argument
+## Default support ARM32
+ifeq ("$(origin BSROOT)", "command line")
+BSROOT=$(BSROOT)
+else
 BSROOT=/xspace/OpenSource/BiscuitOS/BiscuitOS/output/linux-5.0-arm32
-CROSS_TOOLS=arm-linux-gnueabi
+endif
+
+ifeq ("$(origin ARCH)", "command line")
+ARCH=$(ARCH)
+else
 ARCH=arm
+endif
+
+ifeq ("$(origin CROSS_TOOLS)", "command line")
+CROSS_TOOLS=$(CROSS_TOOLS)
+else
+CROSS_TOOLS=arm-linux-gnueabi
+endif
 
 # Don't Edit
 KERNELDIR=$(BSROOT)/linux/linux

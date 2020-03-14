@@ -1,2 +1,2 @@
 config BISCUITOS_DEMO
-	tristate "Device Driver"
+	tristate "Common Device Driver"

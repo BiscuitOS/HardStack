@@ -1,5 +1,5 @@
 /*
- * Device Driver
+ * Module Common
  *
  * (C) 2019.10.01 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -15,6 +15,8 @@
 /* Module initialize entry */
 static int __init Demo_init(void)
 {
+	printk("Hello BiscuitOS\n");
+
 	return 0;
 }
 
@@ -28,4 +30,4 @@ module_exit(Demo_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("Device driver");
+MODULE_DESCRIPTION("Common Device driver");
