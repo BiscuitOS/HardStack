@@ -43,6 +43,13 @@ INCLUDEDIR=$(KERNELDIR)/include
 ARCHINCLUDEDIR=$(KERNELDIR)/arch/$(ARCH)/include
 INSTALLDIR=$(BSROOT)/rootfs/rootfs/
 
+## X86/X64 Architecture
+ifeq ($(ARCH), i386)
+CROSS_COMPILE	:=
+else ifeq ($(ARCH), x64)
+CROSS_COMPILE	:=
+endif
+
 # Compile
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
