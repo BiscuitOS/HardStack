@@ -46,7 +46,7 @@ INSTALLDIR=$(BSROOT)/rootfs/rootfs/
 ## X86/X64 Architecture
 ifeq ($(ARCH), i386)
 CROSS_COMPILE	:=
-else ifeq ($(ARCH), x64)
+else ifeq ($(ARCH), x86_64)
 CROSS_COMPILE	:=
 endif
 

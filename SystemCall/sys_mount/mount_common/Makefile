@@ -26,7 +26,7 @@ LCFLAGS			+= -I./
 ifeq ($(ARCH), i386)
 CROSS_COMPILE	:=
 LCFLAGS		+= -m32
-else ifeq ($(ARCH), x64)
+else ifeq ($(ARCH), x86_64)
 CROSS_COMPILE	:=
 endif
 
