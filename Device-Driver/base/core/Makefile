@@ -47,7 +47,7 @@ else
 CROSS_TOOLS=arm-linux-gnueabi
 endif
 
-# Don't Edit
+## Don't Edit
 KERNELDIR=$(BSROOT)/linux/linux
 CROSS_COMPILE_PATH=$(BSROOT)/$(CROSS_TOOLS)/$(CROSS_TOOLS)/bin
 CROSS_COMPILE=$(CROSS_COMPILE_PATH)/$(CROSS_TOOLS)-
@@ -55,7 +55,14 @@ INCLUDEDIR=$(KERNELDIR)/include
 ARCHINCLUDEDIR=$(KERNELDIR)/arch/$(ARCH)/include
 INSTALLDIR=$(BSROOT)/rootfs/rootfs/
 
-# Compile
+## X86/X64 Architecture
+ifeq ($(ARCH), i386)
+CROSS_COMPILE	:=
+else ifeq ($(ARCH), x64)
+CROSS_COMPILE	:=
+endif
+
+## Compile
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
 CC		= $(CROSS_COMPILE)gcc
