@@ -23,24 +23,27 @@ LCFLAGS			+= -DCONFIG_BISCUITOS_APP
 ## Header
 LCFLAGS			+= -I./ -I$(PWD)/include
 
+DOT			:= -
 ## X86/X64 Architecture
 ifeq ($(ARCH), i386)
 CROSS_COMPILE	=
 LCFLAGS		+= -m32
+DOT		:=
 else ifeq ($(ARCH), x86_64)
 CROSS_COMPILE   :=
+DOT		:=
 endif
 
 # Compile
-B_AS		= $(CROSS_COMPILE)as
-B_LD		= $(CROSS_COMPILE)ld
-B_CC		= $(CROSS_COMPILE)gcc
+B_AS		= $(CROSS_COMPILE)$(DOT)as
+B_LD		= $(CROSS_COMPILE)$(DOT)ld
+B_CC		= $(CROSS_COMPILE)$(DOT)gcc
 B_CPP		= $(CC) -E
-B_AR		= $(CROSS_COMPILE)ar
-B_NM		= $(CROSS_COMPILE)nm
-B_STRIP		= $(CROSS_COMPILE)strip
-B_OBJCOPY	= $(CROSS_COMPILE)objcopy
-B_OBJDUMP	= $(CROSS_COMPILE)objdump
+B_AR		= $(CROSS_COMPILE)$(DOT)ar
+B_NM		= $(CROSS_COMPILE)$(DOT)nm
+B_STRIP		= $(CROSS_COMPILE)$(DOT)strip
+B_OBJCOPY	= $(CROSS_COMPILE)$(DOT)objcopy
+B_OBJDUMP	= $(CROSS_COMPILE)$(DOT)objdump
 
 ## Install PATH
 ifeq ("$(origin INSPATH)", "command line")
