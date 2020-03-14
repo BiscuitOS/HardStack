@@ -53,6 +53,8 @@ show_trace()
 
 mount_fs()
 {
+	insmod /lib/modules/5.0.0/extra/tmpfs.ko
+	lsmod
 	[ -d /tmpfs_bs ] && rm -rf /tmpfs_bs
 	mkdir -p /tmpfs_bs
 	mount_common-0.0.1 -n BiscuitOS_tmpfs -d /tmpfs_bs -t tmpfs_bs -f MS_SILENT -o size=8M

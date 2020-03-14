@@ -22,7 +22,7 @@ static struct kmem_cache *shmem_inode_cachep_bs;
 
 static void shmem_init_inode_bs(void *foo)
 {
-	struct shmem_inode_info *info = foo;
+	struct shmem_inode_info *info = (struct shmem_inode_info *)foo;
 
 	inode_init_once(&info->vfs_inode);
 }
@@ -32,8 +32,11 @@ static void shmem_init_inodecache_bs(void)
 	shmem_inode_cachep_bs = kmem_cache_create("shmem_inode_cache_bs",
 					sizeof(struct shmem_inode_info),
 					0,
-					SLAB_PANIC | SLAB_ACCOUNT,
+					(SLAB_RECLAIM_ACCOUNT |
+					SLAB_MEM_SPREAD | SLAB_ACCOUNT),
 					shmem_init_inode_bs);
+	if (shmem_inode_cachep_bs == NULL)
+		panic("kmem_cache_create: no free memory");
 }
 
 static void shmem_destroy_inodecache_bs(void)
@@ -309,6 +312,7 @@ static struct file_system_type shmem_fs_type_bs = {
 	.kill_sb	= kill_litter_super,
 	.fs_flags	= FS_USERNS_MOUNT,
 };
+MODULE_ALIAS_FS("tmpfs_bs");
 
 static int __init shmem_init_bs(void)
 {
@@ -325,6 +329,7 @@ static int __init shmem_init_bs(void)
 		pr_err("Could not register tmpfs\n");
 		goto out;
 	}
+	return 0;
 
 out:
 	shmem_destroy_inodecache_bs();
@@ -332,6 +337,7 @@ out:
 }
 static void __exit shmem_exit_bs(void)
 {
+	shmem_destroy_inodecache_bs();
 }
 
 module_init(shmem_init_bs);
