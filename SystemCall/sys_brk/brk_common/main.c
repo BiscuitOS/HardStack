@@ -18,6 +18,11 @@
 /* syscall() */
 #include <unistd.h>
 
+/* Architecture defined */
+#ifndef __NR_brk
+#define __NR_brk	45
+#endif
+
 static void usage(const char *program_name)
 {
 	printf("BiscuitOS: sys_brk helper\n");

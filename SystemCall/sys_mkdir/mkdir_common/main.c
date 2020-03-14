@@ -18,6 +18,11 @@
 /* syscall() */
 #include <unistd.h>
 
+/* Architecture defined */
+#ifndef __NR_mkdir
+#define __NR_mkdir	39
+#endif
+
 static void usage(const char *program_name)
 {
 	printf("BiscuitOS: sys_mkdir helper\n");

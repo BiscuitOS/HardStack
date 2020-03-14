@@ -20,6 +20,11 @@
 /* userfaultfd flags */
 #include <fcntl.h>
 
+/* Architecture defined */
+#ifndef __NR_userfaultfd
+#define __NR_userfaultfd	338
+#endif
+
 sys_userfaultfd;
 SYSCALL_DEFINE1(userfaultfd, int, flags)
 static void usage(const char *program_name)

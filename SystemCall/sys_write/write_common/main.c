@@ -20,6 +20,17 @@
 /* syscall() */
 #include <unistd.h>
 
+/* Architecture defined */
+#ifndef __NR_open
+#define __NR_open	5
+#endif
+#ifndef __NR_close
+#define __NR_close	6
+#endif
+#ifndef __NR_write
+#define __NR_write	4
+#endif
+
 /* Architecture flags */
 #ifndef O_TMPFILE
 #define O_TMPFILE		020000000

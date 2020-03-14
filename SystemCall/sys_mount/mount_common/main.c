@@ -20,6 +20,11 @@
 /* syscall() */
 #include <unistd.h>
 
+/* Architecture defined */
+#ifndef __NR_open
+#define __NR_mount	21
+#endif
+
 static void usage(const char *program_name)
 {
 	printf("BiscuitOS: sys_mount helper\n");
