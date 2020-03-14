@@ -1,2 +1,2 @@
-config BISCUITOS_DEMO
-	tristate "Common Device Driver"
+config BISCUITOS_MOD_COMMON
+	tristate "Common Device Module"

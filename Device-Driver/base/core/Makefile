@@ -6,12 +6,27 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
+
 ifneq ($(KERNELRELEASE),)
 
-# SRC
-obj-m	:= core.o
+## Target
+ifeq ("$(origin MODULE_NAME)", "command line")
+MODULE_NAME		:= $(MODULE_NAME)
+else
+MODULE_NAME		:= BiscuitOS_mod
+endif
+obj-m			:= $(MODULE_NAME).o
+
+## Source Code
+$(MODULE_NAME)-m	+= main.o
+
+## CFlags
+ccflags-y		+= -DCONFIG_BISCUITOS_MODULE 
+## Header
+ccflags-y		+= -I./
 
 else
+
 #### 
 ## Parse argument
 ## Default support ARM32
@@ -54,9 +69,6 @@ OBJDUMP		= $(CROSS_COMPILE)objdump
 
 # FLAGS
 CFLAGS += -I$(INCLUDEDIR) -I$(ARCHINCLUDEDIR)
-
-# Target
-obj-m	+= core.o
 
 all: $(OBJS)
 	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
