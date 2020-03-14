@@ -3,11 +3,11 @@ BiscuitOS tmpfs Filesystem
 
 > - [1. Common](#C)
 >
-> - [2. ftrace](#A)
+> - [2. tools](#A)
 >
 > - [3. tmpfs_bs usage](#B)
 >
-> - [4. Trace tmpfs_bs](#D)
+> - [4. tmpfs_bs develope](#D)
 
 -------------------------------------------
 
@@ -21,17 +21,26 @@ do as follow segment.
 
 ------------------------------------
 
-## <span id="A">2. ftrace</span>
+## <span id="A">2. tools</span>
+
+BiscuitOS apply some userful tools help developer to practice "tmpfs" 
+which contain `frace` and `syscall-tools`.
 
 `ftrace` is used to tracing special function invoke and called routine.
-Here, we use some function of `ftrace` to tracing tmpfs_bs function.
-Buddy, you can do as follow:
+and it help people quickly to locate special function and task. The 
+`syscall-tools` is a set for calling special system call, which one
+can invoke special function on `tmpfs_bs`, so it is userful to trigger
+some entry on `tmpfs_bs`.
+
+Before we practice `tmpfs_bs`, we should install tools on BiscuitOS,
+people can follow these step:
 
 #### 2.1 init
 
 Before use ftrace, we need open some Kconfig Config macro, like:
 
 ```
+cd BiscuitOS/output/linux-5.0-arm32/linux/linux
 make menuconfig ARCH=arm
 
 Kernel hacking  --->
@@ -40,7 +49,16 @@ Kernel hacking  --->
       [*]   enable/disable function tracing dynamically (NEW)
 ```
 
-Save and rebuild kernel.
+Save and rebuild kernel. Then, we should open some Kconfig Config
+macro on BiscuitOS project, such as (if use linux-5.0-arm32_defconfig):
+
+```
+cd BiscuitOS/
+make linux-5.0-arm32_defconfig
+make menuconfig
+
+
+```
 
 #### 2.2 install
 
