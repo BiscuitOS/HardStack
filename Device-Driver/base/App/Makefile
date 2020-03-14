@@ -23,7 +23,12 @@ LCFLAGS			+= -DCONFIG_BISCUITOS_APP
 ## Header
 LCFLAGS			+= -I./ -I$(PWD)/include
 
-# CROSS_COMPILE form argument
+## X86/X64 Architecture
+ifeq ($(ARCH), i386)
+CROSS_COMPILE   :=
+else ifeq ($(ARCH), x64)
+CROSS_COMPILE   :=
+endif
 
 # Compile
 AS		= $(CROSS_COMPILE)as
