@@ -8,17 +8,44 @@
 # published by the Free Software Foundation.
 ifneq ($(KERNELRELEASE),)
 
-# SRC
-obj-m		:= demo.o
-srcs		:= $(wildcard $(PWD)/src/*.c)
-demo-y		:= $(patsubst $(PWD)/%.c,%.o, $(srcs))
-demo-y		+= core.o
-ccflags-y	:= -I$(PWD)/include
+## Target
+ifeq ("$(origin MODULE_NAME)", "command line")
+MODULE_NAME		:= $(MODULE_NAME)
+else
+MODULE_NAME		:= BiscuitOS_mod
+endif
+obj-m			:= $(MODULE_NAME).o
+
+## Source Code
+$(MODULE_NAME)-m	:= main.o
+$(MODULE_NAME)-m	+= $(patsubst $(PWD)/%.c,%.o, $(wildcard $(PWD)/src/*.c)) 
+
+## CFlags
+ccflags-y		+= -DCONFIG_BISCUITOS_MODULE
+## Header
+ccflags-y		:= -I$(PWD)/include
 
 else
+
+## Parse argument
+## Default support ARM32
+ifeq ("$(origin BSROOT)", "command line")
+BSROOT=$(BSROOT)
+else
 BSROOT=/xspace/OpenSource/BiscuitOS/BiscuitOS/output/linux-5.0-arm32
-CROSS_TOOLS=arm-linux-gnueabi
+endif
+
+ifeq ("$(origin ARCH)", "command line")
+ARCH=$(ARCH)
+else
 ARCH=arm
+endif
+
+ifeq ("$(origin CROSS_TOOLS)", "command line")
+CROSS_TOOLS=$(CROSS_TOOLS)
+else
+CROSS_TOOLS=arm-linux-gnueabi
+endif
 
 # Don't Edit
 KERNELDIR=$(BSROOT)/linux/linux

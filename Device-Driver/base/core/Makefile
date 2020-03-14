@@ -23,11 +23,10 @@ $(MODULE_NAME)-m	+= main.o
 ## CFlags
 ccflags-y		+= -DCONFIG_BISCUITOS_MODULE 
 ## Header
-ccflags-y		+= -I./
+ccflags-y		+= -I$(PWD)
 
 else
 
-#### 
 ## Parse argument
 ## Default support ARM32
 ifeq ("$(origin BSROOT)", "command line")
