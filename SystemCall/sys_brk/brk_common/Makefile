@@ -22,18 +22,24 @@ LCFLAGS			+= -DCONFIG_BISCUITOS_APP
 ## Header
 LCFLAGS			+= -I./
 
-# CROSS_COMPILE form argument
+## X86/X64 Architecture
+ifeq ($(ARCH), i386)
+CROSS_COMPILE	:=
+LCFLAGS		+= -m32
+else ifeq ($(ARCH), x64)
+CROSS_COMPILE	:=
+endif
 
 # Compile
-AS		= $(CROSS_COMPILE)as
-LD		= $(CROSS_COMPILE)ld
-CC		= $(CROSS_COMPILE)gcc
-CPP		= $(CC) -E
-AR		= $(CROSS_COMPILE)ar
-NM		= $(CROSS_COMPILE)nm
-STRIP		= $(CROSS_COMPILE)strip
-OBJCOPY		= $(CROSS_COMPILE)objcopy
-OBJDUMP		= $(CROSS_COMPILE)objdump
+B_AS		= $(CROSS_COMPILE)as
+B_LD		= $(CROSS_COMPILE)ld
+B_CC		= $(CROSS_COMPILE)gcc
+B_CPP		= $(CC) -E
+B_AR		= $(CROSS_COMPILE)ar
+B_NM		= $(CROSS_COMPILE)nm
+B_STRIP		= $(CROSS_COMPILE)strip
+B_OBJCOPY	= $(CROSS_COMPILE)objcopy
+B_OBJDUMP	= $(CROSS_COMPILE)objdump
 
 ## Install PATH
 ifeq ("$(origin INSPATH)", "command line")
@@ -43,7 +49,7 @@ INSTALL_PATH		:= ./
 endif
 
 all:
-	$(CC) $(LCFLAGS) -o $(TARGET) $(SRC)
+	$(B_CC) $(LCFLAGS) -o $(TARGET) $(SRC)
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
