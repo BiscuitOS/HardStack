@@ -169,6 +169,6 @@ int main(int argc, char *argv[])
 	 *                    umode_t, mode,
 	 *                    unsigned, dev)
 	 */
-	syscall(__NR_mknod, omode | node_type, makedev(major, minor));
+	syscall(__NR_mknod, devname, omode | node_type, makedev(major, minor));
 	return 0;
 }
