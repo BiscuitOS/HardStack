@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	 *                    int, mode)
 	 */
 	permission = syscall(__NR_access, path, omode);
-	printf("Permission: %s\n", permission ? "true" : "false");
+	printf("Permission: %s\n", !!permission ? "false" : "ture");
 
 	return 0;
 }
