@@ -62,7 +62,7 @@ int main()
 	printf("CMA region: %s\n", (char *)base);
 	printf("Phys: %#lx - %#lx\n", region.phys, 
 					region.phys + region.length);
-	printf("Virt: %#lx - %#lx\n", base, 
+	printf("Virt: %#lx - %#lx\n", (unsigned long)base, 
 					(unsigned long)base + region.length);
 
 	/* Unmmap */
