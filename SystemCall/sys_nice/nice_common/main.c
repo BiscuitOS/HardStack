@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 	int nice = 0;
 	int c, hflags = 0;
 	opterr = 0;
-	int current_nice = 0;
+	int ret = 0;
 
 	/* options */
 	const char *short_opts = "hn:";
@@ -73,11 +73,11 @@ int main(int argc, char *argv[])
 	 *
 	 *    SYSCALL_DEFINE1(nice, int, increment)
 	 */
-	current_nice = syscall(__NR_nice, nice);
-	if (current_nice == -1)
+	ret = syscall(__NR_nice, nice);
+	if (ret)
 		printf("Can't set priority as %d\n", nice);
 	else
-		printf("Succeed set priority as %d\n", current_nice);
+		printf("Succeed set priority as %d\n", nice);
 
 	return 0;
 }
