@@ -106,7 +106,7 @@ static void usage(const char *program_name)
 	printf("\t\t\tS_IRWXO\n");
 	printf("\ne.g:\n");
 	printf("%s -p BiscuitOS_file -f O_RDWR,O_CREAT "
-			"-m S_IRUSR,S_IRGRP -m S_IRUSR\n\n", program_name);
+			"-m S_IRUSR,S_IRGRP -u S_IRUSR\n\n", program_name);
 }
 
 int main(int argc, char *argv[])
