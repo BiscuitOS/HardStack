@@ -1,5 +1,5 @@
 #
-# syscall: sys_open
+# syscall: sys_fcntl
 #
 # (C) 2020.02.02 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -11,7 +11,7 @@
 ifeq ("$(origin TARGETA)", "command line")
 TARGET			:= $(TARGETA)
 else
-TARGET			:= sys_open
+TARGET			:= sys_fcntl
 endif
 
 ## Source Code

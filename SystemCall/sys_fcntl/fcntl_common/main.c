@@ -1,5 +1,5 @@
 /*
- * sys_open in C
+ * sys_fcntl in C
  *
  * (C) 2020.03.11 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -27,6 +27,26 @@
 #ifndef __NR_close
 #define __NR_close	6
 #endif
+#ifndef __NR_fcntl
+#define __NR_fcntl	55
+#endif
+
+/* Architecture fcntl flags */
+#ifndef F_SETSIG
+#define F_SETSIG	10
+#endif
+#ifndef F_GETSIG
+#define F_GETSIG	11
+#endif
+#ifndef F_SETOWN_EX
+#define F_SETOWN_EX	15
+#endif
+#ifndef F_GETOWN_EX
+#define F_GETOWN_EX	16
+#endif
+#ifndef F_GETOWNER_UIDS
+#define F_GETOWNER_UIDS	17
+#endif
 
 /* Architecture flags */
 #ifndef O_TMPFILE
@@ -45,12 +65,12 @@
 #define O_LARGEFILE		00100000
 #endif
 
-
 static void usage(const char *program_name)
 {
-	printf("BiscuitOS: sys_open helper\n");
+	printf("BiscuitOS: sys_fcntl helper\n");
 	printf("Usage:\n");
-	printf("      %s <-p pathname> <-f flags> <-m mode>\n", program_name);
+	printf("      %s <-p pathname> <-f flags> <-m mode> "
+			"<-c cmd> <-a arg>\n", program_name);
 	printf("\n");
 	printf("\t-p\t--path\tThe full path for opening.\n");
 	printf("\t-f\t--flags\tThe flags for opening.\n");
@@ -88,9 +108,29 @@ static void usage(const char *program_name)
 	printf("\t\t\tS_IWOTH\n");
 	printf("\t\t\tS_IXOTH\n");
 	printf("\t\t\tS_IRWXO\n");
+	printf("\t-c\t--cmd\tThe command for fcntl.\n");
+	printf("\t\t\tF_DUPFD        dup\n");
+	printf("\t\t\tF_GETFD        get close_on_exec\n");
+	printf("\t\t\tF_SETFD        set/clear close_on_exec\n");
+	printf("\t\t\tF_GETFL        get file->f_flags\n");
+	printf("\t\t\tF_SETFL        set file->f_flags\n");
+	printf("\t\t\tF_GETLK        get special lock information\n");
+	printf("\t\t\tF_SETLK        set special lock\n");
+	printf("\t\t\tF_SETLKW       set special lock\n");
+	printf("\t\t\tF_SETOWN\n");
+	printf("\t\t\tF_GETOWN\n");
+	printf("\t\t\tF_SETSIG\n");
+	printf("\t\t\tF_GETSIG\n");
+	printf("\t\t\tF_SETOWN_EX\n");
+	printf("\t\t\tF_GETOWN_EX\n");
+	printf("\t\t\tF_GETOWNER_UIDS\n");
+	printf("\t\t\tF_OFD_GETLK\n");
+	printf("\t\t\tF_OFD_SETLK\n");
+	printf("\t\t\tF_OFD_SETLKW\n");
+	printf("\t-a\t--arg\tThe argument for command.\n");
 	printf("\ne.g:\n");
 	printf("%s -p BiscuitOS_file -f O_RDWR,O_CREAT "
-			"-m S_IRUSR,S_IRGRP\n\n", program_name);
+			"-m S_IRUSR,S_IRGRP -c F_GETFL -a 0\n\n", program_name);
 }
 
 int main(int argc, char *argv[])
@@ -98,20 +138,25 @@ int main(int argc, char *argv[])
 	char *path = NULL;
 	char *mode = NULL;
 	char *flags = NULL;
+	char *cmd = NULL;
 	mode_t omode = 0;
 	int mode_value;
 	int c, hflags = 0;
 	int oflags = 0;
 	int fd;
+	unsigned int ocmd = 0;
+	unsigned long args = 0;
 	opterr = 0;
 
 	/* options */
-	const char *short_opts = "hp:f:m:";
+	const char *short_opts = "hp:f:m:c:a:";
 	const struct option long_opts[] = {
 		{ "help", no_argument, NULL, 'h'},
 		{ "path", required_argument, NULL, 'p'},
 		{ "flags", required_argument, NULL, 'f'},
 		{ "mode", required_argument, NULL, 'm'},
+		{ "command", required_argument, NULL, 'c'},
+		{ "argument", required_argument, NULL, 'a'},
 		{ 0, 0, 0, 0 }
 	};
 
@@ -130,12 +175,18 @@ int main(int argc, char *argv[])
 		case 'm': /* mode */
 			mode = optarg;
 			break;
+		case 'c': /* command */
+			cmd = optarg;
+			break;
+		case 'a': /* mode */
+			sscanf(optarg, "%ld", &args);
+			break;
 		default:
 			abort();
 		}
 	}
 
-	if (hflags || !path || !flags || !mode) {
+	if (hflags || !path || !flags || !mode || !cmd) {
 		usage(argv[0]);
 		return 0;
 	}
@@ -213,6 +264,38 @@ int main(int argc, char *argv[])
 			omode |= S_IRWXO;
 	}
 
+	/* parse command argument */
+	if (strstr(cmd, "F_DUPFD"))
+		ocmd = F_DUPFD;
+	else if (strstr(cmd, "F_GETFD"))
+		ocmd = F_GETFD;
+	else if (strstr(cmd, "F_SETFD"))
+		ocmd = F_SETFD;
+	else if (strstr(cmd, "F_GETFL"))
+		ocmd = F_GETFL;
+	else if (strstr(cmd, "F_SETFL"))
+		ocmd = F_SETFL;
+	else if (strstr(cmd, "F_GETLK"))
+		ocmd = F_GETLK;
+	else if (strstr(cmd, "F_SETLK"))
+		ocmd = F_SETLK;
+	else if (strstr(cmd, "F_SETLKW"))
+		ocmd = F_SETLKW;
+	else if (strstr(cmd, "F_SETOWN"))
+		ocmd = F_SETOWN;
+	else if (strstr(cmd, "F_GETOWN"))
+		ocmd = F_GETOWN;
+	else if (strstr(cmd, "F_SETSIG"))
+		ocmd = F_SETSIG;
+	else if (strstr(cmd, "F_GETSIG"))
+		ocmd = F_GETSIG;
+	else if (strstr(cmd, "F_SETOWN_EX"))
+		ocmd = F_SETOWN_EX;
+	else if (strstr(cmd, "F_GETOWN_EX"))
+		ocmd = F_GETOWN_EX;
+	else if (strstr(cmd, "F_GETOWNER_UIDS"))
+		ocmd = F_GETOWNER_UIDS;
+
 	/*
 	 * sys_open() 
 	 *
@@ -230,6 +313,16 @@ int main(int argc, char *argv[])
 		printf("Open: Can't open %s err %d\n", path, fd);
 		return -1;
 	}
+
+	/*
+	 * sys_fcntl
+	 *
+	 *    SYSCALL_DEFINE3(fcntl,
+	 *                    unsigned int, fd,
+	 *                    unsigned int, cmd,
+	 *                    unsigned long, arg)
+	 */
+	syscall(__NR_fcntl, fd, ocmd, args);
 
 	/*
 	 * sys_close()
