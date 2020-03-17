@@ -1,5 +1,5 @@
 /*
- * sys_ioctl in C
+ * sys_open in C
  *
  * (C) 2020.03.11 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -15,7 +15,7 @@
 #include <getopt.h>
 /* open */
 #include <fcntl.h>
-/* __NR_open/__NR_ioctl */
+/* __NR_open */
 #include <asm/unistd.h>
 /* syscall() */
 #include <unistd.h>
@@ -26,9 +26,6 @@
 #endif
 #ifndef __NR_close
 #define __NR_close	6
-#endif
-#ifndef __NR_ioctl
-#define __NR_ioctl	54
 #endif
 
 /* Architecture flags */
@@ -48,12 +45,12 @@
 #define O_LARGEFILE		00100000
 #endif
 
+
 static void usage(const char *program_name)
 {
-	printf("BiscuitOS: sys_ioctl helper\n");
+	printf("BiscuitOS: sys_open helper\n");
 	printf("Usage:\n");
-	printf("      %s <-p pathname> <-f flags> <-m mode> "
-			 "<-c cmd> <-a arg>\n", program_name);
+	printf("      %s <-p pathname> <-f flags> <-m mode>\n", program_name);
 	printf("\n");
 	printf("\t-p\t--path\tThe full path for opening.\n");
 	printf("\t-f\t--flags\tThe flags for opening.\n");
@@ -91,11 +88,9 @@ static void usage(const char *program_name)
 	printf("\t\t\tS_IWOTH\n");
 	printf("\t\t\tS_IXOTH\n");
 	printf("\t\t\tS_IRWXO\n");
-	printf("\t-c\t--cmd\tThe command for ioctl.\n");
-	printf("\t-a\t--arg\tThe argument for ioctl.\n");
 	printf("\ne.g:\n");
 	printf("%s -p BiscuitOS_file -f O_RDWR,O_CREAT "
-			"-m S_IRUSR,S_IRGRP -c 0x01 -a 0x02\n\n", program_name);
+			"-m S_IRUSR,S_IRGRP\n\n", program_name);
 }
 
 int main(int argc, char *argv[])
@@ -103,8 +98,6 @@ int main(int argc, char *argv[])
 	char *path = NULL;
 	char *mode = NULL;
 	char *flags = NULL;
-	unsigned int cmd = 0;
-	unsigned long args = 0;
 	mode_t omode = 0;
 	int mode_value;
 	int c, hflags = 0;
@@ -113,14 +106,12 @@ int main(int argc, char *argv[])
 	opterr = 0;
 
 	/* options */
-	const char *short_opts = "hp:f:m:c:a:";
+	const char *short_opts = "hp:f:m:";
 	const struct option long_opts[] = {
 		{ "help", no_argument, NULL, 'h'},
 		{ "path", required_argument, NULL, 'p'},
 		{ "flags", required_argument, NULL, 'f'},
 		{ "mode", required_argument, NULL, 'm'},
-		{ "cmd", required_argument, NULL, 'c'},
-		{ "arg", required_argument, NULL, 'a'},
 		{ 0, 0, 0, 0 }
 	};
 
@@ -139,18 +130,12 @@ int main(int argc, char *argv[])
 		case 'm': /* mode */
 			mode = optarg;
 			break;
-		case 'c': /* command */
-			sscanf(optarg, "%x", &cmd);
-			break;
-		case 'a': /* argument */
-			sscanf(optarg, "%lx", &args);
-			break;
 		default:
 			abort();
 		}
 	}
 
-	if (hflags || !path || !flags || !mode || !cmd || !args) {
+	if (hflags || !path || !flags || !mode) {
 		usage(argv[0]);
 		return 0;
 	}
@@ -245,16 +230,6 @@ int main(int argc, char *argv[])
 		printf("Open: Can't open %s err %d\n", path, fd);
 		return -1;
 	}
-
-	/*
-	 * sys_ioctl
-	 *
-	 *    SYSCALL_DEFINE3(ioctl,
-	 *                    unsigned int, fd,
-	 *                    unsigned int, cmd,
-	 *                    unsigned long, arg) 
-	 */
-	syscall(__NR_ioctl, fd, cmd, args);
 
 	/*
 	 * sys_close()
