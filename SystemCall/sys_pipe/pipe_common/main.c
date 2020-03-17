@@ -40,7 +40,7 @@ static void usage(const char *program_name)
 	printf("\n");
 	printf("\t-s\t--send\tSend string to another process.\n");
 	printf("\ne.g:\n");
-	printf("%s -s Hello_World\n\n", program_name);
+	printf("%s -s Hello_BiscuitOS\n\n", program_name);
 }
 
 int main(int argc, char *argv[])
