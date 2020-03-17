@@ -17,13 +17,13 @@
 #include <asm/unistd.h>
 /* syscall() */
 #include <unistd.h>
-#include <bits/time.h>
 #include <sys/times.h>
 
 /* Architecture defined */
 #ifndef __NR_times
 #define __NR_times	5
 #endif
+#define CLOCKS_PER_SEC	(100)
 
 static void usage(const char *program_name)
 {
