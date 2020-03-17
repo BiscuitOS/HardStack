@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 	int c, hflags = 0;
 	int major = 0, minor = 0;
 	struct ustat ubuf;
+	int ret;
 	opterr = 0;
 
 	/* options */
@@ -84,8 +85,11 @@ int main(int argc, char *argv[])
 	 *                    unsigned, dev,
 	 *                    struct ustat __user *, ubuf)
 	 */
-	syscall(__NR_ustat, makedev(minor, major), &ubuf);
-	printf("Filesystem: %s\n", ubuf.f_fname);
+	ret = syscall(__NR_ustat, makedev(minor, major), &ubuf);
+	if (ret < 0)
+		printf("__NR_ustat failed.\n");
+	else
+		printf("Filesystem: %s\n", ubuf.f_fname);
 
 	return 0;
 }
