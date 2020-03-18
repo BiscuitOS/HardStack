@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	old_gid_t gid, rgid;
 
 	/* options */
-	const char *short_opts = "h";
+	const char *short_opts = "hg:";
 	const struct option long_opts[] = {
 		{ "help", no_argument, NULL, 'h'},
 		{ "gid", required_argument, NULL, 'g'},
