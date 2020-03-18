@@ -39,7 +39,7 @@ static void usage(const char *program_name)
 
 int main(int argc, char *argv[])
 {
-	old_uid_t ruid, euid;
+	old_uid_t ruid = 0, euid = 0;
 	int c, hflags = 0;
 	opterr = 0;
 
