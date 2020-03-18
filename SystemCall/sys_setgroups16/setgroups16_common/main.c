@@ -20,7 +20,7 @@
 
 /* Architecture defined */
 #ifndef __NR_setgroups16
-#define __NR_setgroups16	79
+#define __NR_setgroups16	81
 #endif
 #ifndef __NR_getgroups16
 #define __NR_getgroups16	80
