@@ -38,7 +38,7 @@ static void usage(const char *program_name)
 	printf("\t-m\t--tz_min\tThe minute for tz.\n");
 	printf("\t-d\t--tz_dst\tThe disten for tz.\n");
 	printf("\ne.g:\n");
-	printf("%s -t 12837 -u 3245435 -m 0 -d 0\n\n", program_name);
+	printf("%s -s 12837 -u 3245435 -m 0 -d 0\n\n", program_name);
 }
 
 int main(int argc, char *argv[])

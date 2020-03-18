@@ -1,5 +1,5 @@
 /*
- * sys_open in C
+ * sys_setreuid16 in C
  *
  * (C) 2020.03.11 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
