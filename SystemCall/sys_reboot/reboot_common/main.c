@@ -157,21 +157,21 @@ int main(int argc, char *argv[])
 		mag2 = LINUX_REBOOT_MAGIC2C;
 
 	/* parse Command */
-	if (strstr(cmd, "LINUX_REBOOT_CMD_RESTART"))
+	if (strstr(cmd, "RESTART"))
 		ocmd = LINUX_REBOOT_CMD_RESTART;
-	else if (strstr(cmd, "LINUX_REBOOT_CMD_HALT"))
+	else if (strstr(cmd, "HALT"))
 		ocmd = LINUX_REBOOT_CMD_HALT;
-	else if (strstr(cmd, "LINUX_REBOOT_CMD_CAD_ON"))
+	else if (strstr(cmd, "CAD_ON"))
 		ocmd = LINUX_REBOOT_CMD_CAD_ON;
-	else if (strstr(cmd, "LINUX_REBOOT_CMD_CAD_OFF"))
+	else if (strstr(cmd, "CAD_OFF"))
 		ocmd = LINUX_REBOOT_CMD_CAD_OFF;
-	else if (strstr(cmd, "LINUX_REBOOT_CMD_POWER_OFF"))
+	else if (strstr(cmd, "POWER_OFF"))
 		ocmd = LINUX_REBOOT_CMD_POWER_OFF;
-	else if (strstr(cmd, "LINUX_REBOOT_CMD_RESTART2"))
+	else if (strstr(cmd, "RESTART2"))
 		ocmd = LINUX_REBOOT_CMD_RESTART2;
-	else if (strstr(cmd, "LINUX_REBOOT_CMD_SW_SUSPEND"))
+	else if (strstr(cmd, "SW_SUSPEND"))
 		ocmd = LINUX_REBOOT_CMD_SW_SUSPEND;
-	else if (strstr(cmd, "LINUX_REBOOT_CMD_KEXEC"))
+	else if (strstr(cmd, "KEXEC"))
 		ocmd = LINUX_REBOOT_CMD_KEXEC;
 
 	/*
