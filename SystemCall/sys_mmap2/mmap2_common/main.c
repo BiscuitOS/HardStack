@@ -15,7 +15,7 @@
 #include <getopt.h>
 /* open */
 #include <fcntl.h>
-/* __NR_open */
+/* __NR_open/__NR_mmap2 */
 #include <asm/unistd.h>
 /* syscall() */
 #include <unistd.h>
@@ -133,7 +133,7 @@ static void usage(const char *program_name)
 	printf("\t-s\t--size\tThe size for mapping.\n");
 	printf("\ne.g:\n");
 	printf("%s -p BiscuitOS_file -f O_RDWR,O_CREAT -m S_IRUSR,S_IWUSR "
-			"-s 0x100 -o 0 -a 0 -P PROT_READ "
+			"-s 100 -o 0 -a 0 -P PROT_READ "
 			"-F MAP_PRIVATE\n\n", program_name);
 }
 
@@ -356,6 +356,7 @@ int main(int argc, char *argv[])
 		 *
 		 */
 		syscall(__NR_close, (unsigned int)fd);
+		return -1;
 	}
 
 	printf("Mapping base address: %#lx\n", (unsigned long)base);
