@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 	opterr = 0;
 
 	/* options */
-	const char *short_opts = "hM:n:c:";
+	const char *short_opts = "hM:m:c:";
 	const struct option long_opts[] = {
 		{ "help", no_argument, NULL, 'h'},
 		{ "Magic1", required_argument, NULL, 'M'},
