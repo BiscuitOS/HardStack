@@ -111,7 +111,7 @@ static void usage(const char *program_name)
 	printf("\t-g\t--gid\tThe GID for changing.\n");
 	printf("\ne.g:\n");
 	printf("%s -p BiscuitOS_file -f O_RDWR,O_CREAT "
-			"-m S_IRUSR,S_IRGRP -M S_IXUSR "
+			"-m S_IRUSR,S_IRGRP "
 			"-u 761 -g 781\n\n", program_name);
 }
 
