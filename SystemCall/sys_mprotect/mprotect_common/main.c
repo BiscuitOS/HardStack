@@ -97,8 +97,8 @@ static void usage(const char *program_name)
 	printf("\t\t\tPROT_EXEC\n");
 	printf("\t\t\tPROT_NONE\n");
 	printf("\ne.g:\n");
-	printf("%s -p BiscuitOS_file -f O_RDWR,O_CREAT "
-			"-m S_IRUSR,S_IRGRP -P PROT_READ,PROT_WRITE\n\n", 
+	printf("%s -p /dev/zero -f O_RDWR,O_CREAT "
+			"-m S_IRUSR,S_IWUSR -P PROT_READ,PROT_WRITE\n\n", 
 							program_name);
 }
 
