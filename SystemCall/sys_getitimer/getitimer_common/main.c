@@ -38,7 +38,7 @@ static void usage(const char *program_name)
 	printf("\t\t\t                  behalf of the process.\n");
 	printf("\t\t\t\n");
 	printf("\ne.g:\n");
-	printf("%s -p ITIMER_REAL\n\n", program_name);
+	printf("%s -w ITIMER_REAL\n\n", program_name);
 }
 
 int main(int argc, char *argv[])
