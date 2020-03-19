@@ -13,14 +13,18 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <getopt.h>
-/* __NR_open/__NR_setdomainname */
+/* __NR_newuname/__NR_setdomainname */
 #include <asm/unistd.h>
 /* syscall() */
 #include <unistd.h>
+#include <linux/utsname.h>
 
 /* Architecture defined */
 #ifndef __NR_setdomainname
 #define __NR_setdomainname	121
+#endif
+#ifndef __NR_newuname
+#define __NR_newuname		122
 #endif
 
 static void usage(const char *program_name)
@@ -38,6 +42,7 @@ int main(int argc, char *argv[])
 {
 	char *path = NULL;
 	int c, hflags = 0;
+	struct new_utsname uts;
 	opterr = 0;
 
 	/* options */
@@ -75,6 +80,15 @@ int main(int argc, char *argv[])
 	 *                    int, len)
 	 */
 	syscall(__NR_setdomainname, path, strlen(path));
+
+	/*
+	 * sys_newuname
+	 *
+	 *    SYSCALL_DEFINE1(newuname,
+	 *                    struct new_utsname __user *, name)
+	 */
+	syscall(__NR_newuname, &uts);
+	printf("Domain-name: %s\n", uts.domainname);
 
 	return 0;
 }
