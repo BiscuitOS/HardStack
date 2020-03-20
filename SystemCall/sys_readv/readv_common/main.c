@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
 {
 	int c, hflags = 0;
 	struct iovec iov;
+	char buffer[128];
 	opterr = 0;
 
 	/* options */
@@ -61,6 +62,8 @@ int main(int argc, char *argv[])
 		usage(argv[0]);
 		return 0;
 	}
+	iov.iov_base = buffer;
+	iov.iov_len  = 128;
 
 	/*
 	 * sys_readv
@@ -71,7 +74,7 @@ int main(int argc, char *argv[])
 	 *                    unsigned long, vlen) 
 	 */
 	syscall(__NR_readv, 0, &iov, 1);
-	printf("Read from stdin: %s\n", (char *)iov.iov_base);
+	printf("Read from stdin: %s\n", buffer);
 
 	return 0;
 }
