@@ -30,8 +30,9 @@ static void usage(const char *program_name)
 {
 	printf("BiscuitOS: sys_chown16 helper\n");
 	printf("Usage:\n");
-	printf("      %s <-u uid> <-g gid>\n", program_name);
+	printf("      %s <-p filename> <-u uid> <-g gid>\n", program_name);
 	printf("\n");
+	printf("\t-p\t--path\tThe path for file.\n");
 	printf("\t-u\t--uid\tThe UID for changing.\n");
 	printf("\t-g\t--gid\tThe GID for changing.\n");
 	printf("\ne.g:\n");
@@ -41,14 +42,16 @@ static void usage(const char *program_name)
 int main(int argc, char *argv[])
 {
 	int c, hflags = 0;
+	char *path = NULL;
 	old_gid_t gid;
 	old_uid_t uid;
 	opterr = 0;
 
 	/* options */
-	const char *short_opts = "hg:u:";
+	const char *short_opts = "hp:g:u:";
 	const struct option long_opts[] = {
 		{ "help", no_argument, NULL, 'h'},
+		{ "path", required_argument, NULL, 'p'},
 		{ "uid", required_argument, NULL, 'u'},
 		{ "gid", required_argument, NULL, 'g'},
 		{ 0, 0, 0, 0 }
@@ -59,6 +62,9 @@ int main(int argc, char *argv[])
 		switch (c) {
 		case 'h':
 			hflags = 1;
+			break;
+		case 'p': /* path */
+			path = optarg;
 			break;
 		case 'u': /* UID */
 			sscanf(optarg, "%d", &uid);
@@ -71,7 +77,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (hflags) {
+	if (hflags || !path) {
 		usage(argv[0]);
 		return 0;
 	}
@@ -84,6 +90,6 @@ int main(int argc, char *argv[])
 	 *                    old_uid_t, user,
 	 *                    old_gid_t, group)
 	 */
-	syscall(__NR_chown16, uid, gid);
+	syscall(__NR_chown16, path, uid, gid);
 	return 0;
 }
