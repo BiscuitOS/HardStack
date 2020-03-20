@@ -36,7 +36,7 @@ static void usage(const char *program_name)
 	printf("\t-u\t--uid\tThe UID for changing.\n");
 	printf("\t-g\t--gid\tThe GID for changing.\n");
 	printf("\ne.g:\n");
-	printf("%s -u 89 -g 876\n\n", program_name);
+	printf("%s -p BiscuitOS_file -u 89 -g 876\n\n", program_name);
 }
 
 int main(int argc, char *argv[])
