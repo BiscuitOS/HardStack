@@ -26,7 +26,7 @@
 
 static void usage(const char *program_name)
 {
-	printf("BiscuitOS: sys_mlock helper\n");
+	printf("BiscuitOS: sys_mlockall helper\n");
 	printf("Usage:\n");
 	printf("      %s <-f flags>\n", program_name);
 	printf("\t-f\t--flags\tThe flags for mlockall.\n");
