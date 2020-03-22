@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	opterr = 0;
 
 	/* options */
-	const char *short_opts = "h:";
+	const char *short_opts = "h";
 	const struct option long_opts[] = {
 		{ "help", no_argument, NULL, 'h'},
 		{ 0, 0, 0, 0 }
@@ -51,7 +51,6 @@ int main(int argc, char *argv[])
 		switch (c) {
 		case 'h':
 			hflags = 1;
-			break;
 			break;
 		default:
 			abort();
