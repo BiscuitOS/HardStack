@@ -19,12 +19,32 @@
 #include <unistd.h>
 
 /* Architecture defined */
+/* Architecture defined */
 #ifndef __NR_hello_BiscuitOS
-#define __NR_hello_BiscuitOS	400
+/* ARM32 */
+#ifdef __arm__
+#define __NR_hello_BiscuitOS    400
+/* ARM64 */
+#elif __aarch64__
+#define __NR_hello_BiscuitOS    401
+/* Intel i386 */
+#elif __i386__
+#define __NR_hello_BiscuitOS    402
+/* Intel X64 */
+#elif __ia64__
+#define __NR_hello_BiscuitOS    403
+/* RISCV32 */
+#elif __riscv32__
+#define __NR_hello_BiscuitOS    404
+/* RISCV64 */
+#elif __riscv64__
+#define __NR_hello_BiscuitOS    405
+#endif
 #endif
 
 int main(void)
 {
+	printf("Hello: %d\n", __NR_hello_BiscuitOS);
 	/*
 	 * sys_hello_BiscuitOS
 	 */
