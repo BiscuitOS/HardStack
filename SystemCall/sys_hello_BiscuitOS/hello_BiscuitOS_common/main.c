@@ -31,13 +31,13 @@
 #elif __i386__
 #define __NR_hello_BiscuitOS    402
 /* Intel X64 */
-#elif __ia64__
+#elif __x86_64__
 #define __NR_hello_BiscuitOS    403
 /* RISCV32 */
-#elif __riscv32__
+#elif __riscv_xlen == 32
 #define __NR_hello_BiscuitOS    404
 /* RISCV64 */
-#elif __riscv64__
+#elif __riscv_xlen == 64
 #define __NR_hello_BiscuitOS    405
 #endif
 #endif
