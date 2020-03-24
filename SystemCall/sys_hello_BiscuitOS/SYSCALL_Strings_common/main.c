@@ -51,7 +51,7 @@ int main(void)
 	 *                       char __user *, const_string,
 	 *                       char __user *, string_array,
 	 *                       char __user *, string_ptr,
-	 *                       char __user *, string_struct);
+	 *                       struct BiscuitOS_node __user *, string_struct);
 	 */
 	ret = syscall(__NR_hello_BiscuitOS, 
 					ch, 
