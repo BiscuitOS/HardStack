@@ -20,7 +20,25 @@
 
 /* Architecture defined */
 #ifndef __NR_hello_BiscuitOS
-#define __NR_hello_BiscuitOS	400
+/* ARM32 */
+#ifdef __arm__
+#define __NR_hello_BiscuitOS    400
+/* ARM64 */
+#elif __aarch64__
+#define __NR_hello_BiscuitOS    400
+/* Intel i386 */
+#elif __i386__
+#define __NR_hello_BiscuitOS    387
+/* Intel X64 */
+#elif __x86_64__
+#define __NR_hello_BiscuitOS    548
+/* RISCV32 */
+#elif __riscv_xlen == 32
+#define __NR_hello_BiscuitOS    258
+/* RISCV64 */
+#elif __riscv_xlen == 64
+#define __NR_hello_BiscuitOS    258
+#endif
 #endif
 
 struct BiscuitOS_node {
