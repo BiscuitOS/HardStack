@@ -11,7 +11,7 @@
 #include <linux/syscalls.h>
 
 int bs_debug_enable;
-EXPORT_SYMBOL(bs_debug);
+EXPORT_SYMBOL(bs_debug_enable);
 
 SYSCALL_DEFINE1(debug_BiscuitOS, int, enable)
 {
