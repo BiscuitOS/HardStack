@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 	char *flags = NULL;
 	mode_t omode = 0;
 	int mode_value;
-	int length = 0;
+	int length = -1;
 	int c, hflags = 0;
 	int oflags = 0;
 	int fd;
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (hflags || !length || !flags || !mode) {
+	if (hflags || length < 0 || !flags || !mode) {
 		usage(argv[0]);
 		return 0;
 	}
