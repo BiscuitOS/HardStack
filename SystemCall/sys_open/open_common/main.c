@@ -13,38 +13,128 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <getopt.h>
-/* open */
-#include <fcntl.h>
-/* __NR_open */
-#include <asm/unistd.h>
 /* syscall() */
 #include <unistd.h>
 
-/* Architecture defined */
+/* Architecture syscall-no defined */
 #ifndef __NR_open
+#ifdef __x86_64__ /* X86_64 Special */
+#define __NR_open	2
+#else /* ARM32/ARM64/i386/RISCV32/RISCV64 */
 #define __NR_open	5
 #endif
-#ifndef __NR_close
-#define __NR_close	6
 #endif
 
-/* Architecture flags */
-#ifndef O_TMPFILE
-#define O_TMPFILE		020000000
+#ifndef __NR_close
+#ifdef __x86_64__ /* X86_64 Special */
+#define __NR_close	3
+#else /* ARM32/ARM64/i386/RISCV32/RISCV64 */
+#define __NR_close	6
 #endif
+#endif
+
+/* Architecture open-flags */
+#ifndef O_ACCMODE
+#define O_ACCMODE		00000003
+#endif
+
+#ifndef O_RDONLY
+#define O_RDONLY		00000000
+#endif
+
+#ifndef O_WRONLY
+#define O_WRONLY		00000001
+#endif
+
+#ifndef O_RDWR
+#define O_RDWR			00000002
+#endif
+
+#ifndef O_CLOEXEC
+#define O_CLOEXEC		02000000	/* set close_on_exec */
+#endif
+
+#ifndef O_DIRECTORY
+#if defined __arm__ || __aarch64__ /* ARM32/ARM64 Special */
+#define O_DIRECTORY		040000		/* must be a directory */
+#else /* i386/x86_64/RISCV32/RISCV64 Special */
+#define O_DIRECTORY		00200000	/* must be a directory */
+#endif
+#endif
+
+#ifndef O_NOFOLLOW
+#if defined __arm__ || __aarch64__ /* ARM32/ARM64 Special */
+#define O_NOFOLLOW		0100000		/* don't follow links */
+#else /* i386/x86_64/RISCV32/RISCV64 Special */
+#define O_NOFOLLOW		00400000	/* don't follow links */
+#endif
+#endif
+
+#ifndef O_CREAT
+#define O_CREAT			00000100	/* not fcntl */
+#endif
+
+#ifndef O_EXCL
+#define O_EXCL			00000200	/* not fcntl */
+#endif
+
+#ifndef O_NOCTTY
+#define O_NOCTTY		00000400	/* not fcntl */
+#endif
+
+#ifndef O_TRUNC
+#define O_TRUNC			00001000	/* not fcntl */
+#endif
+
+#ifndef O_APPEND
+#define O_APPEND		00002000
+#endif
+
+/* ARM64/i386/x86_64/RISCV32/RISCV64 undefine */
+#ifndef O_ASYNC
+#define O_ASYNC			020000
+#endif
+
+#ifndef O_DSYNC
+#define O_DSYNC			00010000	/* used to be O_SYNC, see below */
+#endif
+
+#ifndef __O_TMPFILE
+#define __O_TMPFILE		020000000
+#endif
+
 #ifndef O_DIRECT
-#define O_DIRECT		00040000	/* direct disk access hint */
+#if defined __arm__ || __aarch64__ /* ARM32/ARM64 Special */
+#define O_DIRECT		0200000		/* direct disk access hint - currently ignored */
+#else /* i386/x86_64/RISCV32/RISCV64 Special */
+#define O_DIRECT		00040000	/* direct disk access hint - currently ignored */
 #endif
-#ifndef O_PATH
-#define O_PATH			010000000
 #endif
+
+#ifndef O_LARGEFILE
+#if defined __arm__ || __aarch64__ /* ARM32/ARM64 Special */
+#define O_LARGEFILE		0400000
+#else /* i386/x86_64/RISCV32/RISCV64 Special */
+#define O_LARGEFILE		00100000
+#endif
+#endif
+
+/* ARM64/i386/X86_64/RISCV32/RISCV64 undefine */
 #ifndef O_NATIME
 #define O_NATIME		01000000
 #endif
-#ifndef O_LARGEFILE
-#define O_LARGEFILE		00100000
+
+#ifndef O_NONBLOCK
+#define O_NONBLOCK		00004000
 #endif
 
+#ifndef __O_SYNC
+#define __O_SYNC		04000000
+#endif
+
+#ifndef O_PATH
+#define O_PATH			010000000
+#endif
 
 static void usage(const char *program_name)
 {
@@ -64,7 +154,7 @@ static void usage(const char *program_name)
 	printf("\t\t\tO_CREAT\n");
 	printf("\t\t\tO_EXCL\n");
 	printf("\t\t\tO_NOCTTY\n");
-	printf("\t\t\tO_TMPFILE\n");
+	printf("\t\t\t__O_TMPFILE\n");
 	printf("\t\t\tO_TRUNC\n");
 	printf("\t\t\tO_APPEND\n");
 	printf("\t\t\tO_ASYNC\n");
@@ -73,7 +163,7 @@ static void usage(const char *program_name)
 	printf("\t\t\tO_LARGEFILE\n");
 	printf("\t\t\tO_NATIME\n");
 	printf("\t\t\tO_NONBLOCK\n");
-	printf("\t\t\tO_SYNC\n");
+	printf("\t\t\t__O_SYNC\n");
 	printf("\t\t\tO_PATH\n");
 	printf("\t-m\t--mode\tThe mode for opening.\n");
 	printf("\t\t\tS_IRUSR\n");
@@ -161,8 +251,8 @@ int main(int argc, char *argv[])
 		oflags |= O_EXCL;
 	if (strstr(flags, "O_NOCTTY"))
 		oflags |= O_NOCTTY;
-	if (strstr(flags, "O_TMPFILE"))
-		oflags |= O_TMPFILE;
+	if (strstr(flags, "__O_TMPFILE"))
+		oflags |= __O_TMPFILE;
 	if (strstr(flags, "O_TRUNC"))
 		oflags |= O_TRUNC;
 	if (strstr(flags, "O_APPEND"))
@@ -179,8 +269,8 @@ int main(int argc, char *argv[])
 		oflags |= O_NATIME;
 	if (strstr(flags, "O_NONBLOCK"))
 		oflags |= O_NONBLOCK;
-	if (strstr(flags, "O_SYNC"))
-		oflags |= O_SYNC;
+	if (strstr(flags, "__O_SYNC"))
+		oflags |= __O_SYNC;
 	if (strstr(flags, "O_PATH"))
 		oflags |= O_PATH;
 
