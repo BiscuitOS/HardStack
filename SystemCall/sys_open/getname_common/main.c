@@ -198,7 +198,7 @@ static void usage(const char *program_name)
 	printf("\t\t\tS_IXOTH\n");
 	printf("\t\t\tS_IRWXO\n");
 	printf("\ne.g:\n");
-	printf("%s -l 128-f O_RDWR,O_CREAT "
+	printf("%s -l 128 -f O_RDWR,O_CREAT "
 				"-m S_IRUSR,S_IRGRP\n\n", program_name);
 }
 
