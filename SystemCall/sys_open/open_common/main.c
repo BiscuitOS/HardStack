@@ -15,6 +15,7 @@
 #include <getopt.h>
 /* syscall() */
 #include <unistd.h>
+#include <errno.h>
 
 /* Architecture syscall-no defined */
 #ifndef __NR_open
@@ -317,7 +318,7 @@ int main(int argc, char *argv[])
 		fd = syscall(__NR_open, path, oflags);
 	}
 	if (fd < 0) {
-		printf("Open: Can't open %s err %d\n", path, fd);
+		printf("Open: Can't open %s err %d\n", path, errno);
 		return -1;
 	}
 
