@@ -328,12 +328,13 @@ int main(int argc, char *argv[])
 		if (fd[index] < 0) {
 			printf("Open[%d]: Can't open %s err %d\n", 
 							index, path, errno);
-			return -1;
+			goto out;
 		}
 		printf("%s Open-fd: %d\n", path, fd[index]);
 	}
 
-	for (index = 0; index < number; index++) {
+out:
+	while (index--) {
 		/*
 		 * sys_close()
 		 *
