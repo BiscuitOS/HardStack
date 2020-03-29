@@ -158,6 +158,7 @@
 #elif __riscv_xlen == 64
 #define __NR_debug_BiscuitOS    258
 #endif
+#endif
 
 static void usage(const char *program_name)
 {
