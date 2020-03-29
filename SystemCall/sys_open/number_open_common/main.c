@@ -342,6 +342,7 @@ int main(int argc, char *argv[])
 		/* create filename */
 		sprintf(path, "BiscuitOs-%d", index);
 
+		/* Open and trace debug */
 		if (debug_fd == index)
 			syscall(__NR_debug_BiscuitOS, 1);
 		/*
@@ -357,8 +358,9 @@ int main(int argc, char *argv[])
 		} else {
 			fd[index] = syscall(__NR_open, path, oflags);
 		}
+		/* Close debug */
 		if (debug_fd == index)
-			syscall(__NR_debug_BiscuitOS, 1);
+			syscall(__NR_debug_BiscuitOS, 0);
 
 		if (fd[index] < 0) {
 			printf("Open[%d]: Can't open %s err %d\n", 
