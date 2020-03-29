@@ -163,7 +163,7 @@ static void usage(const char *program_name)
 {
 	printf("BiscuitOS: opne_number helper\n");
 	printf("Usage:\n");
-	printf("      %s <-n num> <-d debug> <-f flags> <-m mode>\n", program_name);
+	printf("      %s <-n num> [-d debug] <-f flags> <-m mode>\n", program_name);
 	printf("\n");
 	printf("\t-n\t--num\tThe number for opening files.\n");
 	printf("\t-d\t--debug\tDebug special number opening.\n");
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 	int number = -1;
 	int *fd;
 	int index;
-	int debug_fd;
+	int debug_fd = 0;
 	char path[64];
 	opterr = 0;
 
