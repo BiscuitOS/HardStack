@@ -137,13 +137,36 @@
 #define O_PATH			010000000
 #endif
 
+/* Architecture Debug stub */
+#ifndef __NR_debug_BiscuitOS
+/* ARM32 */
+#ifdef __arm__
+#define __NR_debug_BiscuitOS    400
+/* ARM64 */
+#elif __aarch64__
+#define __NR_debug_BiscuitOS    400
+/* Intel i386 */
+#elif __i386__
+#define __NR_debug_BiscuitOS    387
+/* Intel X64 */
+#elif __x86_64__
+#define __NR_debug_BiscuitOS    548
+/* RISCV32 */
+#elif __riscv_xlen == 32
+#define __NR_debug_BiscuitOS    258
+/* RISCV64 */
+#elif __riscv_xlen == 64
+#define __NR_debug_BiscuitOS    258
+#endif
+
 static void usage(const char *program_name)
 {
 	printf("BiscuitOS: opne_number helper\n");
 	printf("Usage:\n");
-	printf("      %s <-n num> <-f flags> <-m mode>\n", program_name);
+	printf("      %s <-n num> <-d debug> <-f flags> <-m mode>\n", program_name);
 	printf("\n");
 	printf("\t-n\t--num\tThe number for opening files.\n");
+	printf("\t-d\t--debug\tDebug special number opening.\n");
 	printf("\t-f\t--flags\tThe flags for opening.\n");
 	printf("\t\t\tO_ACCMODE\n");
 	printf("\t\t\tO_RDONLY\n");
@@ -180,7 +203,7 @@ static void usage(const char *program_name)
 	printf("\t\t\tS_IXOTH\n");
 	printf("\t\t\tS_IRWXO\n");
 	printf("\ne.g:\n");
-	printf("%s -n 2 -f O_RDWR,O_CREAT "
+	printf("%s -n 2 -d 0 -f O_RDWR,O_CREAT "
 			"-m S_IRUSR,S_IRGRP\n\n", program_name);
 }
 
@@ -195,14 +218,16 @@ int main(int argc, char *argv[])
 	int number = -1;
 	int *fd;
 	int index;
+	int debug_fd;
 	char path[64];
 	opterr = 0;
 
 	/* options */
-	const char *short_opts = "hn:f:m:";
+	const char *short_opts = "hn:f:m:d:";
 	const struct option long_opts[] = {
 		{ "help", no_argument, NULL, 'h'},
 		{ "num", required_argument, NULL, 'n'},
+		{ "debug", required_argument, NULL, 'd'},
 		{ "flags", required_argument, NULL, 'f'},
 		{ "mode", required_argument, NULL, 'm'},
 		{ 0, 0, 0, 0 }
@@ -216,6 +241,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'n': /* Number */
 			sscanf(optarg, "%d", &number);
+			break;
+		case 'd': /* Debug */
+			sscanf(optarg, "%d", &debug_fd);
 			break;
 		case 'f': /* flags */
 			flags = optarg;
@@ -312,6 +340,9 @@ int main(int argc, char *argv[])
 	for (index = 0; index < number; index++) {
 		/* create filename */
 		sprintf(path, "BiscuitOs-%d", index);
+
+		if (debug_fd == index)
+			syscall(__NR_debug_BiscuitOS, 1);
 		/*
 		 * sys_open() 
 		 *
@@ -325,6 +356,9 @@ int main(int argc, char *argv[])
 		} else {
 			fd[index] = syscall(__NR_open, path, oflags);
 		}
+		if (debug_fd == index)
+			syscall(__NR_debug_BiscuitOS, 1);
+
 		if (fd[index] < 0) {
 			printf("Open[%d]: Can't open %s err %d\n", 
 							index, path, errno);
