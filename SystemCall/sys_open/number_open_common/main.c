@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
 
 	for (index = 0; index < number; index++) {
 		/* create filename */
-		sprintf(path, "BiscuitOs-%d", index);
+		sprintf(path, "BiscuitOS-%d", index);
 
 		/* Open and trace debug */
 		if (debug_fd == index)
