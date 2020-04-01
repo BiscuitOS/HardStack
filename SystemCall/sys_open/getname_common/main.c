@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
 		fd = syscall(__NR_open, path, oflags);
 	}
 	if (fd < 0) {
-		printf("Open: Can't open %s err %d\n", path, errno);
+		printf("Open: Can't open err %d\n", errno);
 		return -1;
 	}
 
