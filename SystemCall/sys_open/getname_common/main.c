@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 	int c, hflags = 0;
 	int oflags = 0;
 	int fd;
-	char path[PATH_MAX];
+	char *path;
 	opterr = 0;
 
 	/* options */
@@ -329,7 +329,10 @@ int main(int argc, char *argv[])
 	}
 
 	/* Create speical length name */
-	memset(path, 'B', PATH_MAX);
+	path = malloc(length + 1);
+	if (!path)
+		return -1;
+	memset(path, 'B', length);
 	path[length] = '\0';
 
 	/*
@@ -358,5 +361,6 @@ int main(int argc, char *argv[])
 	 *
 	 */
 	syscall(__NR_close, (unsigned int)fd);
+	free(path);
 	return 0;
 }
