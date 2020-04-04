@@ -1,0 +1,2 @@
+config BISCUITOS_RCULOCK_COMMON
+	tristate "Common rculock Device Driver"
