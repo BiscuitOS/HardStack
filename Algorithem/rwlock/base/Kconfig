@@ -1,0 +1,2 @@
+config BISCUITOS_RWLOCK_COMMON
+	tristate "Common RWlock Device Driver"
