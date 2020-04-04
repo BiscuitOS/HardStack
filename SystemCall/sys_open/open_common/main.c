@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (hflags || !path || !flags || !mode) {
+	if (hflags || !path || !flags) {
 		usage(argv[0]);
 		return 0;
 	}

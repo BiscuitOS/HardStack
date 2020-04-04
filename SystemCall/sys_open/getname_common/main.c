@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (hflags || length < 0 || !flags || !mode) {
+	if (hflags || length < 0 || !flags) {
 		usage(argv[0]);
 		return 0;
 	}
