@@ -1,0 +1,2 @@
+config BISCUITOS_SEQLOCK_COMMON
+	tristate "Common Seqlock Device Driver"
