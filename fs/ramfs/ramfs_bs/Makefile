@@ -1,5 +1,5 @@
 #
-# tmpfs_bs
+# ramfs_bs
 #
 # (C) 2020.03.14 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -9,9 +9,9 @@
 ifneq ($(KERNELRELEASE),)
 
 # SRC
-obj-m		:= tmpfs.o
-tmpfs-m		+= shmem.o
-tmpfs-m		+= inode.o
+obj-m		:= ramfs.o
+ramfs-m		+= file-mmu.o
+ramfs-m		+= inode.o
 ccflags-y	+= -DCONFIG_BISCUITOS_TMPFS_BLOCKS=0x1000
 ccflags-y	+= -DCONFIG_BISCUITOS_TMPFS_INODES=0x1000
 

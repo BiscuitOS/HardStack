@@ -1,6 +1,6 @@
 #!/bin/ash
 
-# Running Ftrace Function
+# Running tmpfs Function
 #
 # (C) 2020.03.03 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
@@ -53,11 +53,13 @@ show_trace()
 
 mount_fs()
 {
-	insmod /lib/modules/5.0.0/extra/tmpfs.ko
+	insmod /lib/modules/5.0.0/extra/ramfs.ko
 	lsmod
-	[ -d /tmpfs_bs ] && rm -rf /tmpfs_bs
-	mkdir -p /tmpfs_bs
-	mount_common-0.0.1 -n BiscuitOS_tmpfs -d /tmpfs_bs -t tmpfs_bs -f MS_SILENT -o size=8M
+	[ -d /ramfs_bs ] && rm -rf /ramfs_bs
+	mkdir -p /ramfs_bs
+	mount_common-0.0.1 -n BiscuitOS_ramfs -d /ramfs_bs -t ramfs_bs -f MS_SILENT -o size=8M
+	cd /ramfs_bs
+	open_common-0.0.1 -p BiscuitOS_file -f O_RDWR,O_CREAT -m S_IRUSR,S_IRGRP
 }
 
 umount_fs()

@@ -15,6 +15,7 @@
 #include <linux/pagemap.h>
 #include <linux/seq_file.h>
 #include <linux/parser.h>
+#include <linux/module.h>
 
 #include "internal.h"
 
@@ -256,7 +257,7 @@ static struct file_system_type ramfs_fs_type_bs = {
 	.fs_flags	= FS_USERNS_MOUNT,
 };
 
-int __init init_ramfs_fs_bs(void)
+static int __init init_ramfs_fs_bs(void)
 {
 	static unsigned long once;
 
@@ -265,4 +266,15 @@ int __init init_ramfs_fs_bs(void)
 
 	return register_filesystem(&ramfs_fs_type_bs);
 }
-fs_initcall(init_ramfs_fs_bs);
+
+static void __exit exit_ramfs_fs_bs(void)
+{
+	unregister_filesystem(&ramfs_fs_type_bs);
+}
+
+module_init(init_ramfs_fs_bs);
+module_exit(exit_ramfs_fs_bs);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
+MODULE_DESCRIPTION("ramfs_bs filesystem");
