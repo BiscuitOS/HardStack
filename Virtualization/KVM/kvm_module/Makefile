@@ -21,7 +21,7 @@ obj-m			+= kvm-intel-bs.o
 $(MODULE_NAME)-m	:= main.o
 $(MODULE_NAME)-m	+= $(patsubst $(PWD)/%.c,%.o, $(wildcard $(PWD)/src/*.c)) 
 $(MODULE_NAME)-m	+= $(patsubst $(PWD)/%.c,%.o, $(wildcard $(PWD)/virt/*.c)) 
-kvm-intel-bs-m		:= vmx/vmx.o
+kvm-intel-bs-m		:= $(patsubst $(PWD)/%.c,%.o, $(wildcard $(PWD)/vmx/*.c))
 
 ## CFlags
 ccflags-y		+= -DCONFIG_BISCUITOS_MODULE

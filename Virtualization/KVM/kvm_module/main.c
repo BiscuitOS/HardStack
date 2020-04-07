@@ -11,13 +11,10 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
-#include "linux/demo.h"
-
 /* Module initialize entry */
 static int __init kvm_init_bs(void)
 {
-	bs_show();
-
+	printk("BiscuitOS KVM\n");
 	return 0;
 }
 

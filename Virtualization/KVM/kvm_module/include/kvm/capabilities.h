@@ -2,6 +2,8 @@
 #ifndef __KVM_X86_VMX_CAPS_H
 #define __KVM_X86_VMX_CAPS_H
 
+#include <linux/types.h>
+
 #define PT_MODE_SYSTEM		0
 #define PT_MODE_HOST_GUEST	1
 

@@ -12,7 +12,7 @@ OPT=$1
 
 mount_fs()
 {
-	insmod /lib/modules/$(uname -r)/extra/kvm-bs.ko
+	insmod /lib/modules/$(uname -r)/extra/kvm_module-0.0.1.ko
 	insmod /lib/modules/$(uname -r)/extra/kvm-intel-bs.ko
 }
 
