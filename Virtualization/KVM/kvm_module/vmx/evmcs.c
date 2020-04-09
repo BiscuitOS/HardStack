@@ -22,3 +22,15 @@ void evmcs_sanitize_exec_ctrls_bs(struct vmcs_config *vmcs_conf)
 	vmcs_conf->vmexit_ctrl &= ~EVMCS1_UNSUPPORTED_VMEXIT_CTRL;
 	vmcs_conf->vmentry_ctrl &= ~EVMCS1_UNSUPPORTED_VMENTRY_CTRL;
 }
+
+int nested_enable_evmcs_bs(struct kvm_vcpu *vcpu, uint16_t *vmcs_version)
+{
+	BS_DUP();
+	return 0;
+}
+
+uint16_t nested_get_evmcs_version_bs(struct kvm_vcpu *vcpu)
+{
+	BS_DUP();
+	return 0;
+}

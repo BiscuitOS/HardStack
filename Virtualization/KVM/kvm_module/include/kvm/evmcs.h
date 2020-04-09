@@ -4,7 +4,7 @@
 
 #include <asm/vmx.h>
 
-#define KVM_EVMCS_VERSION 1
+#define KVM_EVMCS_VERSION	1
 
 /*
  * Enlightened VMCSv1 doesn't support these:

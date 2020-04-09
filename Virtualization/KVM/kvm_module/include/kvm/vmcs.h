@@ -62,4 +62,18 @@ struct loaded_vmcs {
 	struct vmcs_host_state host_state;
 };
 
+enum vmcs_field_width {
+	VMCS_FIELD_WIDTH_U16 = 0,
+	VMCS_FIELD_WIDTH_U64 = 1,
+	VMCS_FIELD_WIDTH_U32 = 2,
+	VMCS_FIELD_WIDTH_NATURAL_WIDTH = 3
+};
+
+static inline int vmcs_field_width_bs(unsigned long field)
+{
+	if (0x1 & field)
+		return VMCS_FIELD_WIDTH_U32;
+	return (field >> 13) & 0x3;
+}
+
 #endif /* __KVM_X86_VMX_VMCS_H */

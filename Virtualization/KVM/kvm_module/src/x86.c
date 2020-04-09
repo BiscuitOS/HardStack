@@ -11,12 +11,22 @@
 #include <linux/slab.h>
 #include <linux/user-return-notifier.h>
 #include <linux/cpufreq.h>
+#include <linux/kvm_host.h>
 #include <asm/kvm_host.h>
 #include <asm/fpu/internal.h>
+#include <asm/intel_pt.h>
 #include "kvm/internal.h"
 #include "kvm/mmu.h"
 
 #define KVM_NR_SHARED_MSRS	16
+
+/* EFER defaults:
+ * - enable syscall per default because its emulated by KVM
+ * - enable LME and LMA per default on 64 bit KVM
+ */
+static u64 __read_mostly efer_reserved_bits_bs = ~((u64)EFER_SCE);
+
+static unsigned int num_msr_based_features_bs;
 
 struct kvm_shared_msrs_global {
 	int nr;
@@ -38,10 +48,109 @@ struct kmem_cache *x86_fpu_cache_bs;
 EXPORT_SYMBOL_GPL(x86_fpu_cache_bs);
 static unsigned long max_tsc_khz_bs;
 static DEFINE_PER_CPU(unsigned long, cpu_tsc_khz_bs);
+bool	__read_mostly kvm_has_tsc_control_bs;
+EXPORT_SYMBOL_GPL(kvm_has_tsc_control_bs);
+u64	__read_mostly kvm_max_tsc_scaling_ratio_bs;
+EXPORT_SYMBOL_GPL(kvm_max_tsc_scaling_ratio_bs);
+u8	__read_mostly kvm_tsc_scaling_ratio_frac_bits_bs;
+EXPORT_SYMBOL_GPL(kvm_tsc_scaling_ratio_frac_bits_bs);
 
 u64 __read_mostly host_xcr0_bs;
 static struct kvm_shared_msrs_global __read_mostly shared_msrs_global_bs;
 static struct kvm_shared_msrs __percpu *shared_msrs_bs;
+
+static u32 msrs_to_save_bs[] = {
+	MSR_IA32_SYSENTER_CS, MSR_IA32_SYSENTER_ESP, MSR_IA32_SYSENTER_EIP,
+	MSR_STAR,
+	MSR_IA32_TSC, MSR_IA32_CR_PAT, MSR_VM_HSAVE_PA,
+	MSR_IA32_FEATURE_CONTROL, MSR_IA32_BNDCFGS, MSR_TSC_AUX,
+	MSR_IA32_SPEC_CTRL, MSR_IA32_ARCH_CAPABILITIES,
+	MSR_IA32_RTIT_CTL, MSR_IA32_RTIT_STATUS, MSR_IA32_RTIT_CR3_MATCH,
+	MSR_IA32_RTIT_OUTPUT_BASE, MSR_IA32_RTIT_OUTPUT_MASK,
+	MSR_IA32_RTIT_ADDR0_A, MSR_IA32_RTIT_ADDR0_B,
+	MSR_IA32_RTIT_ADDR1_A, MSR_IA32_RTIT_ADDR1_B,
+	MSR_IA32_RTIT_ADDR2_A, MSR_IA32_RTIT_ADDR2_B,
+	MSR_IA32_RTIT_ADDR3_A, MSR_IA32_RTIT_ADDR3_B,
+};
+
+static unsigned num_msrs_to_save_bs;
+
+/*
+ * List of msr numbers which are used to expose MSR-based features that
+ * can be used by a hypervisor to validate requested CPU features.
+ */
+static u32 msr_based_features_bs[] = {
+	MSR_IA32_VMX_BASIC,
+	MSR_IA32_VMX_TRUE_PINBASED_CTLS,
+	MSR_IA32_VMX_PINBASED_CTLS,
+	MSR_IA32_VMX_TRUE_PROCBASED_CTLS,
+	MSR_IA32_VMX_PROCBASED_CTLS,
+	MSR_IA32_VMX_TRUE_EXIT_CTLS,
+	MSR_IA32_VMX_EXIT_CTLS,
+	MSR_IA32_VMX_TRUE_ENTRY_CTLS,
+	MSR_IA32_VMX_ENTRY_CTLS,
+	MSR_IA32_VMX_MISC,
+	MSR_IA32_VMX_CR0_FIXED0,
+	MSR_IA32_VMX_CR0_FIXED1,
+	MSR_IA32_VMX_CR4_FIXED0,
+	MSR_IA32_VMX_CR4_FIXED1,
+	MSR_IA32_VMX_VMCS_ENUM,
+	MSR_IA32_VMX_PROCBASED_CTLS2,
+	MSR_IA32_VMX_EPT_VPID_CAP,
+	MSR_IA32_VMX_VMFUNC,
+
+	MSR_F10H_DECFG,
+	MSR_IA32_UCODE_REV,
+	MSR_IA32_ARCH_CAPABILITIES,
+};
+
+static u32 emulated_msrs_bs[] = {
+	MSR_KVM_SYSTEM_TIME, MSR_KVM_WALL_CLOCK,
+	MSR_KVM_SYSTEM_TIME_NEW, MSR_KVM_WALL_CLOCK_NEW,
+	HV_X64_MSR_GUEST_OS_ID, HV_X64_MSR_HYPERCALL,
+	HV_X64_MSR_TIME_REF_COUNT, HV_X64_MSR_REFERENCE_TSC,
+	HV_X64_MSR_TSC_FREQUENCY, HV_X64_MSR_APIC_FREQUENCY,
+	HV_X64_MSR_CRASH_P0, HV_X64_MSR_CRASH_P1, HV_X64_MSR_CRASH_P2,
+	HV_X64_MSR_CRASH_P3, HV_X64_MSR_CRASH_P4, HV_X64_MSR_CRASH_CTL,
+	HV_X64_MSR_RESET,
+	HV_X64_MSR_VP_INDEX,
+	HV_X64_MSR_VP_RUNTIME,
+	HV_X64_MSR_SCONTROL,
+	HV_X64_MSR_STIMER0_CONFIG,
+	HV_X64_MSR_VP_ASSIST_PAGE,
+	HV_X64_MSR_REENLIGHTENMENT_CONTROL, HV_X64_MSR_TSC_EMULATION_CONTROL,
+	HV_X64_MSR_TSC_EMULATION_STATUS,
+
+	MSR_KVM_ASYNC_PF_EN, MSR_KVM_STEAL_TIME,
+	MSR_KVM_PV_EOI_EN,
+
+	MSR_IA32_TSC_ADJUST,
+	MSR_IA32_TSCDEADLINE,
+	MSR_IA32_MISC_ENABLE,
+	MSR_IA32_MCG_STATUS,
+	MSR_IA32_MCG_CTL,
+	MSR_IA32_MCG_EXT_CTL,
+	MSR_IA32_SMBASE,
+	MSR_SMI_COUNT,
+	MSR_PLATFORM_INFO,
+	MSR_MISC_FEATURES_ENABLES,
+	MSR_AMD64_VIRT_SPEC_CTRL,
+};
+
+static unsigned num_emulated_msrs_bs;
+
+#define VCPU_STAT_BS(x)	offsetof(struct kvm_vcpu, stat.x), KVM_STAT_VCPU
+
+__visible bool kvm_rebooting_bs;
+EXPORT_SYMBOL_GPL(kvm_rebooting_bs);
+
+asmlinkage __visible void kvm_spurious_fault_bs(void)
+{
+	/* Fault while not rebooting.  We want the trace. */
+	BS_DUP();
+	BUG();
+}
+EXPORT_SYMBOL_GPL(kvm_spurious_fault_bs);
 
 static void tsc_khz_changed_bs(void *data)
 {
@@ -79,6 +188,11 @@ static int kvmclock_cpu_down_prep_bs(unsigned int cpu)
 
 static struct notifier_block kvmclock_cpufreq_notifier_block_bs = {
 	.notifier_call = kvmclock_cpufreq_notifier_bs,
+};
+
+struct kvm_stats_debugfs_item debugfs_entries_bs[] = {
+	{ "pf_fixed", VCPU_STAT_BS(pf_fixed) },
+	{ NULL }
 };
 
 static void kvm_set_mmio_spte_mask_bs(void)
@@ -227,6 +341,130 @@ out:
 	return r;
 }
 
+u64 kvm_get_arch_capabilities_bs(void)
+{
+	u64 data;
+
+	rdmsrl_safe(MSR_IA32_ARCH_CAPABILITIES, &data);
+
+	/*
+	 * If we're doing cache flushes (either "always" or "cond")
+	 * we will do one whenever the guest does a vmlaunch/vmresume.
+	 * If an outer hypervisor is doing the cache flush for us
+	 * (VMENTER_L1D_FLUSH_NESTED_VM), we can safely pass that
+	 * capability to the guest too, and if EPT is disabled we're not
+	 * vulnerable.  Overall, only VMENTER_L1D_FLUSH_NEVER will
+	 * require a nested hypervisor to do a flush of its own.
+	 */
+	if (l1tf_vmx_mitigation != VMENTER_L1D_FLUSH_NEVER)
+		data |= ARCH_CAP_SKIP_VMENTRY_L1DFLUSH;
+
+	return data;
+}
+EXPORT_SYMBOL_GPL(kvm_get_arch_capabilities_bs);
+
+static int kvm_get_msr_feature_bs(struct kvm_msr_entry *msr)
+{
+	switch (msr->index) {
+	case MSR_IA32_ARCH_CAPABILITIES:
+		msr->data = kvm_get_arch_capabilities_bs();
+		break;
+	case MSR_IA32_UCODE_REV:
+		rdmsrl_safe(msr->index, &msr->data);
+		break;
+	default:
+		if (kvm_x86_ops_bs->get_msr_feature(msr))
+			return 1;
+	}
+	return 0;
+}
+
+static void kvm_init_msr_list_bs(void)
+{
+	u32 dummy[2];
+	unsigned i, j;
+
+	for (i = j = 0; i < ARRAY_SIZE(msrs_to_save_bs); i++) {
+		if (rdmsr_safe(msrs_to_save_bs[i], &dummy[0], &dummy[1]) < 0)
+			continue;
+
+		/*
+		 * Even MSRs that are valid in the host may not be exposed
+		 * to the guests in some cases.
+		 */
+		switch (msrs_to_save_bs[i]) {
+		case MSR_IA32_BNDCFGS:
+			if (!kvm_mpx_supported_bs())
+				continue;
+			break;
+		case MSR_TSC_AUX:
+			if (!kvm_x86_ops_bs->rdtscp_supported())
+				continue;
+			break;
+		case MSR_IA32_RTIT_CTL:
+		case MSR_IA32_RTIT_STATUS:
+			BS_DUP();
+			if (!kvm_x86_ops_bs->pt_supported())
+				continue;
+			break;
+		case MSR_IA32_RTIT_CR3_MATCH:
+			BS_DUP();
+			if (!kvm_x86_ops_bs->pt_supported() ||
+			    !intel_pt_validate_hw_cap(PT_CAP_cr3_filtering))
+				continue;
+			break;
+		case MSR_IA32_RTIT_OUTPUT_BASE:
+		case MSR_IA32_RTIT_OUTPUT_MASK:
+			BS_DUP();
+			if (!kvm_x86_ops_bs->pt_supported() ||
+			   (!intel_pt_validate_hw_cap(PT_CAP_topa_output) &&
+			    !intel_pt_validate_hw_cap(
+						PT_CAP_single_range_output)))
+				continue;
+			break;
+		case MSR_IA32_RTIT_ADDR0_A ... MSR_IA32_RTIT_ADDR3_B: {
+			BS_DUP();
+			if (!kvm_x86_ops_bs->pt_supported() ||
+				msrs_to_save_bs[i] - MSR_IA32_RTIT_ADDR0_A >=
+				intel_pt_validate_hw_cap(
+						PT_CAP_num_address_ranges) * 2)
+				continue;
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (j < i)
+			msrs_to_save_bs[j] = msrs_to_save_bs[i];
+		j++;
+	}
+	num_msrs_to_save_bs = j;
+
+	for (i = j = 0; i < ARRAY_SIZE(emulated_msrs_bs); i++) {
+		if (!kvm_x86_ops_bs->has_emulated_msr(emulated_msrs_bs[i]))
+			continue;
+
+		if (j < i)
+			emulated_msrs_bs[j] = emulated_msrs_bs[i];
+		j++;
+	}
+	num_emulated_msrs_bs = j;
+
+	for (i = j = 0; i < ARRAY_SIZE(msr_based_features_bs); i++) {
+		struct kvm_msr_entry msr;
+
+		msr.index = msr_based_features_bs[i];
+		if (kvm_get_msr_feature_bs(&msr))
+			continue;
+
+		if (j < i)
+			msr_based_features_bs[j] = msr_based_features_bs[i];
+		j++;
+	}
+	num_msr_based_features_bs = j;
+}
+
 int kvm_arch_hardware_setup_bs(void)
 {
 	int r;
@@ -234,6 +472,12 @@ int kvm_arch_hardware_setup_bs(void)
 	r = kvm_x86_ops_bs->hardware_setup();
 	if (r != 0)
 		return r;
+
+	if (kvm_has_tsc_control_bs) {
+		BS_DUP();
+	}
+
+	kvm_init_msr_list_bs();
 	return 0;
 }
 
@@ -245,3 +489,20 @@ void kvm_define_shared_msr_bs(unsigned slot, u32 msr)
 		shared_msrs_global_bs.nr = slot + 1;
 }
 EXPORT_SYMBOL_GPL(kvm_define_shared_msr_bs);
+
+void kvm_enable_efer_bits_bs(u64 mask)
+{
+	efer_reserved_bits_bs &= ~mask;
+}
+EXPORT_SYMBOL_GPL(kvm_enable_efer_bits_bs);
+
+void __kvm_request_immediate_exit_bs(struct kvm_vcpu *vcpu)
+{
+	smp_send_reschedule(vcpu->cpu);
+}
+EXPORT_SYMBOL_GPL(__kvm_request_immediate_exit_bs);
+
+void kvm_arch_check_processor_compat_bs(void *rtn)
+{
+	kvm_x86_ops_bs->check_processor_compatibility(rtn);
+}

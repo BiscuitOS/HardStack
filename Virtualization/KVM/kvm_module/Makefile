@@ -18,7 +18,7 @@ obj-m			:= $(MODULE_NAME).o
 obj-m			+= kvm-intel-bs.o
 
 ## Source Code
-$(MODULE_NAME)-m	:= main.o
+$(MODULE_NAME)-m	:= main.o 
 $(MODULE_NAME)-m	+= $(patsubst $(PWD)/%.c,%.o, $(wildcard $(PWD)/src/*.c)) 
 $(MODULE_NAME)-m	+= $(patsubst $(PWD)/%.c,%.o, $(wildcard $(PWD)/virt/*.c)) 
 kvm-intel-bs-m		:= $(patsubst $(PWD)/%.c,%.o, $(wildcard $(PWD)/vmx/*.c))

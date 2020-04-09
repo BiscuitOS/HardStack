@@ -15,6 +15,15 @@
 #include "kvm/internal.h"
 #include "kvm/mmu.h"
 
+/*
+ * When setting this variable to true it enables Two-Dimensional-Paging
+ * where the hardware walks 2 page tables:
+ * 1. the guest-virtual to guest-physical
+ * 2. while doing 1. it walks guest-physical to host-physical
+ * If the hardware supports that we don't need to do shadow paging.
+ */
+bool tdp_enabled_bs = false;
+
 #define PT64_SECOND_AVAIL_BITS_SHIFT	52
 
 /* The mask for the R/X bits in EPT PTEs */
@@ -220,3 +229,15 @@ void kvm_mmu_set_mask_ptes_bs(u64 user_mask, u64 accessed_mask,
 	shadow_me_mask_bs = me_mask;
 }
 EXPORT_SYMBOL_GPL(kvm_mmu_set_mask_ptes_bs);
+
+void kvm_enable_tdp_bs(void)
+{
+	tdp_enabled_bs = true;
+}
+EXPORT_SYMBOL_GPL(kvm_enable_tdp_bs);
+
+void kvm_disable_tdp_bs(void)
+{
+	tdp_enabled_bs = false;
+}
+EXPORT_SYMBOL_GPL(kvm_disable_tdp_bs);
