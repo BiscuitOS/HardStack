@@ -2,6 +2,10 @@ KVM on Kernel
 ---------------------------------------
 
 > - [Kernel Configure](#A0)
+>
+> - [Module usage](#B0)
+>
+> - [ftrace](#C0)
 
 ---------------------------
 
@@ -21,4 +25,31 @@ make menuconfig ARCH=i386
 
   Processor type and features  --->
       [*] Linux guest support  --->
+
+
+  Kernel hacking  --->
+      [*] Tracers  --->
+         [*]   Kernel Function Tracer
+         [*]   enable/disable function tracing dynamically (NEW)
 ```
+
+
+-------------------------------------
+
+#### <span id="B0">Module Usage</span>
+
+```
+RunBiscuitOS_kvm.sh mount
+```
+
+--------------------------------------
+
+#### <span id="C0">ftrace</span>
+
+```
+RunBiscuitOS_kvm.sh init
+RunBiscuitOS_kvm.sh on
+RunBiscuitOS_kvm.sh show
+```
+
+

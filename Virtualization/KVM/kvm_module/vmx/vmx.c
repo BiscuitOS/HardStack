@@ -15,10 +15,13 @@
 #include <linux/mm.h>
 #include <linux/gfp.h>
 #include <linux/smp.h>
+#include <linux/sched/smt.h>
+#include <asm/mshyperv.h>
 #include <asm/mce.h>
 #include <asm/processor.h>
 #include <asm/vmx.h>
 #include <asm/kexec.h>
+#include <asm/tlbflush.h>
 
 #include "kvm/internal.h"
 #include "kvm/vmx.h"
@@ -143,6 +146,13 @@ static DEFINE_MUTEX(vmx_l1d_flush_mutex_bs);
 static void *vmx_l1d_flush_pages_bs;
 
 /*
+ * We maintain a per-CPU linked-list of vCPU, so in wakeup_handler() we
+ * can find which vCPU should be waken up.
+ */
+static DEFINE_PER_CPU(struct list_head, blocked_vcpu_on_cpu_bs);
+static DEFINE_PER_CPU(spinlock_t, blocked_vcpu_on_cpu_lock_bs);
+
+/*
  * We maintain a per-CPU linked-list of VMCS loaded on that CPU. This is needed
  * when a CPU is brought down, and we need to VMCLEAR all VMCSs loaded on it.
  */
@@ -195,9 +205,40 @@ static inline bool cpu_has_broken_vmx_preemption_timer_bs(void)
 	return false;
 }
 
+#define L1TF_MSG_SMT_BS "L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/l1tf.html for details.\n"
+#define L1TF_MSG_L1D_BS "L1TF CPU bug present and virtualization mitigation disabled, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/l1tf.html for details.\n"
+
 static int vmx_vm_init_bs(struct kvm *kvm)
 {
-	BS_DUP();
+	spin_lock_init(&to_kvm_vmx_bs(kvm)->ept_pointer_lock);
+
+	if (!ple_gap_bs)
+		kvm->arch.pause_in_guest = true;
+
+	if (boot_cpu_has(X86_BUG_L1TF) && enable_ept_bs) {
+		switch (l1tf_mitigation) {
+		case L1TF_MITIGATION_OFF:
+		case L1TF_MITIGATION_FLUSH_NOWARN:
+			/* 'I explicitly don't care' is set */
+			break;
+		case L1TF_MITIGATION_FLUSH:
+		case L1TF_MITIGATION_FLUSH_NOSMT:
+		case L1TF_MITIGATION_FULL:
+			/*
+			 * Warn upon starting the first VM in a potentially
+			 * insecure environment.
+			 */
+			if (sched_smt_active())
+				pr_warn_once(L1TF_MSG_SMT_BS);
+			if (l1tf_vmx_mitigation == VMENTER_L1D_FLUSH_NEVER)
+				pr_warn_once(L1TF_MSG_L1D_BS);
+			break;
+		case L1TF_MITIGATION_FULL_FORCE:
+			/* Flush is enforced */
+			break;
+		}
+	}
+
 	return 0;
 }
 
@@ -1096,6 +1137,11 @@ static inline int crash_local_vmclear_enabled_bs(int cpu)
 	return cpumask_test_cpu(cpu, &crash_vmclear_enabled_bitmap_bs);
 }
 
+static inline void crash_enable_local_vmclear_bs(int cpu)
+{
+	cpumask_set_cpu(cpu, &crash_vmclear_enabled_bitmap_bs);
+}
+
 static void crash_vmclear_local_loaded_vmcss_bs(void)
 {
 	int cpu = raw_smp_processor_id();
@@ -1109,21 +1155,89 @@ static void crash_vmclear_local_loaded_vmcss_bs(void)
 		vmcs_clear_bs(v->vmcs);
 }
 
+static struct kvm *vmx_vm_alloc_bs(void)
+{
+	struct kvm_vmx *kvm_vmx = vzalloc(sizeof(struct kvm_vmx));
+	return &kvm_vmx->kvm;
+}
+
+static void kvm_cpu_vmxon_bs(u64 addr)
+{
+	cr4_set_bits(X86_CR4_VMXE);
+	intel_pt_handle_vmx(1);
+
+	asm volatile ("vmxon %0" : : "m" (addr));
+}
+
+static int hardware_enable_bs(void)
+{
+	int cpu = raw_smp_processor_id();
+	u64 phys_addr = __pa(per_cpu(vmxarea_bs, cpu));
+	u64 old, test_bits;
+
+	if (cr4_read_shadow() & X86_CR4_VMXE)
+		return -EBUSY;
+
+	/*
+	 * This can happen if we hot-added a CPU but failed to allocate
+	 * VP assist page for it.
+	 */
+	if (static_branch_unlikely(&enable_evmcs_bs) &&
+				!hv_get_vp_assist_page(cpu))
+		return -EFAULT;
+
+	INIT_LIST_HEAD(&per_cpu(loaded_vmcss_on_cpu_bs, cpu));
+	INIT_LIST_HEAD(&per_cpu(blocked_vcpu_on_cpu_bs, cpu));
+	spin_lock_init(&per_cpu(blocked_vcpu_on_cpu_lock_bs, cpu));
+
+	/*
+	 * Now we can enable the vmclear operation in kdump
+	 * since the loaded_vmcss_on_cpu list on this cpu
+	 * has been initialized.
+	 *
+	 * Though the cpu is not in VMX operation now, there
+	 * is no problem to enable the vmclear operation
+	 * for the loaded_vmcss_on_cpu list is empty!
+	 */
+	crash_enable_local_vmclear_bs(cpu);
+
+	rdmsrl(MSR_IA32_FEATURE_CONTROL, old);
+
+	test_bits = FEATURE_CONTROL_LOCKED;
+	test_bits |= FEATURE_CONTROL_VMXON_ENABLED_OUTSIDE_SMX;
+	if (tboot_enabled())
+		test_bits |= FEATURE_CONTROL_VMXON_ENABLED_INSIDE_SMX;
+
+	if ((old & test_bits) != test_bits) {
+		/* enable and lock */
+		wrmsrl(MSR_IA32_FEATURE_CONTROL, old | test_bits);
+	}
+	kvm_cpu_vmxon_bs(phys_addr);
+	if (enable_ept_bs)
+		ept_sync_global_bs();
+
+	return 0;
+}
+
 static struct kvm_x86_ops vmx_x86_ops_bs __ro_after_init = {
 	.cpu_has_kvm_support = cpu_has_kvm_support_bs,
 	.disabled_by_bios = vmx_disabled_by_bios_bs,
 	.hardware_setup = hardware_setup_bs,
 	.check_processor_compatibility = vmx_check_processor_compat_bs,
-	.vm_init = vmx_vm_init_bs,
 	.rdtscp_supported = vmx_rdtscp_supported_bs,
 	.has_emulated_msr = vmx_has_emulated_msr_bs,
 	.get_msr_feature = vmx_get_msr_feature_bs,
+	.hardware_enable = hardware_enable_bs,
+
+	.vm_init = vmx_vm_init_bs,
+	.vm_alloc = vmx_vm_alloc_bs,
 };
 
 static int __init vmx_init_bs(void)
 {
 	int r;
 
+	BS_DONE();
 	r = kvm_init_bs(&vmx_x86_ops_bs, sizeof(struct vcpu_vmx),
 			__alignof__(struct vcpu_vmx), THIS_MODULE);
 	if (r)

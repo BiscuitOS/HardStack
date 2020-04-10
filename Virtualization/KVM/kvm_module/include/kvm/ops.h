@@ -29,18 +29,35 @@ extern bool kvm_rebooting_bs;
 #define __kvm_handle_fault_on_reboot_bs(insn)              \
 	____kvm_handle_fault_on_reboot_bs(insn, "")
 
-#define __ex(x)	__kvm_handle_fault_on_reboot_bs(x)
+#define __ex_bs(x)	__kvm_handle_fault_on_reboot_bs(x)
 
 static inline void vmcs_clear_bs(struct vmcs *vmcs)
 {
 	u64 phys_addr = __pa(vmcs);
 	bool error;
 
-	asm volatile (__ex("vmclear %1") CC_SET(na)
+	asm volatile (__ex_bs("vmclear %1") CC_SET(na)
 			: CC_OUT(na) (error) : "m"(phys_addr));
 	if (unlikely(error))
 		printk(KERN_ERR "kvm: vmclear fail: %p/%llx\n",
 				vmcs, phys_addr);
+}
+
+static inline void __invept_bs(unsigned long ext, u64 eptp, gpa_t gpa)
+{
+	struct {
+		u64 eptp, gpa;
+	} operand = { eptp, gpa };
+	bool error;
+
+	asm volatile (__ex_bs("invept %2, %1") CC_SET(na)
+			: CC_OUT(na) (error) : "r" (ext), "m" (operand));
+	BUG_ON(error);
+}
+
+static inline void ept_sync_global_bs(void)
+{
+	__invept_bs(VMX_EPT_EXTENT_GLOBAL, 0, 0);
 }
 
 #endif

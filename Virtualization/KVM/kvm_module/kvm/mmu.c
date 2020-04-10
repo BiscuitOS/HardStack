@@ -241,3 +241,26 @@ void kvm_disable_tdp_bs(void)
 	tdp_enabled_bs = false;
 }
 EXPORT_SYMBOL_GPL(kvm_disable_tdp_bs);
+
+static void kvm_mmu_pte_write_bs(struct kvm_vcpu *vcpu, gpa_t gpa,
+			const u8 *new, int bytes,
+			struct kvm_page_track_notifier_node *node)
+{
+	BS_DUP();
+}
+
+static void kvm_mmu_invalidate_zap_pages_in_memslot_bs(struct kvm *kvm,
+		struct kvm_memory_slot *slot,
+		struct kvm_page_track_notifier_node *node)
+{
+	BS_DUP();
+}
+
+void kvm_mmu_init_vm_bs(struct kvm *kvm)
+{
+	struct kvm_page_track_notifier_node *node = &kvm->arch.mmu_sp_tracker;
+
+	node->track_write = kvm_mmu_pte_write_bs;
+	node->track_flush_slot = kvm_mmu_invalidate_zap_pages_in_memslot_bs;
+	kvm_page_track_register_notifier_bs(kvm, node);
+}

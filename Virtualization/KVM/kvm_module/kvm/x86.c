@@ -12,6 +12,7 @@
 #include <linux/user-return-notifier.h>
 #include <linux/cpufreq.h>
 #include <linux/kvm_host.h>
+#include <linux/workqueue.h>
 #include <asm/kvm_host.h>
 #include <asm/fpu/internal.h>
 #include <asm/intel_pt.h>
@@ -39,7 +40,7 @@ struct kvm_shared_msrs {
 	struct kvm_shared_msr_values {
 		u64 host;
 		u64 curr;
-	} value[KVM_NR_SHARED_MSRS];
+	} values[KVM_NR_SHARED_MSRS];
 };
 
 struct kvm_x86_ops *kvm_x86_ops_bs __read_mostly;
@@ -505,4 +506,102 @@ EXPORT_SYMBOL_GPL(__kvm_request_immediate_exit_bs);
 void kvm_arch_check_processor_compat_bs(void *rtn)
 {
 	kvm_x86_ops_bs->check_processor_compatibility(rtn);
+}
+
+static void kvmclock_update_fn_bs(struct work_struct *work)
+{
+	BS_DUP();
+}
+
+static void kvmclock_sync_fn_bs(struct work_struct *work)
+{
+	BS_DUP();
+}
+
+static void pvclock_update_vm_gtod_copy_bs(struct kvm *kvm)
+{
+}
+
+int kvm_arch_init_vm_bs(struct kvm *kvm, unsigned long type)
+{
+	if (type)
+		return -EINVAL;
+
+	INIT_HLIST_HEAD(&kvm->arch.mask_notifier_list);
+	INIT_LIST_HEAD(&kvm->arch.active_mmu_pages);
+	INIT_LIST_HEAD(&kvm->arch.zapped_obsolete_pages);
+	INIT_LIST_HEAD(&kvm->arch.assigned_dev_head);
+	atomic_set(&kvm->arch.noncoherent_dma_count, 0);
+
+	/* Reserve bit 0 of irq_sources_bitmap for userspace irq source */
+	set_bit(KVM_USERSPACE_IRQ_SOURCE_ID, &kvm->arch.irq_sources_bitmap);
+	/* Reserve bit 1 of irq_sources_bitmap for irqfd-resampler */
+	set_bit(KVM_IRQFD_RESAMPLE_IRQ_SOURCE_ID,
+				&kvm->arch.irq_sources_bitmap);
+
+	raw_spin_lock_init(&kvm->arch.tsc_write_lock);
+	mutex_init(&kvm->arch.apic_map_lock);
+	spin_lock_init(&kvm->arch.pvclock_gtod_sync_lock);
+
+	kvm->arch.kvmclock_offset = -ktime_get_boot_ns();
+	pvclock_update_vm_gtod_copy_bs(kvm);
+
+	kvm->arch.guest_can_read_msr_platform_info = true;
+
+	INIT_DELAYED_WORK(&kvm->arch.kvmclock_update_work,
+						kvmclock_update_fn_bs);
+	INIT_DELAYED_WORK(&kvm->arch.kvmclock_sync_work,
+						kvmclock_sync_fn_bs);
+
+	kvm_hv_init_vm_bs(kvm);
+	kvm_page_track_init_bs(kvm);
+	kvm_mmu_init_vm_bs(kvm);
+
+	if (kvm_x86_ops_bs->vm_init)
+		return kvm_x86_ops_bs->vm_init(kvm);
+
+	return 0;
+}
+
+static void shared_msr_update_bs(unsigned slot, u32 msr)
+{
+	u64 value;
+	unsigned int cpu = smp_processor_id();
+	struct kvm_shared_msrs *smsr = per_cpu_ptr(shared_msrs_bs, cpu);
+
+	/* only read, and nobody should modify it at this time,
+	 * so don't need lock */
+	if (slot >= shared_msrs_global_bs.nr) {
+		BS_DUP();
+		return;
+	}
+	rdmsrl_safe(msr, &value);
+	smsr->values[slot].host = value;
+	smsr->values[slot].curr = value;
+}
+
+static void kvm_shared_msr_cpu_online_bs(void)
+{
+	unsigned i;
+
+	for (i = 0; i < shared_msrs_global_bs.nr; ++i)
+		shared_msr_update_bs(i, shared_msrs_global_bs.msrs[i]);
+}
+
+int kvm_arch_hardware_enable_bs(void)
+{
+	struct kvm *kvm;
+	struct kvm_vcpu *vcpu;
+	int i;
+	int ret;
+	u64 local_tsc;
+	u64 max_tsc = 0;
+	bool stable, backwards_tsc = false;
+
+	kvm_shared_msr_cpu_online_bs();
+	ret = kvm_x86_ops_bs->hardware_enable();
+	if (ret != 0)
+		return ret;
+
+	return 0;
 }

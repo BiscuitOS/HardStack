@@ -10,6 +10,9 @@
 
 #include <linux/kernel.h>
 #include <linux/workqueue.h>
+#include <linux/mutex.h>
+#include <linux/spinlock.h>
+#include <linux/kvm_host.h>
 
 static struct workqueue_struct *irqfd_cleanup_wq_bs;
 
@@ -25,4 +28,15 @@ int kvm_irqfd_init_bs(void)
 		return -ENOMEM;
 
 	return 0;
+}
+
+void kvm_eventfd_init_bs(struct kvm *kvm)
+{
+#ifdef CONFIG_HAVE_KVM_IRQFD
+	spin_lock_init(&kvm->irqfds.lock);
+	INIT_LIST_HEAD(&kvm->irqfds.items);
+	INIT_LIST_HEAD(&kvm->irqfds.resampler_list);
+	mutex_init(&kvm->irqfds.resampler_lock);
+#endif
+	INIT_LIST_HEAD(&kvm->ioeventfds);
 }

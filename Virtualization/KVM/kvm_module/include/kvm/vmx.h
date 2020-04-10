@@ -284,4 +284,9 @@ struct kvm_vmx {
 	spinlock_t ept_pointer_lock;
 };
 
+static inline struct kvm_vmx *to_kvm_vmx_bs(struct kvm *kvm)
+{
+	return container_of(kvm, struct kvm_vmx, kvm);
+}
+
 #endif /* __KVM_X86_VMX_H */

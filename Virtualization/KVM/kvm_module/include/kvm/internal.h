@@ -35,6 +35,15 @@ int kvm_async_pf_init_bs(void);
 static const struct file_operations *stat_fops_bs[];
 int kvm_register_device_ops_bs(struct kvm_device_ops *ops, u32 type);
 int kvm_vfio_ops_init_bs(void);
+void kvm_eventfd_init_bs(struct kvm *kvm);
+int kvm_arch_init_vm_bs(struct kvm *kvm, unsigned long type);
+void kvm_hv_init_vm_bs(struct kvm *kvm);
+void kvm_page_track_init_bs(struct kvm *kvm);
+void kvm_page_track_register_notifier_bs(struct kvm *kvm,
+			 struct kvm_page_track_notifier_node *n);
+void kvm_mmu_init_vm_bs(struct kvm *kvm);
+int kvm_arch_hardware_enable_bs(void);
+int kvm_coalesced_mmio_init_bs(struct kvm *kvm);
 
 extern struct kvm_x86_ops *kvm_x86_ops_bs;
 extern struct static_key_false enable_evmcs_bs;
@@ -51,5 +60,11 @@ extern u64 host_xcr0_bs;
 extern struct kvm_stats_debugfs_item debugfs_entries_bs[];
 
 #define BS_DUP()	printk("Expand..[%s-%d]\n", __func__, __LINE__)
+#define BS_DONE()	printk("Done..[%s-%d]\n", __func__, __LINE__)
+
+static inline struct kvm *kvm_arch_alloc_vm_bs(void)
+{
+	return kvm_x86_ops_bs->vm_alloc();
+}
 
 #endif
