@@ -91,6 +91,6 @@ install:
 clean:
 	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
                .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd \
-		src/*.o virt/*.o vmx/*.o
+		kvm/*.o virt/*.o vmx/*.o
 
 endif
