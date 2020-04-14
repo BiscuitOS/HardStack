@@ -1,2 +1,0 @@
-menuconfig BISCUITOS_SYSFS_FS
-	bool "BiscuitOS sysfs filesystem"

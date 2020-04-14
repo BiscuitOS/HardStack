@@ -1,2 +1,0 @@
-menuconfig BISCUITOS_DEBUGFS_FS
-	bool "BiscuitOS debugfs filesystem"

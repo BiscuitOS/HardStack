@@ -1,2 +1,0 @@
-menuconfig BISCUITOS_PROC_FS
-	bool "BiscuitOS proc filesystem"

@@ -1,5 +1,0 @@
-menuconfig BSFS
-	bool "BiscuitOS Filesystem support"
-	default y
-	help
-		BiscuitOS Filesystem
