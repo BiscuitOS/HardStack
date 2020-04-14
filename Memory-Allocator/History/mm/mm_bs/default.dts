@@ -1,0 +1,36 @@
+/*
+ * BiscuitOS Memory Layout
+ *
+ * (C) 2019.01.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+/ {
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		/* BiscuitOS Memory */
+		BiscuitOS_memory: memory@6a000000 {
+			/* 64 MB of BiscuitOS RAM */
+			reg = <0x6a000000 0x4000000>;
+		};
+
+		/* Chipselect 3 is physically at 0x4c000000 */
+		vram: vram@4c000000 {
+			/* 8 MB of designated video RAM */
+			compatible = "shared-dma-pool";
+			reg = <0x4c000000 0x00800000>;
+			no-map;
+		};
+	};
+
+	BiscuitOS {
+		compatible = "BiscuitOS,memory";
+		status = "okay";
+		ram = <&BiscuitOS_memory>;
+	};
+};
