@@ -1,132 +1,91 @@
-# platform_core_module
 #
-# (C) 2020.09.23 BiscuitOS <buddy.zhang@aliyun.com>
+# Module Common
+#
+# (C) 2020.03.14 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 
-## Default Setup
-ROOT        := /xspace/OpenSource/BiscuitOS/BiscuitOS/output/linux-5.0-i386
-BSROOT      := /xspace/OpenSource/BiscuitOS/BiscuitOS
-ARCH        := i386
-CROSS_NAME  := 
-CROSS_PATH  := $(ROOT)/$(CROSS_NAME)/$(CROSS_NAME)
-CROSS_TOOL  := $(CROSS_PATH)/bin/$(CROSS_NAME)-
-PACK        := $(ROOT)/RunBiscuitOS.sh
-DL          := $(BSROOT)/dl
-BSCORE      := $(BSROOT)/scripts/package/bsbit_core.sh
-BSDEPD      := $(BSROOT)/scripts/package/bsbit_dependence.sh
-PACKDIR     := $(ROOT)/package
-INS_PATH    := $(ROOT)/rootfs/rootfs/usr
-DLD_PATH    := "-L$(INS_PATH)/lib -L$(CROSS_PATH)/lib "
-DCF_PATH    := "-I$(INS_PATH)/include -I$(CROSS_PATH)/include "
-DPK_PATH    := $(INS_PATH)/lib/pkgconfig:$(INS_PATH)/share/pkgconfig
-KBUDCFLAG   := 
-KBLDFLAGS   := 
-KCXXFLAGS   := 
-KBASFLAGS   := 
+ifneq ($(KERNELRELEASE),)
 
-# Package information
-PACKAGE   := platform_core_module-0.0.1.tar.gz
-BASENAME  := platform_core_module-0.0.1
-TARCMD    := tar -xvf
-PATCH     := patch/$(BASENAME)
-URL       := https://gitee.com/BiscuitOS_team/HardStack/raw/Gitee/Device-Driver/Platform/nDTS/Base/kernel
-BSFILE    := platform_core_module-0.0.1.bsbit
-DLFILE    := platform.c Kconfig Makefile
-CONFIG    := --prefix=$(INS_PATH) --host=$(CROSS_NAME)
-CONFIG    += --build=
-CONFIG    += LDFLAGS="$(KBLDFLAGS)" CFLAGS="$(KBUDCFLAG)"
-CONFIG    += CXXFLAGS="$(KCXXFLAGS)" CCASFLAGS="$(KBASFLAGS)"
-CONFIG    += LIBS=$(DLD_PATH) CPPFLAGS=$(DCF_PATH)
-CONFIG    += PKG_CONFIG_PATH=$(DPK_PATH)
-CONFIG    += 
+## Target
+ifeq ("$(origin MODULE_NAME)", "command line")
+MODULE_NAME		:= $(MODULE_NAME)
+else
+MODULE_NAME		:= BiscuitOS_mod
+endif
+obj-m			:= $(MODULE_NAME).o
 
+## Source Code
+$(MODULE_NAME)-m	+= platform.o
 
-all:
-	@cd $(BASENAME) ; \
-	PATH=$(CROSS_PATH)/bin:${PATH}  \
-	make CROSS_TOOLS=$(CROSS_NAME) \
-	BSROOT=$(ROOT) ARCH=$(ARCH) \
-	MODULE_NAME=$(BASENAME)
-	$(info "Build $(PACKAGE) done.")
-	@if [ "${BS_SILENCE}X" != "trueX" ]; then \
-		figlet "BiscuitOS" ; \
-	fi
+## CFlags
+ccflags-y		+= -DCONFIG_BISCUITOS_MODULE 
+## Header
+ccflags-y		+= -I$(PWD)
 
-prepare:
-	@$(BSCORE) bsbit/$(BSFILE) $(PACKDIR)
+else
 
-depence:
-	@$(BSDEPD) bsbit/$(BSFILE) $(PACKDIR) $(BASENAME)
+## Parse argument
+## Default support ARM32
+ifeq ("$(origin BSROOT)", "command line")
+BSROOT=$(BSROOT)
+else
+BSROOT=/xspace/OpenSource/BiscuitOS/BiscuitOS/output/linux-5.0-arm32
+endif
 
-depence-clean:
-	@rm -rf $(PACKDIR)/.deptmp
+ifeq ("$(origin ARCH)", "command line")
+ARCH=$(ARCH)
+else
+ARCH=arm
+endif
 
-download:
-	@mkdir -p $(BASENAME)
-	@cd $(BASENAME) ; \
-	for file in $(DLFILE) ; \
-	do \
-		LFILE= ; \
-		LDIR= ; \
-		result=`echo $${file} | grep "/"` ; \
-		[ ! -z "$${result}" ] && LFILE=$${file##*/} ; \
-		[ ! -z "$${LFILE}" ] && LDIR=$${file%%/$${LFILE}} ; \
-		[ ! -z "$${LDIR}" ] && mkdir -p $${LDIR} ; \
-		wget $(URL)/$${file} ; \
-		[ ! -z "$${LDIR}" ] && mv $${LFILE} $${LDIR} ; \
-		echo "Download $${file}" ; \
-	done
+ifeq ("$(origin CROSS_TOOLS)", "command line")
+CROSS_TOOLS=$(CROSS_TOOLS)
+else
+CROSS_TOOLS=arm-linux-gnueabi
+endif
 
-tar:
-	@if [ "${BS_SILENCE}X" != "trueX" ]; then \
-		figlet "BiscuitOS" ; \
-	fi
-	$(info "Decompression $(PACKAGE) => $(BASENAM) done.")
+## Don't Edit
+KERNELDIR=$(BSROOT)/linux/linux
+CROSS_COMPILE_PATH=$(BSROOT)/$(CROSS_TOOLS)/$(CROSS_TOOLS)/bin
+CROSS_COMPILE=$(CROSS_COMPILE_PATH)/$(CROSS_TOOLS)-
+INCLUDEDIR=$(KERNELDIR)/include
+ARCHINCLUDEDIR=$(KERNELDIR)/arch/$(ARCH)/include
+INSTALLDIR=$(BSROOT)/rootfs/rootfs/
 
-configure:
-	@if [ "${BS_SILENCE}X" != "trueX" ]; then \
-		figlet "BiscuitOS" ; \
-	fi
-	$(info "Configure $(BASENAME) done.")
+## X86/X64 Architecture
+ifeq ($(ARCH), i386)
+CROSS_COMPILE	:=
+else ifeq ($(ARCH), x86_64)
+CROSS_COMPILE	:=
+endif
+
+## Compile
+AS		= $(CROSS_COMPILE)as
+LD		= $(CROSS_COMPILE)ld
+CC		= $(CROSS_COMPILE)gcc
+CPP		= $(CC) -E
+AR		= $(CROSS_COMPILE)ar
+NM		= $(CROSS_COMPILE)nm
+STRIP		= $(CROSS_COMPILE)strip
+OBJCOPY		= $(CROSS_COMPILE)objcopy
+OBJDUMP		= $(CROSS_COMPILE)objdump
+
+# FLAGS
+CFLAGS += -I$(INCLUDEDIR) -I$(ARCHINCLUDEDIR)
+
+all: $(OBJS)
+	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
+                CROSS_COMPILE=$(CROSS_COMPILE) modules
 
 install:
-	cd $(BASENAME) ; \
-	PATH=$(CROSS_PATH)/bin:${PATH} \
-	sudo make install CROSS_TOOLS=$(CROSS_NAME) \
-	BSROOT=$(ROOT) ARCH=$(ARCH) PWD=`pwd`
-	@if [ "${BS_SILENCE}X" != "trueX" ]; then \
-		figlet "BiscuitOS" ; \
-	fi
-	$(info "Install .... [OK]")
-
-pack:
-	@$(PACK) pack
-	$(info "Pack    .... [OK]")
-
-build:
-	make
-	make install pack
-	$(ROOT)/RunBiscuitOS.sh
-
-kernel:
-	@cd $(ROOT)/linux/linux ; \
-	make  ARCH=$(ARCH) bzImage -j4 ;\
-	cd - > /dev/null
-
-run:
-	$(ROOT)/RunBiscuitOS.sh
+	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
+		INSTALL_MOD_PATH=$(INSTALLDIR) modules_install
 
 clean:
-	cd $(BASENAME) ; \
-	make clean
-	$(info "Clean   .... [OK]")
+	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
+               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd
 
-distclean:
-	@rm -rf $(BASENAME)
-	$(info "DClean  .... [OK]")
-
-
-# Reserved by BiscuitOS :)
+endif
