@@ -1,2 +1,2 @@
-config BISCUITOS_MOD_PROJECT
-	tristate "Common Project on Module"
+config BISCUITOS_ASM_PROJECT
+	tristate "Common ASM on Module"
