@@ -16,7 +16,7 @@
 
 int BiscuitOS_show(void)
 {
-	printf("Hello BiscuitOS\n");
+	printf("Hello Application Project on BiscuitOS\n");
 
 	return 0;
 }
