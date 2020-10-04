@@ -14,6 +14,7 @@
 
 #define BISCUITOS_EVENT_A		0x01
 #define BISCUITOS_EVENT_B		0x02
+#define BISCUITOS_EVENT_C		0x03
 
 static RAW_NOTIFIER_HEAD(BiscuitOS_chain);
 
@@ -51,6 +52,8 @@ static int __init BiscuitOS_init(void)
 					BISCUITOS_EVENT_B, "BiscuitOS");
 	raw_notifier_call_chain(&BiscuitOS_chain,
 					BISCUITOS_EVENT_A, "Buddy");
+	raw_notifier_call_chain(&BiscuitOS_chain,
+					BISCUITOS_EVENT_C, "Memory");
 
 	return 0;
 }
