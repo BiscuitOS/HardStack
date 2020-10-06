@@ -1,5 +1,5 @@
 /*
- * Character DD on Userspace Demo
+ * BiscuitOS MISC DD on Userspace
  *
  * (C) 2020.10.06 <buddy.zhang@aliyun.com>
  *
