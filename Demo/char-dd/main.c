@@ -23,6 +23,11 @@
 /* Character device Minor number */
 #define BISCUITOS_MINOR		2
 
+/* IOCTL CMD */
+#define BISCUITOS_IO		0xAE
+#define BISCUITOS_SET		_IO(BISCUITOS_IO, 0x00)
+#define BISCUITOS_GET		_IO(BISCUITOS_IO, 0x01)
+
 /* Class model */
 static struct class *BiscuitOS_class;
 /* Device model */
@@ -95,6 +100,22 @@ static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
 	return len;
 }
 
+static long BiscuitOS_ioctl(struct file *filp,
+			unsigned int ioctl, unsigned long arg)
+{
+	switch (ioctl) {
+	case BISCUITOS_SET:
+		printk("IOCTL: BISCUITOS_SET.\n");
+		break;
+	case BISCUITOS_GET:
+		printk("IOCTL: BISCUITOS_GET.\n");
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
+
 /* file operations */
 static struct file_operations BiscuitOS_fops = {
 	.owner		= THIS_MODULE,
@@ -102,6 +123,7 @@ static struct file_operations BiscuitOS_fops = {
 	.release	= BiscuitOS_release,
 	.write		= BiscuitOS_write,
 	.read		= BiscuitOS_read,
+	.unlocked_ioctl	= BiscuitOS_ioctl,
 };
 
 /* Module initialize entry */
