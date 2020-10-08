@@ -14,43 +14,44 @@
 #include <linux/platform_device.h>
 
 /* LDD Platform Name */
-#define DEV_NAME "Platform_demo"
+#define DEV_NAME	"BiscuitOS"
+
+static struct platform_device *pdev;
 
 /* Probe: (LDD) Initialize Device */
-static int Platform_demo_probe(struct platform_device *pdev)
+static int BiscuitOS_probe(struct platform_device *pdev)
 {
 	/* Device Probe Procedure */
-	printk("Probe\n");
+	printk("BiscuitOS Porbeing...\n");
 
 	return 0;
 }
 
 /* Remove: (LDD) Remove Device (Module) */
-static int Platform_demo_remove(struct platform_device *pdev)
+static int BiscuitOS_remove(struct platform_device *pdev)
 {
 	/* Device Remove Procedure */
-	printk("%s %s %d\n", __FILE__, __func__, __LINE__);
+	printk("BiscuitOS Removing...\n");
 	
 	return 0;
 }
 
 /* Platform Driver Information */
-static struct platform_driver Platform_demo_driver = {
-	.probe    = Platform_demo_probe,
-	.remove   = Platform_demo_remove,
+static struct platform_driver BiscuitOS_driver = {
+	.probe    = BiscuitOS_probe,
+	.remove   = BiscuitOS_remove,
 	.driver	= {
 		.owner	= THIS_MODULE,
 		.name	= DEV_NAME,
 	},
 };
 
-static struct platform_device *pdev;
 /* Module initialize entry */
-static int __init Platform_demo_init(void)
+static int __init BiscuitOS_init(void)
 {
 	int ret;
 
-	ret = platform_driver_register(&Platform_demo_driver);
+	ret = platform_driver_register(&BiscuitOS_driver);
 	if (ret) {
 		printk("Error: Platform driver register.\n");
 		return -EBUSY;
@@ -65,14 +66,14 @@ static int __init Platform_demo_init(void)
 }
 
 /* Module exit entry */
-static void __exit Platform_demo_exit(void)
+static void __exit BiscuitOS_exit(void)
 {
 	platform_device_unregister(pdev);
-	platform_driver_unregister(&Platform_demo_driver);
+	platform_driver_unregister(&BiscuitOS_driver);
 }
 
-module_init(Platform_demo_init);
-module_exit(Platform_demo_exit);
+module_init(BiscuitOS_init);
+module_exit(BiscuitOS_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
