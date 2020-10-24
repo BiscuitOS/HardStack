@@ -12,7 +12,7 @@
 	.text
 
 _BiscuitOS_start:
-	mov	$0x40, %bx
+	mov	$0x1040, %bx
 
 loop:
 	mov	(%bx), %ax
@@ -23,7 +23,7 @@ loop:
 	jmp	loop
 
 	.data
-	.org 0x40
+	.org 0x1040
 	.ascii	"Hello BiscuitOS :)\n"
 
 	.bss

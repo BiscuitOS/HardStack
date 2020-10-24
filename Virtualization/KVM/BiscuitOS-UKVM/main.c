@@ -44,7 +44,12 @@ static int BiscuitOS_load_OS(char *memory)
 		return fd;
 
 	/* Copy ISO */
-	nbytes = read(fd, memory, ISO_BUNCK);
+	while (1) {
+		nbytes = read(fd, memory, ISO_BUNCK);
+		if (nbytes <= 0)
+			break;
+		memory += nbytes;
+	}
 
 	close(fd);
 	return 0;
