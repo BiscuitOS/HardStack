@@ -52,7 +52,7 @@ static int BiscuitOS_anonymous_file(void)
 
 	/* Bind fd and file */
 	fd_install(fd, file);
-	return 0;
+	return fd;
 }
 
 /* ioctl */
