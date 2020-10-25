@@ -21,8 +21,8 @@
  * on "arm64_memblock_init()".
  *
  * On x86_64, we can use "memmap=" on CMDLINE to reserved a memory
- * region. The range of memory region from 0x5000000 to 0xD000000, which 
- * descrbe as "memmap=0x128M$0x5000000".
+ * region. The range of memory region from 0x18000000 to 0x20000000, which 
+ * descrbe as "memmap=0x128M$0x18000000".
  */
 
 /* NUMA NODE */
@@ -31,7 +31,7 @@ static int nid = 0;
 #ifdef __aarch64__
 #define BISCUITOS_MEMORY_BASE		0x50000000
 #else // X64
-#define BISCUITOS_MEMORY_BASE		0x5000000
+#define BISCUITOS_MEMORY_BASE		0x18000000
 #endif
 #define BISCUITOS_MEMORY_SIZE		0x8000000
 
@@ -49,6 +49,9 @@ static int __init BiscuitOS_init(void)
 /* Module exit entry */
 static void __exit BiscuitOS_exit(void)
 {
+#ifdef CONFIG_MEMORY_HOTPLUG
+	remove_memory(nid, BISCUITOS_MEMORY_BASE, BISCUITOS_MEMORY_SIZE);
+#endif
 }
 
 module_init(BiscuitOS_init);
