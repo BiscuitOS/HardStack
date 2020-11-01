@@ -47,20 +47,10 @@ static int BiscuitOS_mmap(struct file *filp, struct vm_area_struct *vma)
 	return 0;
 }
 
-/* Release */
-static int BiscuitOS_release(struct inode *inode, struct file *filp)
-{
-	/* Free page */
-	__free_pages(page_map, page_private(page_map));
-
-	return 0;
-}
-
 /* file operations */
 static struct file_operations BiscuitOS_fops = {
 	.owner		= THIS_MODULE,
 	.mmap		= BiscuitOS_mmap,
-	.release	= BiscuitOS_release,
 };
 
 /* Misc device driver */
