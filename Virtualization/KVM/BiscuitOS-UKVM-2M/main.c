@@ -116,7 +116,7 @@ int main()
 	close(huge_fd);
 
 	/* Load Virtual-VM Code into VM memory */
-	error = BiscuitOS_load_OS(vm_memory);
+	error = BiscuitOS_load_OS((char *)((unsigned long)vm_memory + 0x1000));
 	if (error < 0) {
 		printf("ERROR[%d]: Load OS failed.\n", error);
 		goto err_load;
@@ -125,7 +125,7 @@ int main()
 	/* Setup KVM memory region */
 	region.slot = 0;
 	region.flags = 0;
-	region.guest_phys_addr = 0x1000;
+	region.guest_phys_addr = 0x0000;
 	region.memory_size = VM_MEMORY_SIZE;
 	region.userspace_addr = (uint64_t)vm_memory;
 	error = ioctl(vm_fd, KVM_SET_USER_MEMORY_REGION, &region);
