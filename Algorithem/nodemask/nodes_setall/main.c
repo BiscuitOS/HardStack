@@ -1,5 +1,5 @@
 /*
- * Nodemask: node_clear
+ * Nodemask: nodes_setall
  *
  * (C) 2021.01.10 BuddyZhang1 <buddy.zhang@aliyun.com>
  *

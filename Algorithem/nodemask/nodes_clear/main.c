@@ -1,5 +1,5 @@
 /*
- * Nodemask: node_clear
+ * Nodemask: nodes_clear
  *
  * (C) 2021.01.10 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -18,11 +18,11 @@ static int __init BiscuitOS_init(void)
 	nodemask_t node;
 	int i;
 
-	/* set all bits */
-	nodes_setall(node);
+	/* Clear all bits */
+	nodes_clear(node);
 
-	/* Clear special bits */
-	node_clear(2, node);
+	/* Set special bits */
+	node_set(2, node);
 
 	/* Iterate set bits */
 	for_each_node_mask(i, node)
