@@ -26,7 +26,7 @@ static int __init BiscuitOS_init(void)
 	if (node_isset(2, node))
 		printk("NODE 2 is set.\n");
 
-	if (node_set_and_test(2, node))
+	if (node_test_and_set(2, node))
 		printk("NODE 2 has set.\n");
 
 	printk("Hello modules on BiscuitOS\n");
