@@ -1,0 +1,2 @@
+config BISCUITOS_MEMBLOCK
+	tristate "MEMBLOCK"
