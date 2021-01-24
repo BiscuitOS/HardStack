@@ -115,7 +115,6 @@ static vm_fault_t vm_fault(struct vm_fault *vmf)
 		r = -ENOMEM;
 		goto err_alloc;
 	}
-	trace_printk("Page-Fault: PFN %#lx\n", page_to_pfn(fault_page));
 
 	/* Establish pte and INC _mapcount for page */
 	vma->vm_flags |= VM_MIXEDMAP;
