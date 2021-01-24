@@ -1,0 +1,2 @@
+config BISCUITOS_PGING_KERNEL
+	tristate "KErnel Paging mechanism"
