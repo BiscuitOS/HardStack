@@ -15,6 +15,9 @@
 #include <linux/fs.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#ifdef __i386__
+#include <linux/highmem.h>
+#endif
 
 /* Paging/fault header*/
 #include <linux/mm.h>
