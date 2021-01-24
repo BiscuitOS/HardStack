@@ -50,7 +50,7 @@ int main()
 
 	/* Write operation */
 	*val = 88520;
-	/* Read operation: Doesn't trigger any warn/bug */
+	/* Read operation: Doesn't trigger normal kernel read fault */
 	printf("=> %#lx\n", *val);
 
 	/* Hold 3s */
