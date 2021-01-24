@@ -83,8 +83,6 @@ all: $(OBJS)
 install:
 	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
 		INSTALL_MOD_PATH=$(INSTALLDIR) modules_install
-	chmod 755 RunBiscuitOS.sh
-	cp RunBiscuitOS.sh $(INSTALLDIR)/usr/bin
 
 clean:
 	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
