@@ -157,6 +157,14 @@ static int BiscuitOS_populate_page_table(unsigned long start,
 	if (!pte)
 		return -ENOMEM;
 
+	/* Check Address */
+	if (pte_present(*pte)) {
+		if (pte_flags(*pte) & _PAGE_USER)
+			printk("Address from Userspace.\n");
+		else
+			printk("Address from Kernel.\n");
+	}
+
 	return 0;
 }
 

@@ -89,6 +89,11 @@ static void BiscuitOS_scanner_pte(struct timer_list *unused)
 		pfn = pte_pfn(*BiscuitOS_pte);
 
 		printk("PTE %#lx With Page %#lx\n", *BiscuitOS_pte, pfn);
+
+		if (pte_flags(*BiscuitOS_pte) & _PAGE_USER)
+			printk("Address from Userspace.\n");
+		else
+			printk("Address from Kernel.\n");
 	}
 
 	mod_timer(&BiscuitOS_scanner, 
