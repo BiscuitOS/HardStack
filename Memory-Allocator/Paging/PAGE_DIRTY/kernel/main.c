@@ -91,10 +91,10 @@ static void BiscuitOS_scanner_pte(struct timer_list *unused)
 		printk("PTE %#lx With Page %#lx\n", *BiscuitOS_pte, pfn);
 
 		if (pte_dirty(*BiscuitOS_pte)) {
-			printk("Address has been accessed.\n");
+			printk("Address is dirty.\n");
 			*BiscuitOS_pte = pte_mkclean(*BiscuitOS_pte);
 		} else
-			printk("Address no accessed.\n");
+			printk("Address is clean.\n");
 	}
 
 	mod_timer(&BiscuitOS_scanner, 
