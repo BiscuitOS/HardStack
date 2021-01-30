@@ -43,9 +43,9 @@ static int __init BiscuitOS_init(void)
 	/* Detect 32-bit paing */
 	if (!(cr4 & X86_CR4_PAE))
 		printk("The system uses 32-bit paging mode.\n");
-	else if ((cr4 & X86_CR4_PAE) & !(efer & EFER_LME))
+	else if ((cr4 & X86_CR4_PAE) && !(efer & EFER_LME))
 		printk("The system uses PAE paging mode.\n");
-	else if ((cr4 & X86_CR4_PAE) & (efer & EFER_LME))
+	else if ((cr4 & X86_CR4_PAE) && (efer & EFER_LME))
 		printk("The system uses 4-level paging mode.\n");
 	else {
 		printk("Unknown paging mode.\n");

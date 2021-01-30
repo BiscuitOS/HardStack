@@ -1,5 +1,5 @@
 /*
- * Paging Mechanism: PAE paging mode
+ * Paging Mechanism: 4-level Paging mode
  *
  * (C) 2020.10.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -40,16 +40,16 @@ static int __init BiscuitOS_init(void)
 	cr4 = __read_cr4();
 	rdmsrl(MSR_EFER, efer);
 
-	/* Detect PAE paing */
-	if ((cr4 & X86_CR4_PAE) && !(efer & EFER_LME))
-		printk("The system uses PAE paging mode.\n");
+	/* Detect 4-level paing */
+	if ((cr4 & X86_CR4_PAE) && (efer & EFER_LME))
+		printk("The system uses 4-level paging mode.\n");
 	else {
 		printk("Unknown paging mode.\n");
 		return -EINVAL;
 	}
 
-	/* PAE Paging capability */
-	printk("PAE Paging Capability: ");
+	/* 4-level Paging capability */
+	printk("4-level Paging Capability: ");
 	if (cr0 & X86_CR0_WP)
 		printk("  CR0.WP\n");
 	if (cr0 & X86_CR4_PSE)
@@ -60,6 +60,10 @@ static int __init BiscuitOS_init(void)
 		printk("  CR4.SMEP\n");
 	if (cr4 & X86_CR4_SMAP)
 		printk("  CR4.SMAP\n");
+	if (cr4 & X86_CR4_PCIDE)
+		printk("  CR4.PCIDE\n");
+	if (cr4 & X86_CR4_PKE)
+		printk("  CR4.PKE\n");
 	if (efer & EFER_NX)
 		printk("  IA32_EFER.NXE\n");
 
