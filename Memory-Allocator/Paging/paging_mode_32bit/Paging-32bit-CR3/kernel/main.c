@@ -1,7 +1,7 @@
 /*
- * Paging Mechanism
+ * CR3 on 32-bit Paging mode
  *
- * (C) 2021.01.20 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2021.02.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -21,6 +21,7 @@
 
 /* Paging/fault header*/
 #include <linux/mm.h>
+#include <asm/paravirt.h>
 
 /* DD Platform Name */
 #define DEV_NAME			"BiscuitOS"
@@ -29,67 +30,41 @@
 #define BISCUITOS_SCANNER_PERIOD	1000 /* 1000ms -> 1s */
 static struct timer_list BiscuitOS_scanner;
 
-/* Special PTE */
-static pte_t *BiscuitOS_pte;
+/* Special fault address */
+static unsigned long BiscuitOS_address;
+static struct mm_struct *BiscuitOS_mm;
+static unsigned long page_fault_cr3;
 
-/* follow pte */
-static int BiscuitOS_get_locked_pte(struct mm_struct *mm, 
-		unsigned long address, pte_t **ptep, spinlock_t **ptl)
+/* follow CR3 */
+static int BiscuitOS_follow_cr3(struct mm_struct *mm, unsigned long address)
 {
+	phys_addr_t pgd_addr;
 	pgd_t *pgd;
-	p4d_t *p4d;
-	pud_t *pud;
-	pmd_t *pmd;
-	pte_t *pte;
 
-	/* Follow PGD Entry */
+	/* pgd */
 	pgd = pgd_offset(mm, address);
 	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
 		goto out;
 
-	/* Follow P4D Entry */
-	p4d = p4d_offset(pgd, address);
-	if (p4d_none(*p4d) || unlikely(p4d_bad(*p4d)))
-		goto out;
+	/* load physical address */
+	pgd_addr = __pa(pgd) & PAGE_MASK;
 
-	/* Follow PUD Entry */
-	pud = pud_offset(p4d, address);
-	if (pud_none(*pud) || unlikely(pud_bad(*pud)))
-		goto out;
+	printk("The Virtual  Address of PGD: %#lx\n", (unsigned long)pgd);
+	printk("The Physical Address of PGD: %#lx\n", pgd_addr);
+	printk("The Value of CR3:            %#lx\n", page_fault_cr3);
 
-	/* Follow PMD Entry */
-	pmd = pmd_offset(pud, address);
-	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
-		goto out;
-
-	/* Follow PTE */
-	pte = pte_offset_map_lock(mm, pmd, address, ptl);
-	if (!pte)
-		goto out;
-	if (!pte_present(*pte))
-		goto unlock;
-	*ptep = pte;
 	return 0;
-
-unlock:
-	pte_unmap_unlock(ptep, *ptl);
 out:
 	return -EINVAL;
 }
 
-/* PTE Scanner */
-static void BiscuitOS_scanner_pte(struct timer_list *unused)
+/* CR3 Scanner */
+static void BiscuitOS_scanner_CR3(struct timer_list *unused)
 {
-	/* Check PTE */
-	if (BiscuitOS_pte && pte_present(*BiscuitOS_pte)) {
-		struct page *page;
-		unsigned long pfn;
+	unsigned long address = BiscuitOS_address;
 
-		page = pte_page(*BiscuitOS_pte);
-		pfn = pte_pfn(*BiscuitOS_pte);
-
-		printk("PTE %#lx With Page %#lx\n", *BiscuitOS_pte, pfn);
-	}
+	if (BiscuitOS_address)
+		BiscuitOS_follow_cr3(BiscuitOS_mm, address);
 
 	mod_timer(&BiscuitOS_scanner, 
 			jiffies + msecs_to_jiffies(BISCUITOS_SCANNER_PERIOD));
@@ -121,13 +96,10 @@ static vm_fault_t vm_fault(struct vm_fault *vmf)
 	atomic_inc(&fault_page->_refcount);
 	/* bind fault page */
 	vmf->page = fault_page;
-
-	/* Special pte */
-	BiscuitOS_get_locked_pte(vma->vm_mm, address, &pte, &ptl);
-	if (pte && pte_present(*pte)) {
-		pte_unmap_unlock(pte, ptl);
-		BiscuitOS_pte = pte;
-	}
+	/* Special address */
+	BiscuitOS_address = address;
+	BiscuitOS_mm = vma->vm_mm;
+	page_fault_cr3 = __read_cr3();
 
 	return 0;
 
@@ -167,7 +139,7 @@ static int __init BiscuitOS_init(void)
 	misc_register(&BiscuitOS_drv);
 
 	/* Timer for PTE Scanner */
-	timer_setup(&BiscuitOS_scanner, BiscuitOS_scanner_pte, 0);
+	timer_setup(&BiscuitOS_scanner, BiscuitOS_scanner_CR3, 0);
 	mod_timer(&BiscuitOS_scanner, 
 			jiffies + msecs_to_jiffies(BISCUITOS_SCANNER_PERIOD));
 
