@@ -53,6 +53,8 @@ static int BiscuitOS_follow_cr3(struct mm_struct *mm, unsigned long address)
 	printk("The Physical Address of PGD: %#lx\n", pgd_addr);
 	printk("The Value of CR3:            %#lx\n", page_fault_cr3);
 
+	/* Clear */
+	BiscuitOS_address = 0;
 	return 0;
 out:
 	return -EINVAL;
