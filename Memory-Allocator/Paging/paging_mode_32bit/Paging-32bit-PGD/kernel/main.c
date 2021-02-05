@@ -1,5 +1,5 @@
 /*
- * CR3 on 32-bit Paging mode
+ * PGD on 32-bit Paging mode
  *
  * (C) 2021.02.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -33,28 +33,81 @@ static struct timer_list BiscuitOS_scanner;
 /* Special fault address */
 static unsigned long BiscuitOS_address;
 static struct mm_struct *BiscuitOS_mm;
-static unsigned long page_fault_cr3;
 
 /* follow CR3 */
 static int BiscuitOS_follow_cr3(struct mm_struct *mm, unsigned long address)
 {
-	phys_addr_t pgd_addr;
+	unsigned long long addr;
+	unsigned long long pgd_addr;
 	pgd_t *pgd;
+	p4d_t *p4d;
+	pud_t *pud;
+	pmd_t *pmd;
+	pte_t *pte;
+	spinlock_t *ptl;
 
 	/* pgd */
 	pgd = pgd_offset(mm, address);
 	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
 		goto out;
 
+	/* p4d */
+	p4d = p4d_offset(pgd, address);
+	if (p4d_none(*p4d) || unlikely(p4d_bad(*p4d)))
+		goto out;
+
 	/* load physical address */
-	pgd_addr = __pa(pgd) & PAGE_MASK;
+	pgd_addr = __pa(pgd);
+	addr = __pa(p4d);
 
-	printk("The Virtual  Address of PGD: %#lx\n", (unsigned long)pgd);
-	printk("The Physical Address of PGD: %#lx\n", pgd_addr);
-	printk("The Value of CR3:            %#lx\n", page_fault_cr3);
+	if (pgd_addr != addr) {
+		printk("The physical address of p4d: %#llx\n", addr);
+		goto found;
+	}
 
+	/* pud */
+	pud = pud_offset(p4d, address);
+	if (pud_none(*pud) || unlikely(pud_bad(*pud)))
+		goto out;
+	addr = __pa(pud);
+
+	if (pgd_addr != addr) {
+		printk("The physical address of pud: %#llx\n", addr);
+		goto found;
+	}
+
+	/* pmd */
+	pmd = pmd_offset(pud, address);
+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
+		goto out;
+	addr = __pa(pmd);
+
+	if (pgd_addr != addr) {
+		printk("The physical address of pmd: %#llx\n", addr);
+		goto found;
+	}
+
+	/* pte */
+	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+	if (!pte)
+		goto out;
+	pte_unmap_unlock(pte, ptl);
+
+	addr = __pa(pte);
+	if (pte_present(*pte) && pgd_addr != addr) {
+		printk("The physical address of pte: %#llx\n", addr);
+		goto found;
+	}
+
+found:
+	printk("The context of PGD:          %#lx\n", pgd_val(*pgd));
+	printk("The physical address of pgd: %#llx\n", pgd_addr);
+
+	/* Clear */
+	BiscuitOS_address = 0;
 	return 0;
 out:
+	printk("Unknow.\n");
 	return -EINVAL;
 }
 
@@ -99,7 +152,6 @@ static vm_fault_t vm_fault(struct vm_fault *vmf)
 	/* Special address */
 	BiscuitOS_address = address;
 	BiscuitOS_mm = vma->vm_mm;
-	page_fault_cr3 = __read_cr3();
 
 	return 0;
 
