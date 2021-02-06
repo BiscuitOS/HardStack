@@ -24,6 +24,9 @@ static int __init BiscuitOS_init(void)
 	/* CPUID 01H */
 	cpuid(0x01, &eax, &ebx, &ecx, &edx);
 
+	printk("CPUID 0x01H\n");
+	printk("EAX: %#x\nEBX: %#x\nECX: %#x\nEDX: %#x\n",
+						eax, ebx, ecx, edx);
 	printk("Hello modules on BiscuitOS\n");
 
 	return 0;
