@@ -15,12 +15,16 @@
 #include <asm/msr.h>
 #include <asm/msr-index.h>
 #include <asm/paravirt.h>
+/* CPUID */
+#include <asm/processor.h>
+#include <asm/cpufeatures.h>
 
 /* Module initialize entry */
 static int __init BiscuitOS_init(void)
 {
 	unsigned long cr0;
 	unsigned long cr4;
+	unsigned int eax, ebx, ecx, edx;
 
 	/* Detect PG and PE on cr0 */
 	cr0 = read_cr0();
@@ -47,17 +51,27 @@ static int __init BiscuitOS_init(void)
 	}
 
 	/* Paging capability */
-	printk("32-bit Paging Capability: ");
+	printk("32-bit Paging Capability:\n");
 	if (cr0 & X86_CR0_WP)
 		printk("  CR0.WP\n");
 	if (cr0 & X86_CR4_PSE)
 		printk("  CR4.PSE\n");
 	if (cr0 & X86_CR4_PGE)
 		printk("  CR4.PGE\n");
-	if (cr4 & X86_CR4_SMEP)
-		printk("  CR4.SMEP\n");
-	if (cr4 & X86_CR4_SMAP)
-		printk("  CR4.SMAP\n");
+
+	/* CPUID.01H */
+	eax = ebx = ecx = edx = 0;
+	cpuid(0x01, &eax, &ebx, &ecx, &edx);
+
+	if (edx & X86_FEATURE_PSE36)
+		printk("  CPUID.01H PSE36\n");
+	if (edx & X86_FEATURE_PGE)
+		printk("  CPUID.01H PGE\n");
+
+	/* CPUID.80000008H */
+	eax = ebx = ecx = edx = 0;
+	cpuid(0x80000008, &eax, &ebx, &ecx, &edx);
+	printk("  MAXPHYADDR: %d\n", eax & 0xff);
 
 	return 0;
 }
