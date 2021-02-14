@@ -43,12 +43,10 @@ static struct vm_area_struct *BiscuitOS_vma;
 unsigned long BiscuitOS_address;
 
 /* kallsyms unexport symbol */
-typedef int (*__pte_alloc_t)(struct mm_struct *, pmd_t *);
 typedef void (*page_add_f_rmap_t)(struct page *, bool);
 typedef void (*flush_tlb_mm_range_t)(struct mm_struct *, unsigned long,
 				unsigned long, unsigned int, bool);
 
-static __pte_alloc_t __pte_alloc_func;
 static page_add_f_rmap_t page_add_file_rmap_func;
 static flush_tlb_mm_range_t flush_tlb_mm_range_func;
 
@@ -164,8 +162,6 @@ err_alloc:
 
 static inline void init_symbol(void)
 {
-	__pte_alloc_func = 
-	     (__pte_alloc_t)kallsyms_lookup_name("__pte_alloc");
 	page_add_file_rmap_func = 
 	     (page_add_f_rmap_t)kallsyms_lookup_name("page_add_file_rmap");
 	flush_tlb_mm_range_func =
