@@ -111,7 +111,7 @@ out:
 }
 
 /* PDE Scanner */
-static void BiscuitOS_scanner_pte(struct timer_list *unused)
+static void BiscuitOS_scanner_pde(struct timer_list *unused)
 {
 	if (BiscuitOS_address) {
 		pmd_t *pde;
@@ -205,7 +205,7 @@ static int __init BiscuitOS_init(void)
 	init_symbol();
 
 	/* Timer for PTE Scanner */
-	timer_setup(&BiscuitOS_scanner, BiscuitOS_scanner_pte, 0);
+	timer_setup(&BiscuitOS_scanner, BiscuitOS_scanner_pde, 0);
 	mod_timer(&BiscuitOS_scanner, 
 			jiffies + msecs_to_jiffies(BISCUITOS_SCANNER_PERIOD));
 
