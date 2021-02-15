@@ -130,6 +130,7 @@ static int __init BiscuitOS_init(void)
 
 	printk("\n\n\n\n*************BiscuitOS************\n");
 	printk("=> %#lx: %ld\n", (unsigned long)addr, *addr);
+	printk("BiscuitOS KMAP Memory Allocator.\n");
 	printk("*********************************\n\n\n\n");
 
 	/* KMAP Un-Mapping */
