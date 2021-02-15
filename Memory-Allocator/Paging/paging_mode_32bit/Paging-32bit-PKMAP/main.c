@@ -282,6 +282,8 @@ static int __init BiscuitOS_init(void)
 	*addr = 88520;
 	printk("\n\n\n\n****************BiscuitOS**************\n");
 	printk("=> %#lx: %ld\n", (unsigned long)addr, *addr);
+	printk("PKMAP Range: %#lx - %#lx\n", 
+			BISCUITOS_PKMAP_ADDR(0), BISCUITOS_PKMAP_ADDR(LAST_PKMAP));
 	printk("***************************************\n\n\n\n");
 
 	/* PKMAP un-mapping */
