@@ -13,7 +13,7 @@
 #include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/interrupt.h>
-#include <linux/cdev.h>
+#include <linux/miscdevice.h>
 #include <linux/pci.h>
 #include <linux/uaccess.h>
 
@@ -24,8 +24,6 @@
 #define IO_IRQ_STATUS		0x24
 #define QEMU_VENDOR_ID		0x1234
 
-/* Major number */
-static int BiscuitOS_major;
 /* Interrupt Number */
 static int BiscuitOS_irq;
 /* MMIO */
@@ -87,22 +85,25 @@ static struct file_operations BiscuitOS_fops = {
 	.write	= BiscuitOS_write,
 };
 
+/* MISC Device */
+static struct miscdevice BiscuitOS_misc = {
+	.minor	= MISC_DYNAMIC_MINOR,
+	.name	= BISCUITOS_NAME,
+	.fops	= &BiscuitOS_fops,
+};
+
 /* BiscuitOS IRQ Handler */
 static irqreturn_t BiscuitOS_irq_handler(int irq, void *dev)
 {
 	irqreturn_t ret;
 	u32 irq_status;
-	int device_major = (int)(unsigned long)dev;
 	
-	if (device_major == BiscuitOS_major) {
-		irq_status = ioread32(BiscuitOS_mmio + IO_IRQ_STATUS);
-		printk("Interrupt irq %d Device %d irq_status %#llx\n",
-					irq, device_major, (u64)irq_status);
-		/* Must do this ACK, or else the interrupts just keep firing. */
-		iowrite32(irq_status, BiscuitOS_mmio + IO_IRQ_ACK);
-		ret = IRQ_HANDLED;
-	} else
-		ret = IRQ_NONE;
+	irq_status = ioread32(BiscuitOS_mmio + IO_IRQ_STATUS);
+	printk("Interrupt irq %d irq_status %#llx\n",
+				irq, (u64)irq_status);
+	/* Must do this ACK, or else the interrupts just keep firing. */
+	iowrite32(irq_status, BiscuitOS_mmio + IO_IRQ_ACK);
+	ret = IRQ_HANDLED;
 
 	return ret;
 }
@@ -115,7 +116,8 @@ static int BiscuitOS_pci_probe(struct pci_dev *dev,
 	int idx;
 	u8 val;
 
-	BiscuitOS_major = register_chrdev(0, BISCUITOS_NAME, &BiscuitOS_fops);
+	/* Register Misc interface */
+	misc_register(&BiscuitOS_misc);
 
 	/* Enable PCI Device */
 	if (pci_enable_device(dev) < 0) {
@@ -136,7 +138,7 @@ static int BiscuitOS_pci_probe(struct pci_dev *dev,
 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &val);
 	BiscuitOS_irq = val;
 	if (request_irq(BiscuitOS_irq, BiscuitOS_irq_handler, 
-		IRQF_SHARED, "BiscuitOS_irq_handler0", &BiscuitOS_major) < 0) {
+		IRQF_SHARED, "BiscuitOS_irq_handler0", &BiscuitOS_misc.minor) < 0) {
 		printk("ERROR: request_irq.\n");
 		goto error;
 	}
@@ -186,7 +188,7 @@ static void BiscuitOS_pci_remove(struct pci_dev *dev)
 {
 	free_irq(BiscuitOS_irq, NULL);
 	pci_release_region(dev, BISCUITOS_BAR);
-	unregister_chrdev(BiscuitOS_major, BISCUITOS_NAME);
+	misc_deregister(&BiscuitOS_misc);
 }
 
 /* BiscuitOS PCI Driver */
