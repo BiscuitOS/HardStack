@@ -84,6 +84,8 @@ static int __init BiscuitOS_init(void)
 	printk("Linear Range: 0 - %#lx\n", (unsigned long)PFN_PHYS(max_pfn));
 	printk("********************************\n\n\n");
 
+	__free_page(page);
+
 	printk("Hello BiscuitOS\n");
 
 	return 0;
