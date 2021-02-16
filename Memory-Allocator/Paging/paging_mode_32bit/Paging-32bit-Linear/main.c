@@ -46,6 +46,7 @@ static int __init BiscuitOS_init(void)
 	phys_addr_t phys, _phys, phys_follow;
 	unsigned long pfn, pfn_follow;
 	unsigned long vaddr, _vadr;
+	unsigned long *var;
 	struct page *page;
 	pte_t *pte;
 
@@ -70,7 +71,12 @@ static int __init BiscuitOS_init(void)
 	pfn_follow  = pte_pfn(*pte);
 	phys_follow = PFN_PHYS(pfn_follow);
 
+	/* Use */
+	var = (unsigned long *)vaddr;
+	*var = 88520;
+
 	printk("\n\n\n**********BiscuitOS***********\n");
+	printk("=> %#lx: %ld\n", (unsigned long)var, *var);
 	printk("Default:\n");
 	printk("  Virtual Address:  %#lx\n", vaddr);
 	printk("  Physical Address: %#lx\n", (unsigned long)phys);
