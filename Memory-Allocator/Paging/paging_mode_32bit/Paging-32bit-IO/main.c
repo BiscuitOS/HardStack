@@ -181,6 +181,8 @@ static int BiscuitOS_probe(struct platform_device *pdev)
 
 	printk("\n\n\n\n******************BiscuitOS*****************\n");
 	printk("=> %#lx: %ld\n", (unsigned long)addr, *addr);
+	printk("IO Range: %#lx - %#lx\n", BISCUITOS_IO_BASE,
+				BISCUITOS_IO_BASE + BISCUITOS_IO_SIZE);
 	printk("*********************************************\n\n\n\n");
 
 	/* Release */
