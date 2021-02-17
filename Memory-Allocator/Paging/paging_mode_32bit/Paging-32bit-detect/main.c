@@ -50,19 +50,12 @@ static int __init BiscuitOS_init(void)
 		return -EINVAL;
 	}
 
-	/* Paging capability */
-	printk("32-bit Paging Capability:\n");
-	if (cr0 & X86_CR0_WP)
-		printk("  CR0.WP\n");
-	if (cr0 & X86_CR4_PSE)
-		printk("  CR4.PSE\n");
-	if (cr0 & X86_CR4_PGE)
-		printk("  CR4.PGE\n");
-
+	/* Paging With CPU FEATURE */
 	/* CPUID.01H */
 	eax = ebx = ecx = edx = 0;
 	cpuid(0x01, &eax, &ebx, &ecx, &edx);
 
+	printk("32-bit Paging FEATURE:\n");
 	if (edx & X86_FEATURE_PSE36)
 		printk("  CPUID.01H PSE36\n");
 	if (edx & X86_FEATURE_PGE)
@@ -71,7 +64,21 @@ static int __init BiscuitOS_init(void)
 	/* CPUID.80000008H */
 	eax = ebx = ecx = edx = 0;
 	cpuid(0x80000008, &eax, &ebx, &ecx, &edx);
-	printk("  MAXPHYADDR: %d\n", eax & 0xff);
+	printk("  MAXPHYADDR:   %d\n", eax & 0xff);
+	printk("  Linear Width: %d\n", (eax >> 8) & 0xff);
+	printk("  Virtual Range: %#lx\n", 
+				(unsigned long)(1 << ((eax >> 8) & 0xff)));
+	printk("  Physical Memory MAX: %#lx\n", 
+				(unsigned long)(1 << (eax & 0xff)));
+
+	/* Paging Capability */
+	printk("32-bit Paging Capability:\n");
+	if (cr0 & X86_CR0_WP)
+		printk("  CR0.WP\n");
+	if (cr0 & X86_CR4_PSE)
+		printk("  CR4.PSE\n");
+	if (cr0 & X86_CR4_PGE)
+		printk("  CR4.PGE\n");
 
 	return 0;
 }
