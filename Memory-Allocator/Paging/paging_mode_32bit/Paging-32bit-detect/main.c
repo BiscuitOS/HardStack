@@ -75,9 +75,9 @@ static int __init BiscuitOS_init(void)
 	printk("32-bit Paging Capability:\n");
 	if (cr0 & X86_CR0_WP)
 		printk("  CR0.WP\n");
-	if (cr0 & X86_CR4_PSE)
+	if (cr4 & X86_CR4_PSE)
 		printk("  CR4.PSE\n");
-	if (cr0 & X86_CR4_PGE)
+	if (cr4 & X86_CR4_PGE)
 		printk("  CR4.PGE\n");
 
 	return 0;
