@@ -1,7 +1,7 @@
 /*
  * mkswap and swapon on BiscuitOS
  *
- * (C) 2021.02.02 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2021.02.21 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -17,6 +17,7 @@
 #define SWAP_PATH		"/BiscuitOS_swap"
 #define PAGE_SIZE		(4096)
 #define ALIGN(m)		__attribute__ ((__aligned__(m)))
+#define LABEL			"swap"
 
 #define __NR_SWAPON		87
 
@@ -64,13 +65,14 @@ int main()
 
 	/* Fill the header. */
 	hdr->version = 1;
-	hdr->last_page = 0;
-	/* UUID: Emulate a UUID */
+	/* Hack 8MiB(Omit header page): (8 * 1024 * 1024) / PAGE_SIZE */
+	hdr->last_page = 2047;
+	/* UUID: Hack a UUID */
 	memset(&hdr->sws_uuid[0],  0x65862b10, 4);
 	memset(&hdr->sws_uuid[4],  0xa3457fc3, 4);
 	memset(&hdr->sws_uuid[8],  0xe7c1ad90, 4);
 	memset(&hdr->sws_uuid[12], 0x55897cd4, 4);
-	strncpy(hdr->sws_volume, SWAP_PATH, 16);
+	strncpy(hdr->sws_volume, LABEL, 16);
 
 	/* Write the header.  Sync to disk because some kernel versions check
 	 * signature on disk (not in cache) during swapon. */
@@ -80,9 +82,9 @@ int main()
 	fsync(fd);
 	close(fd);
 
-	syscall(600, 1);
+	syscall(400, 1);
 	syscall(__NR_SWAPON, SWAP_PATH, 0);
-	syscall(600, 0);
+	syscall(400, 0);
 
 	printf("Hello BiscuitOS.\n");
 	return 0;
