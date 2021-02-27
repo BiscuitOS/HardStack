@@ -14,8 +14,9 @@
 
 #include "linux/demo.h"
 
-int main()
+int BiscuitOS_show(void)
 {
-	BiscuitOS_show();
+	printf("Hello Application Project on BiscuitOS\n");
+
 	return 0;
 }

@@ -1,7 +1,7 @@
 #
-# KVM Application Project
+# Application Project
 #
-# (C) 2020.10.24 BuddyZhang1 <buddy.zhang@aliyun.com>
+# (C) 2020.02.02 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -14,10 +14,8 @@ else
 TARGET			:= BiscuitOS_app
 endif
 
-OS_NAME			:= _BiscuitOS-VM.iso
-OS_ASM			:= BiscuitOS-Virtual-Machine
-
 ## Source Code
+SRC			:= $(wildcard $(PWD)/src/*.c)
 SRC			+= main.c
 
 ## CFlags
@@ -55,10 +53,10 @@ INSTALL_PATH		:= ./
 endif
 
 all:
-	@$(B_CC) $(LCFLAGS) -o $(TARGET) $(SRC)
+	$(B_CC) $(LCFLAGS) -o $(TARGET) $(SRC)
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
 
 clean:
-	@rm -rf $(TARGET) *.o *.iso
+	@rm -rf $(TARGET) *.o
