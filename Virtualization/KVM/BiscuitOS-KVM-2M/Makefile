@@ -56,16 +56,9 @@ endif
 
 all:
 	@$(B_CC) $(LCFLAGS) -o $(TARGET) $(SRC)
-	@$(B_AS) -32 $(OS_ASM).S -o $(OS_ASM).o
-	@$(B_LD) -m elf_i386 --oformat binary -N -e _BiscuitOS_start \
-	         -Ttext 0x10000 -o $(OS_NAME) $(OS_ASM).o
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
-	@mkdir -p $(INSTALL_PATH)/firmware/
-	@cp -rfa $(OS_NAME) $(INSTALL_PATH)/firmware/
-	@chmod 755 RunBiscuitOS.sh
-	@cp -rfa RunBiscuitOS.sh $(INSTALL_PATH)
 
 clean:
 	@rm -rf $(TARGET) *.o *.iso
