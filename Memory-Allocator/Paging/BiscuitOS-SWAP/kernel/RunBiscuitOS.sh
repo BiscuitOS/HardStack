@@ -1,8 +1,8 @@
 #!/bin/ash
 
-dd if=/dev/zero of=/BiscuitOS_swap bs=1M count=8
+dd if=/dev/zero of=/BiscuitOS_SWAP bs=1M count=8
 sync
-chown root:root /BiscuitOS_swap
+chown root:root /BiscuitOS_SWAP
 
-insmod /lib/modules/$(uname -r)/extra/vswap-mod-default.ko
-vswap-app-default
+insmod /lib/modules/$(uname -r)/extra/BiscuitOS-SWAP-kernel-default.ko
+BiscuitOS-SWAP-userspace-default
