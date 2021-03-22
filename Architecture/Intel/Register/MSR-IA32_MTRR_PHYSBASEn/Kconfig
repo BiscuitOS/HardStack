@@ -1,0 +1,2 @@
+config BISCUITOS_INTEL_REGISTER
+	tristate "INTEL Register on BiscuitOS"
