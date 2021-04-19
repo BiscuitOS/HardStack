@@ -76,9 +76,7 @@ int main()
 	status = nodes;
 
 	/* Move to another NUMA NODE */
-	syscall(600, 1);
 	numa_move_pages(0, 1, addr, &nodes, &status, 0);
-	syscall(600, 0);
 
 	/* Migration */
 	printf("Migrating the current processes pages ...\n");
