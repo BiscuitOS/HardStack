@@ -25,6 +25,6 @@ BiscuitOS-file-mmap-minix-userspace-default
 # hexdump
 if [ -f /usr/bin/hexdump ]; then
   echo ""
-  echo "Dump Context for /BiscuitOS-minix/BiscuitOS            [YES]"
+  echo "Dump Context for /BiscuitOS-minix/BiscuitOS           [YES]"
   hexdump /BiscuitOS-minix/BiscuitOS
 fi
