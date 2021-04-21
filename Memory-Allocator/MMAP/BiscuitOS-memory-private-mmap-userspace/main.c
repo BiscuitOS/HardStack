@@ -1,5 +1,5 @@
 /*
- * Normal/Direct mmap on Userspace
+ * Memory private mmap on Userspace
  *
  * (C) 2021.04.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
