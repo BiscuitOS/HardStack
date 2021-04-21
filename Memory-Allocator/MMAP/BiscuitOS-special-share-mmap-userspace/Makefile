@@ -56,8 +56,6 @@ all:
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
-	@chmod 755 RunBiscuitOS.sh
-	@cp -rfa RunBiscuitOS.sh $(INSTALL_PATH)
 
 clean:
 	@rm -rf $(TARGET) *.o
