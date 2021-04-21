@@ -9,7 +9,6 @@ mount | grep BiscuitOS
 echo ""
 
 echo "Invoke Process                                        [YES]"
-echo "BiscuitOS" > /BiscuitOS-tmpfs/BiscuitOS
 BiscuitOS-file-mmap-tmpfs-userspace-default
 
 # hexdump

@@ -25,11 +25,14 @@ int main()
 	int fd;
 
 	/* Open */
-	fd = open(BISCUITOS_FILE_PATH, O_RDWR);
+	fd = open(BISCUITOS_FILE_PATH, O_RDWR | O_CREAT);
 	if (fd < 0) {
 		printf("ERROR: Open %s failed.\n", BISCUITOS_FILE_PATH);
 		return -EBUSY;
 	}
+
+	/* expand file by write */
+	write(fd, "BiscuitOS", strlen("BiscuitOS"));
 
 	/* mmap */
 	base = (char *)mmap(NULL, 
