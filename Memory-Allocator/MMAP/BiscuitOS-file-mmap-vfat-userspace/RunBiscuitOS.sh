@@ -25,6 +25,6 @@ BiscuitOS-file-mmap-vfat-userspace-default
 # hexdump
 if [ -f /usr/bin/hexdump ]; then
   echo ""
-  echo "Dump Context for /BiscuitOS-vfat/BiscuitOS             [YES]"
+  echo "Dump Context for /BiscuitOS-vfat/BiscuitOS            [YES]"
   hexdump /BiscuitOS-vfat/BiscuitOS
 fi
