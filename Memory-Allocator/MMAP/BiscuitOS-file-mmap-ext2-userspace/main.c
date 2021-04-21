@@ -15,7 +15,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#define BISCUITOS_FILE_PATH	"/BiscuitOS-tmpfs/BiscuitOS"
+#define BISCUITOS_FILE_PATH	"/BiscuitOS-ext2/BiscuitOS"
 #define BISCUITOS_MAP_SIZE	4096
 
 int main()
