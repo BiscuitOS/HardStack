@@ -25,6 +25,6 @@ BiscuitOS-file-mmap-ext2-userspace-default
 # hexdump
 if [ -f /usr/bin/hexdump ]; then
   echo ""
-  echo "Dump Context for /BiscuitOS-ext2/BiscuitOS           [YES]"
+  echo "Dump Context for /BiscuitOS-ext2/BiscuitOS            [YES]"
   hexdump /BiscuitOS-ext2/BiscuitOS
 fi
