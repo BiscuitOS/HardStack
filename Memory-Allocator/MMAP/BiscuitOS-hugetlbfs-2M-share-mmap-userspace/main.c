@@ -1,5 +1,5 @@
 /*
- * Normal/Direct mmap on Userspace
+ * HugePage(Hugetlbfs) 2M share mmap on Userspace
  *
  * (C) 2021.04.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -15,8 +15,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#define BISCUITOS_MEMDEV	"/dev/mem"
 #define BISCUITOS_MAP_SIZE	4096
+#define BISCUITOS_HUGEPAGE_PATH	"/mnt/BiscuitOS-hugetlbfs/hugepage"
 
 int main()
 {
@@ -24,11 +24,11 @@ int main()
 	char *base;
 	int fd;
 
-	/* Open */
-	fd = open(BISCUITOS_MEMDEV, O_RDWR);
+	/* Open Hugepage */
+	fd = open(BISCUITOS_HUGEPAGE_PATH, O_RDWR | O_CREAT);
 	if (fd < 0) {
-		printf("ERROR: Open %s failed.\n", BISCUITOS_MEMDEV);
-		return -EBUSY;
+		printf("ERROR: failed open %s\n", BISCUITOS_HUGEPAGE_PATH);
+		return -EINVAL;
 	}
 
 	/* mmap */
