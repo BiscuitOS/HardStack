@@ -48,7 +48,7 @@ int main()
 	val = (unsigned long *)default_base;
 	/* Trigger page fault */
 	*val = 88520;
-	printf("%#lx => %ld\n", val, *val);
+	printf("%#lx => %ld\n", (unsigned long)val, *val);
 
 	/* unmap */
 	munmap(default_base, BISCUITOS_MAP_SIZE);
