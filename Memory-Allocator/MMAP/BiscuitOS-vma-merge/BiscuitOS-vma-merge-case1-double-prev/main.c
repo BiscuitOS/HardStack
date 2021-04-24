@@ -1,5 +1,5 @@
 /*
- * VMA Merge (Merge Case1): Triple to single
+ * VMA Merge (Merge Case1): Triple to double (Merge PREV)
  *
  * (C) 2021.04.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -24,9 +24,9 @@
  *                          |      new  vma      |
  *                          +--------------------+
  *
- * +--------------------------------------------------------------------+
- * |                                 prev                               |
- * +--------------------------------------------------------------------+
+ * +---------------------------------------------+----------------------+
+ * |                     prev                    |         NEXT         |
+ * +---------------------------------------------+----------------------+
  */
 
 #ifdef __i386__ /* Intel i386 */
@@ -40,9 +40,9 @@
 #endif
 #define PAGE_SIZE		4096
 
-static void *BiscuitOS_anonymous_mmap(unsigned long addr)
+static void *BiscuitOS_anonymous_mmap(unsigned long addr, unsigned long prot)
 {
-	return mmap((void *)addr, PAGE_SIZE, PROT_READ | PROT_WRITE,
+	return mmap((void *)addr, PAGE_SIZE, PROT_READ | PROT_WRITE | prot,
 				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 }
 
@@ -56,11 +56,11 @@ int main()
 	char *base[3];
 
 	/* mmap default region */
-	base[0] = BiscuitOS_anonymous_mmap(AREA_PREV_BASE);
-	base[1] = BiscuitOS_anonymous_mmap(AREA_NEXT_BASE);
+	base[0] = BiscuitOS_anonymous_mmap(AREA_PREV_BASE, PROT_EXEC);
+	base[1] = BiscuitOS_anonymous_mmap(AREA_NEXT_BASE, 0);
 
 	/* mmap target region */
-	base[2] = BiscuitOS_anonymous_mmap(AREA_BASE);
+	base[2] = BiscuitOS_anonymous_mmap(AREA_BASE, PROT_EXEC);
 
 	/* Trigger page fault */
 	base[2][0] = 's';
