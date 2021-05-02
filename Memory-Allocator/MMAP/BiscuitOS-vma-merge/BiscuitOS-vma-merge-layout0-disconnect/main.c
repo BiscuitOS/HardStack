@@ -1,5 +1,5 @@
 /*
- * VMA Merge (Layout 0): Distant with NEXT
+ * VMA Merge (Layout 0): Disconnect with NEXT
  *
  * (C) 2021.04.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
