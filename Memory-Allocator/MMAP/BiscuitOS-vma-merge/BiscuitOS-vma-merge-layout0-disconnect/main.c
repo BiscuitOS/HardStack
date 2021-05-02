@@ -65,6 +65,10 @@ int main()
 	/* Trigger page fault */
 	base[2][0] = 's';
 
+	/* only for debug */
+	printf("PID: %ld\n", (long)getpid());
+	sleep(250);
+
 	/* Unmapp */
 	BiscuitOS_anonymous_munmap(AREA_BASE);
 	BiscuitOS_anonymous_munmap(AREA_NEXT_BASE);
