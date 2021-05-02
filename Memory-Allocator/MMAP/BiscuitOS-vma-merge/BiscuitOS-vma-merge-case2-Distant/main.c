@@ -1,5 +1,5 @@
 /*
- * VMA Merge (Merge Case2): Merge PREV and NEW
+ * VMA Merge (Merge Case2)
  *
  * (C) 2021.04.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
