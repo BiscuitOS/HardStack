@@ -60,7 +60,7 @@ int main()
 	base[1] = BiscuitOS_anonymous_mmap(AREA_NEXT_BASE, PROT_EXEC);
 
 	/* mmap target region */
-	base[2] = BiscuitOS_anonymous_mmap(AREA_BASE);
+	base[2] = BiscuitOS_anonymous_mmap(AREA_BASE, 0);
 
 	/* Trigger page fault */
 	base[2][0] = 's';
