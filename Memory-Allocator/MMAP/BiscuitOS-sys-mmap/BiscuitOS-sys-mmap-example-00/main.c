@@ -47,7 +47,7 @@ int main()
 	/* mmap */
 	base = (char *)mmap(NULL, 
 			    BISCUITOS_MAP_SIZE,
-			    PROT_READ | PROT_WRITE | PROT_EXEC,
+			    PROT_READ | PROT_WRITE,
 			    MAP_SHARED,
 			    fd,
 			    0);
