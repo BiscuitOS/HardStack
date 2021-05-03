@@ -56,7 +56,7 @@ int main()
 	char *base[3];
 
 	/* mmap default region */
-	base[0] = BiscuitOS_anonymous_mmap(AREA_PREV_BASE, 1 * PAEG_SIZE);
+	base[0] = BiscuitOS_anonymous_mmap(AREA_PREV_BASE, 1 * PAGE_SIZE);
 	base[1] = BiscuitOS_anonymous_mmap(AREA_NEXT_BASE, 4 * PAGE_SIZE);
 
 	/* mmap target region */
