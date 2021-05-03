@@ -1,5 +1,5 @@
 /*
- * File mmap on tmpfs filesystem (Userspace+)
+ * SYS_mmap: READ_IMPLIES_EXEC
  *
  * (C) 2021.04.02 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -18,9 +18,19 @@
 #define BISCUITOS_FILE_PATH	"/BiscuitOS-tmpfs/BiscuitOS"
 #define BISCUITOS_MAP_SIZE	4096
 
+/* EXEC */
+char BiscuitOS_shell[] =
+	"\x55"		/* push	%rbp */
+	"\x48\x89\xe5"	/* mov	%rsp, %rbp */
+	"\x31\xc0"	/* xor	%eax, %eax */
+	"\x5d"		/* pop	%rbp */
+	"\xc3";		/* retq */
+
+typedef void (*BiscuitOS_func_t)(void);
+
 int main()
 {
-	unsigned long *val;
+	BiscuitOS_func_t func;
 	char *base;
 	int fd;
 
@@ -31,13 +41,13 @@ int main()
 		return -EBUSY;
 	}
 
-	/* expand file by write */
-	write(fd, "BiscuitOS", strlen("BiscuitOS"));
+	/* Copy shellcode into file */
+	write(fd, BiscuitOS_shell, strlen(BiscuitOS_shell));
 
 	/* mmap */
 	base = (char *)mmap(NULL, 
 			    BISCUITOS_MAP_SIZE,
-			    PROT_READ | PROT_WRITE,
+			    PROT_READ | PROT_WRITE | PROT_EXEC,
 			    MAP_SHARED,
 			    fd,
 			    0);
@@ -47,14 +57,12 @@ int main()
 		return -ENOMEM;
 	}
 
-	val = (unsigned long *)base;
-	/* Trigger page fault */
-	*val = 88520;
-	printf("%#lx => %#lx\n", (unsigned long)val, *val);
+	/* EXEC: Need execute permission */
+	func = (BiscuitOS_func_t)base;
+	(void)(*func)();
 
 	/* unmap */
 	munmap(base, BISCUITOS_MAP_SIZE);
 	close(fd);
-
 	return 0;
 }

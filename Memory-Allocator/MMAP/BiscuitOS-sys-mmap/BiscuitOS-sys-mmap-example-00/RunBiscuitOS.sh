@@ -2,7 +2,7 @@
 
 # Mount tmpfs
 mkdir -p /BiscuitOS-tmpfs/
-mount -t tmpfs -o noexec nodev /BiscuitOS-tmpfs/
+mount -t tmpfs nodev /BiscuitOS-tmpfs/
 cd /BiscuitOS-tmpfs/
 echo "Mount information                                     [YES]"
 mount | grep BiscuitOS

@@ -18,7 +18,7 @@ endif
 SRC			+= main.c
 
 ## CFlags
-LCFLAGS			+= -DCONFIG_BISCUITOS_APP
+LCFLAGS			+= -z execstack
 ## Header
 LCFLAGS			+= -I./ -I$(PWD)/include
 # BL
