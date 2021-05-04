@@ -53,6 +53,10 @@ int main()
 
 	/* expand VMA */
 	base[2] = BiscuitOS_anonymous_mmap(AREA_BASE, 2 * PAGE_SIZE, MAP_FIXED);
+	if (base[2] == MAP_FAILED) {
+		printf("MAP FAILED.\n");
+		exit(1);
+	}
 
 	/* only for debug */
 	printf("PID: %ld\n", (long)getpid());
