@@ -43,7 +43,7 @@
 static void *BiscuitOS_anonymous_mmap(unsigned long addr, unsigned long size)
 {
 	return mmap((void *)addr, size, PROT_READ | PROT_WRITE,
-				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+				MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
 }
 
 static void BiscuitOS_anonymous_munmap(unsigned long addr, unsigned long size)
