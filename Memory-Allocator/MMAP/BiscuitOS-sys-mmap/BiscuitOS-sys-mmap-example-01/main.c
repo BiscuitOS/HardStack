@@ -50,6 +50,7 @@ int main()
 	/* Trigger page fault */
 	base[1][0] = 'B';
 	base[1][PAGE_SIZE] = 'C';
+	printf("Default: %#lx => %c\n", (unsigned long)base[1], base[1][0]);
 
 	/* expand VMA */
 	base[2] = BiscuitOS_anonymous_mmap(AREA_BASE, 2 * PAGE_SIZE, MAP_FIXED);
@@ -58,6 +59,7 @@ int main()
 		exit(1);
 	}
 
+	printf("Modify:  %#lx => %c\n", (unsigned long)base[1], base[1][0]);
 	/* only for debug */
 	printf("PID: %ld\n", (long)getpid());
 	sleep(250);
