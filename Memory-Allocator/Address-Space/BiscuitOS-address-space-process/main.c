@@ -14,9 +14,9 @@
 
 int main()
 {
-	char *cmd[] = { "ls", "-l", NULL};
+	char *cmd[] = { "echo", "Hello-BiscuitOS", NULL};
 
-	execv("/bin/ls", cmd);
+	execv("/bin/echo", cmd);
 
 	return 0;
 }
