@@ -1,7 +1,7 @@
 /*
- * BiscuitOS MISC DD on Userspace
+ * NULL: 0 virtual address (Userspace)
  *
- * (C) 2020.10.06 <buddy.zhang@aliyun.com>
+ * (C) 2021.05.01 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -15,6 +15,7 @@
 #include <linux/ioctl.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
+#include <sys/mman.h>
 
 /* PATH for device */
 #define DEV_PATH		"/dev/BiscuitOS"
@@ -27,23 +28,19 @@ int main()
 	int rvl = 0;
 	int fd;
 
+	mmap(NULL, 4096, PROT_READ | PROT_WRITE,
+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+
 	/* open device */
 	fd = open(DEV_PATH, O_RDWR);
-	if (fd < 0) {
-		printf("ERROR: Can't open %s\n", DEV_PATH);
-		return -1;
-	}
 
 	/* ioctl */
-	rvl = ioctl(fd, BISCUITOS_NULL, (unsigned long)0);
-	if (fd < 0) {
-		printf("ERROR: IOCTL BISCUITOS_NULL.\n");
-		goto out;
-	}
+	ioctl(fd, BISCUITOS_NULL, (unsigned long)0);
 
-	/* Normal ending */
-	rvl = 0;
-out:
+	/* only debug */
+	printf("PID: %ld\n", (long)getpid());
+	sleep(25);
+
 	close(fd);
-	return rvl;
+	return 0;
 }

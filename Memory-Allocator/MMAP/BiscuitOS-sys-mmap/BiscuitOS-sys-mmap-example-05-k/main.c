@@ -1,7 +1,7 @@
 /*
- * BiscuitOS MISC DD
+ * NULL: 0 virtual address (Kernel)
  *
- * (C) 2020.10.06 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2021.05.01 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -13,105 +13,28 @@
 #include <linux/module.h>
 #include <linux/miscdevice.h>
 #include <linux/fs.h>
-#include <linux/slab.h>
-#include <linux/uaccess.h>
 
 /* DD Platform Name */
 #define DEV_NAME		"BiscuitOS"
 /* IOCTL CMD */
 #define BISCUITOS_IO		0xAE
-#define BISCUITOS_SET		_IO(BISCUITOS_IO, 0x00)
-#define BISCUITOS_GET		_IO(BISCUITOS_IO, 0x01)
-
-/* private data */
-struct BiscuitOS_pdata {
-	int num;
-};
-
-/* Open */
-static int BiscuitOS_open(struct inode *inode, struct file *filp)
-{
-	struct BiscuitOS_pdata *pdata;
-
-	/* allocate memory to pdata */
-	pdata = kzalloc(sizeof(struct BiscuitOS_pdata), GFP_KERNEL);
-	if (!pdata) {
-		printk(KERN_ERR "No free memory!\n");
-		return -ENOMEM;
-	}
-	pdata->num = 0x91;
-
-	/* Store on file */
-	filp->private_data = pdata;
-
-	return 0;
-}
-
-/* Release */
-static int BiscuitOS_release(struct inode *inode, struct file *filp)
-{
-	struct BiscuitOS_pdata *pdata = filp->private_data;
-
-	/* Safe pointer */
-	filp->private_data = NULL;
-
-	/* free private data */
-	kfree(pdata);
-	return 0;
-}
-
-/* Read */
-static ssize_t BiscuitOS_read(struct file *filp, char __user *buf,
-			size_t len, loff_t *offset)
-{
-	struct BiscuitOS_pdata *pdata = filp->private_data;
-
-	if (copy_to_user(buf, pdata, len)) {
-		printk(KERN_ERR "Unable copy data to user.\n");
-		return -EINVAL;
-	}
-	return len;
-}
-
-/* Write */
-static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
-			size_t len, loff_t *offset)
-{
-	struct BiscuitOS_pdata *pdata = filp->private_data;
-
-	if (copy_from_user(pdata, buf, len)) {
-		printk(KERN_ERR "Unable copy data from user.\n");
-		return -EINVAL;
-	}
-	printk("Data from userland: %d\n", pdata->num);
-
-	return len;
-}
+#define BISCUITOS_NULL		_IO(BISCUITOS_IO, 0x00)
 
 /* ioctl */
 static long BiscuitOS_ioctl(struct file *filp,
                         unsigned int ioctl, unsigned long arg)
 {
-	switch (ioctl) {
-	case BISCUITOS_SET:
-		printk("IOCTL: BISCUITOS_SET.\n");
-		break;
-	case BISCUITOS_GET:
-		printk("IOCTL: BISCUITOS_GET.\n");
-		break;
-	default:
-		break;
-	}
+	int *p = NULL;
+
+	*p = 88520;
+	printk("Kernel: %#lx => %d\n", (unsigned long)p, *p);
+
 	return 0;
 }
 
 /* file operations */
 static struct file_operations BiscuitOS_fops = {
 	.owner		= THIS_MODULE,
-	.open		= BiscuitOS_open,
-	.release	= BiscuitOS_release,
-	.write		= BiscuitOS_write,
-	.read		= BiscuitOS_read,
 	.unlocked_ioctl	= BiscuitOS_ioctl,
 };
 
