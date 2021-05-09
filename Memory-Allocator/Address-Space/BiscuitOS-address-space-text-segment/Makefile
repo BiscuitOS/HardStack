@@ -52,10 +52,14 @@ INSTALL_PATH		:= ./
 endif
 
 all:
-	$(B_CC) $(LCFLAGS) -o $(TARGET) $(SRC)
+	$(B_CC)	$(LCFLAGS) -E $(SRC) -o $(TARGET).i
+	$(B_CC) $(LCFLAGS) -S $(TARGET).i -o $(TARGET).s
+	$(B_CC) $(LCFLAGS) -c $(TARGET).s -o $(TARGET).o
+	$(B_CC) $(LCFLAGS) -o $(TARGET) $(TARGET).o
+	$(B_OBJDUMP) -sSdhx $(TARGET).o > $(TARGET).bs
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
 
 clean:
-	@rm -rf $(TARGET) *.o
+	@rm -rf $(TARGET) *.o *.i *.s *.bs
