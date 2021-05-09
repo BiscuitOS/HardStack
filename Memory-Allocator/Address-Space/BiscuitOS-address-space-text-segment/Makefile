@@ -56,7 +56,7 @@ all:
 	$(B_CC)	$(LCFLAGS) -E $(SRC) -o $(TARGET).i
 	$(B_CC) $(LCFLAGS) -S $(TARGET).i -o $(TARGET).s
 	$(B_CC) $(LCFLAGS) -c $(TARGET).s -o $(TARGET).o
-	$(B_CC) $(LCFLAGS) -o $(TARGET) $(TARGET).o
+	$(B_CC) -static $(LCFLAGS) -o $(TARGET) $(TARGET).o
 	$(B_OBJDUMP) -sSdhx $(TARGET) > $(TARGET).bs
 	$(B_READELF) -l $(TARGET) > $(TARGET).ebs
 
