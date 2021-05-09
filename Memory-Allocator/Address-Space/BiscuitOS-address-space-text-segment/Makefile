@@ -43,6 +43,7 @@ B_NM		= $(CROSS_COMPILE)$(DOT)nm
 B_STRIP		= $(CROSS_COMPILE)$(DOT)strip
 B_OBJCOPY	= $(CROSS_COMPILE)$(DOT)objcopy
 B_OBJDUMP	= $(CROSS_COMPILE)$(DOT)objdump
+B_READELF	= $(CROSS_COMPILE)$(DOT)readelf
 
 ## Install PATH
 ifeq ("$(origin INSPATH)", "command line")
@@ -56,7 +57,8 @@ all:
 	$(B_CC) $(LCFLAGS) -S $(TARGET).i -o $(TARGET).s
 	$(B_CC) $(LCFLAGS) -c $(TARGET).s -o $(TARGET).o
 	$(B_CC) $(LCFLAGS) -o $(TARGET) $(TARGET).o
-	$(B_OBJDUMP) -sSdhx $(TARGET).o > $(TARGET).bs
+	$(B_OBJDUMP) -sSdhx $(TARGET) > $(TARGET).bs
+	$(B_READELF) -l $(TARGET) > $(TARGET).ebs
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
