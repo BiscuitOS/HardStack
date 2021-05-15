@@ -46,17 +46,17 @@ int main()
 	/* print address and value */
 	printf("Reference other file.\n");
 	printf(" Uninit: %#lx => %ld\n", 
-			&BiscuitOS_other_global_uninit_variable,
+			(unsigned long)&BiscuitOS_other_global_uninit_variable,
 			BiscuitOS_other_global_uninit_variable);
 	printf(" Init:   %#lx => %ld\n",
-			&BiscuitOS_other_global_init_variable,
+			(unsigned long)&BiscuitOS_other_global_init_variable,
 			BiscuitOS_other_global_init_variable);
 	printf("Reference current file.\n");
 	printf(" Uninit: %#lx => %ld\n", 
-			&BiscuitOS_current_global_uninit_variable,
+			(unsigned long)&BiscuitOS_current_global_uninit_variable,
 			BiscuitOS_current_global_uninit_variable);
 	printf(" Init:   %#lx => %ld\n",
-			&BiscuitOS_current_global_init_variable,
+			(unsigned long)&BiscuitOS_current_global_init_variable,
 			BiscuitOS_current_global_init_variable);
 
 	return 0;
