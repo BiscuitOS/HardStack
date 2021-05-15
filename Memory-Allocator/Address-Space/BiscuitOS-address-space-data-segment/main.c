@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 /* Structure */
 struct BiscuitOS_struct {
@@ -64,6 +65,7 @@ union BiscuitOS_union BiscuitOS_global_init_union = { .count = 88520 };
 
 /* Speical variable */
 #define BISCUITOS_MACRO		"BiscuitOS"
+#define GUARD_PAGE		4096
 
 int main()
 {
@@ -72,6 +74,9 @@ int main()
 	extern char etext[];
 	extern char end[];
 	unsigned long sp, bp;
+	void *base;
+	void *heap;
+	int fd;
 
 	/* Bottom for stack */
 	asm volatile ("pushl %%ebp\n\r"
@@ -112,10 +117,17 @@ int main()
 
 	/* Register variable */
 	register int BiscuitOS_register = 88520;
+
 	/* Top for stack */
 	asm volatile ("pushl %%esp\n\r"
 		      "popl %0"
 		      : "=r" (sp) : : "memory");
+
+	/* data from heap */
+	heap = malloc(4);
+
+	/* data from mmap */
+	base = mmap(NULL, GUARD_PAGE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
 	printf("***************************************************************\n");
 	printf("Code Segment: .text Describe\n\n");
@@ -132,6 +144,10 @@ int main()
 	                                                 (unsigned long)edata);
 	printf("BSS  Range:       %#016lx -- %#016lx\n", (unsigned long)edata,
 	                                                 (unsigned long)end);
+	printf("Heap:             %#016lx -- %#016lx\n", (unsigned long)end,
+							 (unsigned long)sbrk(0));
+	printf("Mmap:             %#016lx -- %#016lx\n", (unsigned long)sbrk(0) + GUARD_PAGE,
+							 (unsigned long)sp - GUARD_PAGE);
 	printf("Stack:            %#016lx -- %#016lx\n", sp, bp);
 	printf("***************************************************************\n");
 
@@ -204,6 +220,11 @@ int main()
 	printf("  Register variable: %#lx\n", (unsigned long)BiscuitOS_register);
 	printf("  Macro:             %#lx\n", (unsigned long)&BISCUITOS_MACRO);
 	printf("  Constant Strings:  %#lx\n", (unsigned long)"BiscuitOS");
+	printf("  Heap:              %#lx\n", (unsigned long)heap);
+	printf("  MMAP:              %#lx\n", (unsigned long)base);
+
+	munmap(base, GUARD_PAGE);
+	free(heap);
 
 	return 0;
 }
