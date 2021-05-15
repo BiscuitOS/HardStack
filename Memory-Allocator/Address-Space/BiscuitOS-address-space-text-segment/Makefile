@@ -64,4 +64,4 @@ install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
 
 clean:
-	@rm -rf $(TARGET) *.o *.i *.s *.bs
+	@rm -rf $(TARGET) *.o *.i *.s *.bs *.ebs
