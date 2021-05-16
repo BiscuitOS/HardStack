@@ -11,7 +11,7 @@
 ifeq ("$(origin TARGETA)", "command line")
 TARGET			:= $(TARGETA)
 else
-TARGET			:= BiscuitOS_app
+TARGET			:= BiscuitOS-address-space-data-segment-global-default
 endif
 
 ## Source Code
@@ -62,7 +62,7 @@ all:
 	$(B_CC) $(LCFLAGS) -c $(TARGET)_1.s -o $(TARGET)_1.o
 	$(B_CC) -static $(LCFLAGS) -o $(TARGET) $(TARGET)_0.o $(TARGET)_1.o
 	$(B_OBJDUMP) -sSdhx $(TARGET) > $(TARGET).bs
-	$(B_READELF) -l $(TARGET) > $(TARGET).ebs
+	$(B_READELF) -a $(TARGET) > $(TARGET).ebs
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)

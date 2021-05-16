@@ -59,5 +59,10 @@ int main()
 			(unsigned long)&BiscuitOS_current_global_init_variable,
 			BiscuitOS_current_global_init_variable);
 
+	/* Direct ref */
+	BiscuitOS_other_global_uninit_variable = 6;
+	BiscuitOS_other_global_init_variable = 7;
+	BiscuitOS_current_global_uninit_variable = 8;
+	BiscuitOS_current_global_init_variable = 9;
 	return 0;
 }
