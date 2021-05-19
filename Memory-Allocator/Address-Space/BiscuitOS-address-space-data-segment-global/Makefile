@@ -19,8 +19,6 @@ SRC_0			:= main.c
 SRC_1			:= BiscuitOS.c
 
 ## CFlags
-LCFLAGS			+= -DCONFIG_BISCUITOS_APP
-## Header
 LCFLAGS			+= -I./ -I$(PWD)/include
 
 DOT			:= -
@@ -54,13 +52,15 @@ INSTALL_PATH		:= ./
 endif
 
 all:
-	$(B_CC)	$(LCFLAGS) -E $(SRC_0) -o $(TARGET)_0.i
-	$(B_CC)	$(LCFLAGS) -E $(SRC_1) -o $(TARGET)_1.i
-	$(B_CC) $(LCFLAGS) -S $(TARGET)_0.i -o $(TARGET)_0.s
-	$(B_CC) $(LCFLAGS) -S $(TARGET)_1.i -o $(TARGET)_1.s
-	$(B_CC) $(LCFLAGS) -c $(TARGET)_0.s -o $(TARGET)_0.o
-	$(B_CC) $(LCFLAGS) -c $(TARGET)_1.s -o $(TARGET)_1.o
-	$(B_CC) -static $(LCFLAGS) -o $(TARGET) $(TARGET)_0.o $(TARGET)_1.o
+	$(B_CC)	$(LCFLAGS) -E $(SRC_0) -o $(TARGET)-0.i
+	$(B_CC)	$(LCFLAGS) -E $(SRC_1) -o $(TARGET)-1.i
+	$(B_CC) $(LCFLAGS) -S $(TARGET)-0.i -o $(TARGET)-0.s
+	$(B_CC) $(LCFLAGS) -S $(TARGET)-1.i -o $(TARGET)-1.s
+	$(B_CC) $(LCFLAGS) -c $(TARGET)-0.s -o $(TARGET)-0.o
+	$(B_CC) $(LCFLAGS) -c $(TARGET)-1.s -o $(TARGET)-1.o
+	$(B_CC) -static $(LCFLAGS) -o $(TARGET) $(TARGET)-0.o $(TARGET)-1.o
+	$(B_OBJDUMP) -sSdhx $(TARGET)-0.o > $(TARGET)-0.bs
+	$(B_OBJDUMP) -sSdhx $(TARGET)-1.o > $(TARGET)-1.bs
 	$(B_OBJDUMP) -sSdhx $(TARGET) > $(TARGET).bs
 	$(B_READELF) -a $(TARGET) > $(TARGET).ebs
 
