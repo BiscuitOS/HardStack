@@ -1,0 +1,29 @@
+/*
+ * Process Address Space: Data Segment with Gloabl variable
+ *
+ * (C) 2021.05.01 <buddy.zhang@aliyun.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+/** Define on other file **/
+extern unsigned long BiscuitOS_other_global_uninit_variable;
+extern unsigned long BiscuitOS_other_global_init_variable;
+
+int main()
+{
+	/* Direct ref */
+	BiscuitOS_other_global_uninit_variable   = 88526;
+	BiscuitOS_other_global_init_variable     = 88527;
+
+	/* only debug */
+	printf("Main B PID %ld\n", (long)getpid());
+	sleep(-1);
+	return 0;
+}
