@@ -22,7 +22,7 @@ LIB_0			:= BiscuitOS-lib.c
 LIB_EPATH		:= $(shell cd ../../../rootfs/rootfs/lib; pwd)
 ## CFlags
 LCFLAGS			+= -I./ -I$(PWD)/include -L$(LIB_EPATH)
-#LCFLAGS			+= -fpic
+LCFLAGS			+= -fpic
 
 DOT			:= -
 ## X86/X64 Architecture
