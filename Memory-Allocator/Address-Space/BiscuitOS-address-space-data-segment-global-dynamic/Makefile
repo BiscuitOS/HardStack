@@ -22,7 +22,7 @@ LIB_0			:= BiscuitOS-lib.c
 LIB_EPATH		:= $(shell cd ../../../rootfs/rootfs/lib; pwd)
 ## CFlags
 LCFLAGS			+= -I./ -I$(PWD)/include -L$(LIB_EPATH)
-LCFLAGS			+= -fpic
+LCFLAGS			+= -no-pie -fno-pic # -fpic
 
 DOT			:= -
 ## X86/X64 Architecture
@@ -64,7 +64,7 @@ all:
 	$(B_CC) $(LCFLAGS) -S $(TARGET)-2.i -o $(TARGET)-2.s
 	$(B_CC) $(LCFLAGS) -c $(TARGET)-0.s -o $(TARGET)-0.o
 	$(B_CC) $(LCFLAGS) -c $(TARGET)-1.s -o $(TARGET)-1.o
-	$(B_CC) -shared -fPIC $(LCFLAGS) -c $(TARGET)-2.s -o lib$(TARGET)-lib.so
+	$(B_CC) -shared $(LCFLAGS) -c $(TARGET)-2.s -o lib$(TARGET)-lib.so
 	@sudo cp -rfa lib$(TARGET)-lib.so $(LIB_EPATH)
 	$(B_CC) $(LCFLAGS) -o $(TARGET)-A $(TARGET)-0.o -l $(TARGET)-lib
 	$(B_CC) $(LCFLAGS) -o $(TARGET)-B $(TARGET)-1.o -l $(TARGET)-lib
