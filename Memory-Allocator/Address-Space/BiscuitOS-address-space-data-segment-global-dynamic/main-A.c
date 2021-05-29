@@ -15,12 +15,17 @@
 /** Define on other file **/
 extern unsigned long BiscuitOS_other_global_uninit_variable;
 extern unsigned long BiscuitOS_other_global_init_variable;
+unsigned long BiscuitOS_current_global_uninit_variable;
+unsigned long BiscuitOS_current_global_init_variable = 52088;
 
 int main()
 {
 	/* Direct ref */
 	BiscuitOS_other_global_uninit_variable   = 88520;
 	BiscuitOS_other_global_init_variable     = 88521;
+
+	BiscuitOS_current_global_uninit_variable = 88522;
+	BiscuitOS_current_global_init_variable   = 88523;
 
 	/* only debug */
 	printf("Main A PID %ld\n", (long)getpid());
