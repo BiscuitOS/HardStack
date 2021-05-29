@@ -50,16 +50,16 @@ int main()
 	BiscuitOS_current_global_init_variable   = 88523;
 
 	printf("A: BiscuitOS_other_global_uninit_variable:   %#lx - %ld\n",
-				&BiscuitOS_other_global_uninit_variable,
+		(unsigned long)&BiscuitOS_other_global_uninit_variable,
 				BiscuitOS_other_global_uninit_variable);
 	printf("A: BiscuitOS_other_global_init_variable:     %#lx - %ld\n",
-				&BiscuitOS_other_global_init_variable,
+		(unsigned long)&BiscuitOS_other_global_init_variable,
 				BiscuitOS_other_global_init_variable);
 	printf("A: BiscuitOS_current_global_uninit_variable: %#lx - %ld\n",
-				&BiscuitOS_current_global_uninit_variable,
+		(unsigned long)&BiscuitOS_current_global_uninit_variable,
 				BiscuitOS_current_global_uninit_variable);
 	printf("A: BiscuitOS_current_global_init_variable:   %#lx - %ld\n",
-				&BiscuitOS_current_global_init_variable,
+		(unsigned long)&BiscuitOS_current_global_init_variable,
 				BiscuitOS_current_global_init_variable);
 
 	/* only debug */

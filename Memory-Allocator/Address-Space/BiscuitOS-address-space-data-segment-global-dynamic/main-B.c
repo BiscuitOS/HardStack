@@ -45,10 +45,10 @@ int main()
 	BiscuitOS_other_global_init_variable     = 88527;
 
 	printf("B: BiscuitOS_other_global_uninit_variable: %#lx - %ld\n",
-				&BiscuitOS_other_global_uninit_variable,
+		(unsigned long)&BiscuitOS_other_global_uninit_variable,
 				BiscuitOS_other_global_uninit_variable);
 	printf("B: BiscuitOS_other_global_init_variable:   %#lx - %ld\n",
-				&BiscuitOS_other_global_init_variable,
+		(unsigned long)&BiscuitOS_other_global_init_variable,
 				BiscuitOS_other_global_init_variable);
 
 	/* only debug */
