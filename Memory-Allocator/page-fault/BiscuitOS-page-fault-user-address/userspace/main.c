@@ -1,5 +1,5 @@
 /*
- * Paging Mechanism
+ * Paging Mechanism: Mapping 4KiB Page With 32-Bit Paging
  *
  * (C) 2021.01.10 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
