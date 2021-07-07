@@ -17,9 +17,13 @@
 static int __init BiscuitOS_init(void)
 {
 	void *address;
+	phys_addr_t phys;
 
 	address = kmalloc(8, GFP_KERNEL);
+	phys = virt_to_phys(address);
+
 	printk("Virtual Address: %#lx\n", (unsigned long)address);
+	printk("Physical Address: %#lx\n", (unsigned long)phys);
 
 	/* panic for CRASH */
 	panic("CRASH ptov");
