@@ -40,8 +40,7 @@ struct config_regs
 };
 
 static const struct pci_device_id PCIe_ids[] = {
-	{ PCI_DEVICE(0x10ee, 0x9034), },
-	{ PCI_DEVICE(0x10ee, 0x9024), },
+	{ PCI_DEVICE(0x8868, 0x1188), },
 };
 
 inline u32 read_register(void *iomem)
