@@ -14,17 +14,17 @@
 #include <linux/version.h>
 #include <linux/slab.h>
 
-#define DEV_NAME		"PCIe_demo"
-#define PCIE_DEMO_BAR_NUM	6
-#define PCIE_DEMO_BAR_SIZE	(0x8000UL)
-#define PCIE_DEMO_OFS_CONFIG	(0x3000UL)
-#define CONFIG_BLOCK_ID		0x1fc30000UL
+#define DEV_NAME			"BiscuitOS-PCIe-Device"
+#define BISCUITOS_PCIE_BAR_NUM		6
+#define BISCUITOS_PCIE_BAR_SIZE		(0x8000UL)
+#define BISCUITOS_PCIE_OFS_CONFIG	(0x3000UL)
+#define CONFIG_BLOCK_ID			0x1fc30000UL
 
-struct PCIe_demo_dev
+struct BiscuitOS_PCIe_dev
 {
 	struct pci_dev *pdev;
 	/* PCIe BAR management */
-	void *__iomem bar[PCIE_DEMO_BAR_NUM];
+	void *__iomem bar[BISCUITOS_PCIE_BAR_NUM];
 	int user_bar_idx;	/* BAR index of user logic */
 	int config_bar_idx;	/* BAR index of config logic */
 	int bypass_bar_idx;	/* BAR index of bypass logic */
@@ -51,11 +51,11 @@ inline u32 read_register(void *iomem)
 /*
  * Unmap the BAR regions that had been mapped earlier using map_bars()
  */
-static void unmap_bars(struct PCIe_demo_dev *xdev, struct pci_dev *pdev)
+static void unmap_bars(struct BiscuitOS_PCIe_dev *xdev, struct pci_dev *pdev)
 {
 	int i;
 
-	for (i = 0; i < PCIE_DEMO_BAR_NUM; i++) {
+	for (i = 0; i < BISCUITOS_PCIE_BAR_NUM; i++) {
 		/* is this BAR mapped */
 		if (xdev->bar[i]) {
 			/* unmap BAR */
@@ -66,7 +66,7 @@ static void unmap_bars(struct PCIe_demo_dev *xdev, struct pci_dev *pdev)
 	}
 }
 
-static int map_single_bar(struct PCIe_demo_dev *xdev, 
+static int map_single_bar(struct BiscuitOS_PCIe_dev *xdev, 
 					struct pci_dev *pdev, int idx)
 {
 	resource_size_t bar_start;
@@ -98,12 +98,12 @@ static int map_single_bar(struct PCIe_demo_dev *xdev,
 	return (int)map_len;
 }
 
-static int is_config_bar(struct PCIe_demo_dev *xdev, int idx)
+static int is_config_bar(struct BiscuitOS_PCIe_dev *xdev, int idx)
 {
 	u32 cfg_id = 0;
 	u32 mask = 0xffff0000; /* Compare only ID's not Version number */
 	struct config_regs *cfg_regs =
-		(struct config_regs *)(xdev->bar[idx] + PCIE_DEMO_OFS_CONFIG);
+		(struct config_regs *)(xdev->bar[idx] + BISCUITOS_PCIE_OFS_CONFIG);
 
 	cfg_id = read_register(&cfg_regs->identifier);
 
@@ -113,7 +113,7 @@ static int is_config_bar(struct PCIe_demo_dev *xdev, int idx)
 		return 0;
 }
 
-static void identify_bars(struct PCIe_demo_dev *xdev, int *bar_id_list,
+static void identify_bars(struct BiscuitOS_PCIe_dev *xdev, int *bar_id_list,
 					int num_bars, int config_bar_pos)
 {
 	/*
@@ -170,15 +170,15 @@ static void identify_bars(struct PCIe_demo_dev *xdev, int *bar_id_list,
  * Map the device memory regions into kernel virtual address space after
  * verifying their sizes respect the minimum sizes needed.
  */
-static int map_bars(struct PCIe_demo_dev *xdev, struct pci_dev *pdev)
+static int map_bars(struct BiscuitOS_PCIe_dev *xdev, struct pci_dev *pdev)
 {
-	int bar_id_list[PCIE_DEMO_BAR_NUM];
+	int bar_id_list[BISCUITOS_PCIE_BAR_NUM];
 	int config_bar_pos = 0;
 	int bar_id_idx = 0;
 	int idx, rv;
 
 	/* Iterate through all the BARs */
-	for (idx = 0; idx < PCIE_DEMO_BAR_NUM; idx++) {
+	for (idx = 0; idx < BISCUITOS_PCIE_BAR_NUM; idx++) {
 		int bar_len;
 
 		bar_len = map_single_bar(xdev, pdev, idx);
@@ -190,8 +190,8 @@ static int map_bars(struct PCIe_demo_dev *xdev, struct pci_dev *pdev)
 		}
 
 		/* Try to identify BAR as control BAR */
-		if ((bar_len >= PCIE_DEMO_BAR_SIZE) && 
-				(xdev->config_bar_idx < 0)) {
+		if ((bar_len >= BISCUITOS_PCIE_BAR_SIZE) && 
+					(xdev->config_bar_idx < 0)) {
 			if (is_config_bar(xdev, idx)) {
 				xdev->config_bar_idx = idx;
 				config_bar_pos = bar_id_idx;
@@ -209,6 +209,7 @@ static int map_bars(struct PCIe_demo_dev *xdev, struct pci_dev *pdev)
 	}
 
 	identify_bars(xdev, bar_id_list, bar_id_idx, config_bar_pos);
+	return 0;
 
 fail:
 	/* unwind: unmap any BARs that we did map */
@@ -217,11 +218,12 @@ fail:
 }
 
 /* PCIe device probe */
-static int PCIe_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+static int BiscuitOS_PCIe_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 {
-	struct PCIe_demo_dev *xdev;
+	struct BiscuitOS_PCIe_dev *xdev;
 	int rv;
 	u16 v;
+	u8 v8;
 
 	xdev = kzalloc(sizeof(*xdev), GFP_KERNEL);
 	if (!xdev) {
@@ -272,10 +274,9 @@ static int PCIe_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	/* map bar */
 	map_bars(xdev, pdev);
-
 	dev_set_drvdata(&pdev->dev, xdev);
 
-	printk("PCIe Device: %#x:%#x Probe Ok....\n", id->vendor, id->device);
+	printk("BiscuitOS PCIe Device: %#x:%#x Probe Ok....\n", id->vendor, id->device);
 	return 0;
 
 err_region:
@@ -288,9 +289,9 @@ err_all:
 }
 
 /* PCIe device remove */
-static void PCIe_remove(struct pci_dev *pdev)
+static void BiscuitOS_PCIe_remove(struct pci_dev *pdev)
 {
-	struct PCIe_demo_dev *xdev = dev_get_drvdata(&pdev->dev);
+	struct BiscuitOS_PCIe_dev *xdev = dev_get_drvdata(&pdev->dev);
 
 	/* unmap region */
 	unmap_bars(xdev, pdev);
@@ -308,8 +309,8 @@ static void PCIe_remove(struct pci_dev *pdev)
 static struct pci_driver PCIe_demo_driver = {
 	.name		= DEV_NAME,
 	.id_table	= PCIe_ids,
-	.probe		= PCIe_probe,
-	.remove		= PCIe_remove,
+	.probe		= BiscuitOS_PCIe_probe,
+	.remove		= BiscuitOS_PCIe_remove,
 };
 
 static int __init PCIe_demo_init(void)
