@@ -21,6 +21,7 @@
 struct BiscuitOS_node {
     const char *name;
     struct list_head list;
+    struct BiscuitOS_node *next;
 };
 
 /* Declaration and implement a bindirect-list */
@@ -39,8 +40,8 @@ static struct BiscuitOS_node node6 = { .name = "BiscuitOS-node6", };
 static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
 			size_t len, loff_t *offset)
 {
-	struct BiscuitOS_node *np;
 	char *p = NULL;
+	struct BiscuitOS_node *np;
 
 	/* add a new entry on special entry */
 	list_add_tail(&node0.list, &BiscuitOS_list);
@@ -50,6 +51,15 @@ static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
 	list_add_tail(&node4.list, &BiscuitOS_list);
 	list_add_tail(&node5.list, &BiscuitOS_list);
 	list_add_tail(&node6.list, &BiscuitOS_list);
+
+	/* private link */
+	node0.next = &node1;
+	node1.next = &node2;
+	node2.next = &node3;
+	node3.next = &node4;
+	node4.next = &node5;
+	node5.next = &node6;
+	node6.next = NULL;
 
 	printk("BiscuitOS-list:\n");
 	/* Traverser all node on bindirect-list */
@@ -64,8 +74,8 @@ static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
 
 /* file operations */
 static struct file_operations BiscuitOS_fops = {
-	.owner		= THIS_MODULE,
-	.write		= BiscuitOS_write,
+	.owner	= THIS_MODULE,
+	.write	= BiscuitOS_write,
 };
 
 /* Misc device driver */
