@@ -18,7 +18,7 @@
 #include <linux/list.h>
 
 /* Link structure */
-struct node {
+struct BiscuitOS_node {
     const char *name;
     struct list_head list;
 };
@@ -27,20 +27,20 @@ struct node {
 LIST_HEAD(BiscuitOS_list);
 
 /* Initialize a group node structure */
-static struct node node0 = { .name = "BiscuitOS-node0", };
-static struct node node1 = { .name = "BiscuitOS-node1", };
-static struct node node2 = { .name = "BiscuitOS-node2", };
-static struct node node3 = { .name = "BiscuitOS-node3", };
-static struct node node4 = { .name = "BiscuitOS-node4", };
-static struct node node5 = { .name = "BiscuitOS-node5", };
-static struct node node6 = { .name = "BiscuitOS-node6", };
+static struct BiscuitOS_node node0 = { .name = "BiscuitOS-node0", };
+static struct BiscuitOS_node node1 = { .name = "BiscuitOS-node1", };
+static struct BiscuitOS_node node2 = { .name = "BiscuitOS-node2", };
+static struct BiscuitOS_node node3 = { .name = "BiscuitOS-node3", };
+static struct BiscuitOS_node node4 = { .name = "BiscuitOS-node4", };
+static struct BiscuitOS_node node5 = { .name = "BiscuitOS-node5", };
+static struct BiscuitOS_node node6 = { .name = "BiscuitOS-node6", };
 
 /* Write */
 static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
 			size_t len, loff_t *offset)
 {
+	struct BiscuitOS_node *np;
 	char *p = NULL;
-	struct node *np;
 
 	/* add a new entry on special entry */
 	list_add_tail(&node0.list, &BiscuitOS_list);
