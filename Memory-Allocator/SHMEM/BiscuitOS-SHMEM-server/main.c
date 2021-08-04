@@ -47,6 +47,5 @@ int main()
 	bzero(shmaddr, BISCUITOS_BUFSZ);
 	strcpy(shmaddr, "Tony: Hi! What's your name!\n");
 
-	while (1);
 	return 0;
 }
