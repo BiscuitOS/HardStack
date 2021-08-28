@@ -1,7 +1,7 @@
 /*
- * PCIe Device Driver
+ * PCIe Device Driver on BiscuitOS
  *
- * (C) 2019.10.24 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2021.08.08 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -18,7 +18,7 @@
 #define BISCUITOS_PCIE_BAR_NUM		6
 #define BISCUITOS_PCIE_BAR_SIZE		(0x8000UL)
 #define BISCUITOS_PCIE_OFS_CONFIG	(0x3000UL)
-#define CONFIG_BLOCK_ID			0x1fc30000UL
+#define CONFIG_BLOCK_ID			0x910000
 
 struct BiscuitOS_PCIe_dev
 {
@@ -39,8 +39,9 @@ struct config_regs
 	u32 msi_enable;
 };
 
+/* PCI_DEVICE(VENDOR_ID, DEVICE_ID) */
 static const struct pci_device_id PCIe_ids[] = {
-	{ PCI_DEVICE(0x8868, 0x1188), },
+	{ PCI_DEVICE(0x1016, 0x1413), },
 };
 
 inline u32 read_register(void *iomem)
@@ -223,7 +224,6 @@ static int BiscuitOS_PCIe_probe(struct pci_dev *pdev, const struct pci_device_id
 	struct BiscuitOS_PCIe_dev *xdev;
 	int rv;
 	u16 v;
-	u8 v8;
 
 	xdev = kzalloc(sizeof(*xdev), GFP_KERNEL);
 	if (!xdev) {
