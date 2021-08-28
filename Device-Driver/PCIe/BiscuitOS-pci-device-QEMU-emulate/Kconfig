@@ -1,0 +1,5 @@
+config BISCUITOS
+    bool
+
+config BISCUITOS_PCI
+    bool
