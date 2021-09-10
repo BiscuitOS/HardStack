@@ -15,7 +15,7 @@ TARGET			:= BiscuitOS_app
 endif
 
 ## Source Code
-SRC			+= main.py
+SRC			+= main.sh
 
 ## CFlags
 LCFLAGS			+= -DCONFIG_BISCUITOS_APP
