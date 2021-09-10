@@ -53,6 +53,7 @@ endif
 
 all:
 	cp main.py $(TARGETA)
+	chmod 755 $(TARGETA)
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
