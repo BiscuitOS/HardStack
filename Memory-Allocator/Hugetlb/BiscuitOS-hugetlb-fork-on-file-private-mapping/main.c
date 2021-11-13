@@ -1,5 +1,5 @@
 /*
- * Hugetlb: Fork on Anonymous Private-mapping 2MiB Hugepage
+ * Hugetlb: Fork on File Privated-mapping 2MiB Hugepage
  *
  * (C) 2021.11.11 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -15,23 +15,32 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#define BISCUITOS_MAP_SIZE	(2 * 1024 * 1024)
+#define BISCUITOS_MAP_SIZE	4096
+#define BISCUITOS_HUGEPAGE_PATH	"/mnt/BiscuitOS-hugetlbfs/hugepage"
 
 int main()
 {
 	unsigned long *val;
 	char *base;
-	int pid;
+	int fd, pid;
+
+	/* Open Hugepage */
+	fd = open(BISCUITOS_HUGEPAGE_PATH, O_RDWR | O_CREAT);
+	if (fd < 0) {
+		printf("ERROR: failed open %s\n", BISCUITOS_HUGEPAGE_PATH);
+		return -EINVAL;
+	}
 
 	/* mmap */
 	base = (char *)mmap(NULL, 
 			    BISCUITOS_MAP_SIZE,
 			    PROT_READ | PROT_WRITE,
-			    MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
-			    -1,
+			    MAP_PRIVATE,
+			    fd,
 			    0);
 	if (base == MAP_FAILED) {
 		printf("ERROR: mmap failed.\n");
+		close(fd);
 		return -ENOMEM;
 	}
 
@@ -40,18 +49,19 @@ int main()
 	*val = 88520;
 	printf("%#lx => %ld\n", (unsigned long)val, *val);
 
-	/* Fork after write  */
+	/* Fork after Write */
 	pid = fork();
 	if (pid == 0) { /* Child Process */
-		sleep(1); /* Write later */
-		*val = 52088;
+		sleep(1);
+		*val = 52088; /* Write after */
 	} else { /* Parent Process */
-		*val = 52188; /* Write first */
-		sleep(2); 
+		*val = 88990; /* Write first */
+		sleep(2);
 	}
 
 	/* unmap */
 	munmap(base, BISCUITOS_MAP_SIZE);
+	close(fd);
 
 	return 0;
 }
