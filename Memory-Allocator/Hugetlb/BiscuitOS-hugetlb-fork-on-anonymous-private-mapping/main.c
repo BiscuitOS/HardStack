@@ -47,7 +47,7 @@ int main()
 		*val = 52088;
 	} else { /* Parent Process */
 		*val = 52188; /* Write first */
-		sleep(1); 
+		sleep(2); 
 	}
 
 	/* unmap */
