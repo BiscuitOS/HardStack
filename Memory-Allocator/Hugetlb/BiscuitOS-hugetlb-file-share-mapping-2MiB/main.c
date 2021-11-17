@@ -16,7 +16,7 @@
 #include <sys/mman.h>
 
 #define HPAGE_SIZE		(2 * 1024 * 1024)
-#define BISCUITOS_MAP_SIZE	(2 * HPAGE)
+#define BISCUITOS_MAP_SIZE	(2 * HPAGE_SIZE)
 #define BISCUITOS_HUGEPAGE_PATH	"/mnt/BiscuitOS-hugetlbfs/hugepage"
 
 int main()
