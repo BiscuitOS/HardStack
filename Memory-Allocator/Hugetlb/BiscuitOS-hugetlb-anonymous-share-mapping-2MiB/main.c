@@ -15,7 +15,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#define BISCUITOS_MAP_SIZE	(2 * 1024 * 1024)
+#define HPAGE_SIZE		(2 * 1024 * 1024)
+#define BISCUITOS_MAP_SIZE	(2 * HPAGE_SIZE)
 
 int main()
 {
