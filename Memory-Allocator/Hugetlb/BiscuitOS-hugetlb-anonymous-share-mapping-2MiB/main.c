@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <linux/mman.h>
 
 #define HPAGE_SIZE		(2 * 1024 * 1024)
 #define BISCUITOS_MAP_SIZE	(2 * HPAGE_SIZE)
@@ -27,7 +28,8 @@ int main()
 	base = (char *)mmap(NULL, 
 			    BISCUITOS_MAP_SIZE,
 			    PROT_READ | PROT_WRITE,
-			    MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB,
+			    MAP_SHARED | MAP_ANONYMOUS | 
+			    MAP_HUGETLB | MAP_HUGE_2MB,
 			    -1,
 			    0);
 	if (base == MAP_FAILED) {
