@@ -1,5 +1,5 @@
 /*
- * Hugetlb: SHMEM Server on shared anonymous hugepage
+ * Hugetlb: SYS V SHMEM Server on shared anonymous hugepage
  *
  * (C) 2021.11.29 BuddyZhang1 <buddy.zhang@aliyun.com>
  *

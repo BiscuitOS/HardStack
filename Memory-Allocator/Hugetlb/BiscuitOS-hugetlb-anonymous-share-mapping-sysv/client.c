@@ -1,5 +1,5 @@
 /*
- * Hugetlb: SHMEM Client on Shared Anonymous Hugepage!
+ * Hugetlb: SYS V SHMEM Client on Shared Anonymous Hugepage!
  *
  * (C) 2021.11.29 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
