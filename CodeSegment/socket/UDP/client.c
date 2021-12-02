@@ -23,30 +23,24 @@
 /* Define Port */
 #define SOCKET_PORT	8810
 
-/* Buffer size */
-#define MES_BUFSZ	10240
-
 int main(void)
 {
 	struct sockaddr_in server_address;
-	char sendbuf[MES_BUFSZ] = {0};
-	char recvbuf[MES_BUFSZ] = {0};
+	char sendbuf[1024] = {0};
 	int socket_fd;
-	int server_len;
-	int sock;	
 
 	if ((socket_fd = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
-		perror("CREATE SOCKET");
+		perror(" |-> Client CREATE SOCKET");
 		exit(-1);
 	}
 
+	/* Configuration IP and Port on UDP */
 	memset(&server_address, 0, sizeof(struct sockaddr_in));
 	server_address.sin_family = AF_INET;
-	/* Configuration IP and Port */
 	server_address.sin_addr.s_addr = inet_addr(SOCKET_IP);
 	server_address.sin_port = htons(SOCKET_PORT);
 
-	/* Send */
+	/* Send Message */
 	sprintf(sendbuf, "Hello %s", "BiscuitOS");
 	printf(" |-> Client-Send: %s\n", sendbuf);
 	sendto(socket_fd, sendbuf, strlen(sendbuf), 0,

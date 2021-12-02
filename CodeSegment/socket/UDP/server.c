@@ -30,13 +30,15 @@ int main(void)
 
 	printf("** UDP Socket **\n");
 	/* UDP socket */
-	if ((server_sockfd = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
-		printf("SOCKET ERROR.\n");
+	if ((server_sockfd = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
+		perror(" |-> Server SOCKET ERROR.\n");
+		exit(-1);
+	}
 	
+	/* Configureation IP and PORT on UDP */
 	server_len = sizeof(struct sockaddr_in);
 	memset(&server_address, 0, server_len);
 	server_address.sin_family = AF_INET;
-	/* Configureation IP and PORT */
 	server_address.sin_port = htons(SOCKET_PORT);
 	server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 	server_len = sizeof(struct sockaddr_in);
@@ -44,7 +46,8 @@ int main(void)
 	/* Bind */
 	if ((ret = bind(server_sockfd, 
 			(struct sockaddr *)&server_address, server_len)) < 0) {
-		printf("BIND ERROR. %d ret\n", ret);
+		printf(" |-> Server BIND ERROR. %d ret\n", ret);
+		close(server_sockfd);
 		exit(-1);
 	}
 	printf(" |-> Server Bind Succeed.\n");
