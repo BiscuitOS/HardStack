@@ -93,6 +93,7 @@ int main(void)
 	send_fd(sockfd, memfd);
 
 	munmap(base, BISCUITOS_SIZE);
+	close(memfd);
 err:
 	close(sockfd);
 	return 0;
