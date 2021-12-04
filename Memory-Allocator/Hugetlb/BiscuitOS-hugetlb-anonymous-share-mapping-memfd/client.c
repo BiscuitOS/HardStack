@@ -89,7 +89,6 @@ int main(void)
 
 	/* Send Buffer */
 	sprintf(base, "Hello %s", "BiscuitOS");
-	//send(sockfd, base, BISCUITOS_SIZE, 0);
 	send_fd(sockfd, memfd);
 
 	munmap(base, BISCUITOS_SIZE);
