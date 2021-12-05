@@ -2,9 +2,9 @@
 # 
 
 echo 10 > /sys/kernel/mm/hugepages/hugepages-64kB/nr_hugepages
-BiscuitOS-hugetlb-anonymous-share-mapping-sysv-default-Server &
+BiscuitOS-hugetlb-anonymous-share-mapping-sysv-64KiB-default-Server &
 sleep 1
-BiscuitOS-hugetlb-anonymous-share-mapping-sysv-default-Client &
+BiscuitOS-hugetlb-anonymous-share-mapping-sysv-64KiB-default-Client &
 sleep 2
 
 # Information for 64KiB hugepage pool
