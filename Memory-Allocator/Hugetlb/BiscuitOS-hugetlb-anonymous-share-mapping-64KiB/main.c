@@ -22,7 +22,7 @@
 #define HPAGE_SIZE		(64 * 1024)
 #define BISCUITOS_MAP_SIZE	(2 * HPAGE_SIZE)
 
-#ifdef __aarch64__
+#ifndef MAP_HUGE_64KB
 #define HUGETLB_FLAG_ENCODE_SHIFT	26
 #define MAP_HUGE_64KB			(16 << HUGETLB_FLAG_ENCODE_SHIFT)
 #endif

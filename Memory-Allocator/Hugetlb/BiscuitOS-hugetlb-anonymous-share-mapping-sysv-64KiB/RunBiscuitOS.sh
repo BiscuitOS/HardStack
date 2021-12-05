@@ -1,10 +1,12 @@
 #!/bin/ash
 # 
-# Allocate 10 Hugepage to 64KiB hugepage pool
+
 echo 10 > /sys/kernel/mm/hugepages/hugepages-64kB/nr_hugepages
-# Running program
-BiscuitOS-hugetlb-anonymous-share-mapping-64KiB-default &
+BiscuitOS-hugetlb-anonymous-share-mapping-sysv-default-Server &
 sleep 1
+BiscuitOS-hugetlb-anonymous-share-mapping-sysv-default-Client &
+sleep 2
+
 # Information for 64KiB hugepage pool
 nr_hugepage=$(cat /sys/kernel/mm/hugepages/hugepages-64kB/nr_hugepages)
 free_hugepages=$(cat /sys/kernel/mm/hugepages/hugepages-64kB/free_hugepages)
@@ -15,5 +17,3 @@ echo " HugePages_Total:  ${nr_hugepage}"
 echo " HugePages_Free:   ${free_hugepages}"
 echo " HugePages_Rsvd:   ${resv_hugepages}"
 echo " HugePages_Surp:   ${surplus_hugepages}"
-
-
