@@ -18,7 +18,7 @@ int main()
 	char *buf;
 
 	/* Allocate memory from libhugetlbfs */
-	buf = malloc(0x200000);
+	buf = malloc(0x20000);
 	if (!buf) {
 		printf("ERROR: alloc hugetlbfs failed.\n");
 		return -1;

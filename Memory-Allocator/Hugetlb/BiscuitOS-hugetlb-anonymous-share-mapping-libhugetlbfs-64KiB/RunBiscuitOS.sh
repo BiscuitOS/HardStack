@@ -2,6 +2,9 @@
 
 # Allocate 10 Hugepage to 64KiB hugepage pool
 echo 10 > /sys/kernel/mm/hugepages/hugepages-64kB/nr_hugepages
+# mount 64KiB hugepage spool
+mkdir -p /mnt/BiscuitOS-hugetlbfs-64K
+mount -t hugetlbfs none -opagesize=64k /mnt/BiscuitOS-hugetlbfs-64K
 # Running program
 HUGETLB_MORECORE=64K LD_PRELOAD=/lib/libhugetlbfs.so BiscuitOS-hugetlb-anonymous-share-mapping-libhugetlbfs-64KiB-default &
 sleep 1
