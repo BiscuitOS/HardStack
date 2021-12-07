@@ -3,7 +3,7 @@
 # Allocate 10 Hugepage to 64KiB hugepage pool
 echo 10 > /sys/kernel/mm/hugepages/hugepages-64kB/nr_hugepages
 # Running program
-BiscuitOS-hugetlb-anonymous-share-mapping-populate-default &
+BiscuitOS-hugetlb-anonymous-share-mapping-populate-64KiB-default &
 sleep 1
 # Information for 64KiB hugepage pool
 nr_hugepage=$(cat /sys/kernel/mm/hugepages/hugepages-64kB/nr_hugepages)
