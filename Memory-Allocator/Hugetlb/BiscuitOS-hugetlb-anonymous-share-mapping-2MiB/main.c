@@ -1,12 +1,15 @@
 /*
  * Hugetlb: Anonymous Shared-mapping for 2MiB Hugepage
  *
- * (C) 2021.11.11 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2021.12.05 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#ifdef __i386__
+#error "Process doesn't support I386 Architecture"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,9 +22,13 @@
 #define HPAGE_SIZE		(2 * 1024 * 1024)
 #define BISCUITOS_MAP_SIZE	(2 * HPAGE_SIZE)
 
+#ifndef MAP_HUGE_2MB
+#define HUGETLB_FLAG_ENCODE_SHIFT	26
+#define MAP_HUGE_64KB			(21 << HUGETLB_FLAG_ENCODE_SHIFT)
+#endif
+
 int main()
 {
-	unsigned long *val;
 	char *base;
 
 	/* mmap */
@@ -37,10 +44,12 @@ int main()
 		return -ENOMEM;
 	}
 
-	val = (unsigned long *)base;
 	/* Trigger page fault */
-	*val = 88520;
-	printf("%#lx => %ld\n", (unsigned long)val, *val);
+	base[0] = 'B';
+	printf("%#lx => %c\n", (unsigned long)base, base[0]);
+
+	/* Just for debug */
+	sleep(-1);
 
 	/* unmap */
 	munmap(base, BISCUITOS_MAP_SIZE);
