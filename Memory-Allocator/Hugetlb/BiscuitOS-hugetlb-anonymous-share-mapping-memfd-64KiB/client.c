@@ -32,7 +32,11 @@
 #endif
 
 #ifndef __NR_memfd_create
+#ifdef __aarch64__
 #define __NR_memfd_create	279
+#elif __x86_64__
+#define __NR_memfd_create	319
+#endif
 #endif
 
 #ifndef MFD_HUGE_64KB
