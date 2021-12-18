@@ -7,6 +7,9 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#ifdef __i386__
+#error "Process doesn't support I386 Architecture"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
