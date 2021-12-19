@@ -24,7 +24,7 @@
 
 #ifndef MAP_HUGE_2MB
 #define HUGETLB_FLAG_ENCODE_SHIFT	26
-#define MAP_HUGE_64KB			(21 << HUGETLB_FLAG_ENCODE_SHIFT)
+#define MAP_HUGE_2MB			(21 << HUGETLB_FLAG_ENCODE_SHIFT)
 #endif
 
 int main()
