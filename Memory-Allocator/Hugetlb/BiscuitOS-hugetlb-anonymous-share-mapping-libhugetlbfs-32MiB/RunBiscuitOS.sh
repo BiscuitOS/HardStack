@@ -4,7 +4,7 @@
 echo 10 > /sys/kernel/mm/hugepages/hugepages-32768kB/nr_hugepages
 # mount 32MiB hugepage spool
 mkdir -p /mnt/BiscuitOS-hugetlbfs-32M
-mount -t hugetlbfs none -opagesize=32M /mnt/BiscuitOS-hugetlbfs-32M
+mount -t hugetlbfs none -o pagesize=32M /mnt/BiscuitOS-hugetlbfs-32M
 # Running program
 HUGETLB_MORECORE=32M LD_PRELOAD=/lib/libhugetlbfs.so BiscuitOS-hugetlb-anonymous-share-mapping-libhugetlbfs-32MiB-default &
 sleep 1
