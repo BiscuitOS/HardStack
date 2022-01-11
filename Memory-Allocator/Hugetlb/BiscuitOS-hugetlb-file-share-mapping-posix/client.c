@@ -1,5 +1,5 @@
 /*
- * Hugetlb: SYS V SHMEM Client on Shared File Hugepage!
+ * Hugetlb: POSIX SHMEM Client on Shared File Hugepage!
  *
  * (C) 2021.11.29 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
