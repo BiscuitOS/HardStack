@@ -92,7 +92,7 @@ int main(void)
 		memfd = recv_fd(afd);
 		base = (char *)mmap(NULL, BISCUITOS_SIZE,
 					PROT_READ | PROT_WRITE,
-					MAP_SHARED | MAP_HUGETLB,
+					MAP_SHARED,
 					memfd, 0);
 		if (base == MAP_FAILED)
 			perror(" |-> Server MMAP failed");
