@@ -267,9 +267,7 @@ BiscuitOS__anon_vma_interval_tree_iter_next(
 void BiscuitOS_anon_vma_interval_tree_insert(struct anon_vma_chain *node,
 					     struct rb_root_cached *root)
 {
-	printk("FFFFF\n");
 	BiscuitOS__anon_vma_interval_tree_insert(node, root);
-	printk("ZZZZZ\n");
 }
 
 struct anon_vma_chain *
