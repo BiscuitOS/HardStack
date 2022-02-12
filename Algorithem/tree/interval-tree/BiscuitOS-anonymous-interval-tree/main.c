@@ -44,7 +44,7 @@ static int __init BiscuitOS_init(void)
 	}
 	vma->vm_pgoff = VADDR >> PAGE_SHIFT;
 	vma->vm_start = VADDR;
-	vma->vm_end   = VADDR + 4 * PAGE_SIZE;
+	vma->vm_end   = VADDR + PAGE_NR * PAGE_SIZE;
 	INIT_LIST_HEAD(&vma->anon_vma_chain);
 
 	/* anon_vma_chain for vma */
@@ -86,27 +86,34 @@ static int __init BiscuitOS_init(void)
 		atomic_set(&pages[i]->_mapcount, 0);
 		anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
 		pages[i]->mapping = (struct address_space *) anon_vma;
-		pages[i]->index = ((vaddr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
-		printk("Page %#lx index %#lx\n", page_to_pfn(pages[i]), pages[i]->index);
+		pages[i]->index =
+			((vaddr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+		printk("Page %#lx index %#lx\n", 
+				page_to_pfn(pages[i]), pages[i]->index);
 	}
 
 	/* traversal interval tree  */
 	page = pages[2];
-	tanon_vma = (struct anon_vma *)((unsigned long)page->mapping & ~PAGE_MAPPING_FLAGS);
+	tanon_vma = (struct anon_vma *)((unsigned long)page->mapping &
+							~PAGE_MAPPING_FLAGS);
 	start = page->index;
 	end   = start + 1;
-	BiscuitOS_anon_vma_interval_tree_foreach(tavc, &tanon_vma->rb_root, start, end) {
+	BiscuitOS_anon_vma_interval_tree_foreach(tavc, 
+					&tanon_vma->rb_root, start, end) {
 		struct vm_area_struct *tvma = tavc->vma;
 		unsigned long address =
-			((page->index - tvma->vm_pgoff) << PAGE_SHIFT) + tvma->vm_start;
+			((page->index - tvma->vm_pgoff) << PAGE_SHIFT) + 
+								tvma->vm_start;
 
-		printk("Page %#lx with VA: %#lx and VMA %#lx - %#lx\n", page_to_pfn(page),
-				address, tvma->vm_start, tvma->vm_end);
+		printk("Page %#lx with VA: %#lx and VMA %#lx - %#lx\n",
+					page_to_pfn(page), address,
+					tvma->vm_start, tvma->vm_end);
 	}
 
 	/* remove */
 	list_for_each_entry(tavc, &vma->anon_vma_chain, same_vma)
-		BiscuitOS_anon_vma_interval_tree_remove(tavc, &tavc->anon_vma->rb_root);
+		BiscuitOS_anon_vma_interval_tree_remove(tavc, 
+					&tavc->anon_vma->rb_root);
 
 	for (i = 0; i < PAGE_NR; i++)
 		__free_page(pages[i]);
