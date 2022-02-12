@@ -142,7 +142,7 @@ void BiscuitOS_vma_interval_tree_remove(
  *   Cond2: start <= vma_last_pgoff(node)
  */
 
-struct vm_area_struct *
+static struct vm_area_struct *
 BiscuitOS_vma_interval_tree_subtree_search(
 	struct vm_area_struct *node, unsigned long start, unsigned long last)
 {
@@ -214,7 +214,7 @@ BiscuitOS_vma_interval_tree_iter_first(struct rb_root_cached *root,
 	if (vma_start_pgoff(leftmost) > last)
 		return NULL;
 
-	return BiscuitOS_BiscuitOS_vma_interval_tree_subtree_search(node, start, last);
+	return BiscuitOS_vma_interval_tree_subtree_search(node, start, last);
 }
 
 struct vm_area_struct * BiscuitOS_vma_interval_tree_iter_next(
@@ -234,7 +234,7 @@ struct vm_area_struct * BiscuitOS_vma_interval_tree_iter_next(
 			struct vm_area_struct *right =
 				rb_entry(rb, struct vm_area_struct, shared.rb);
 			if (start <= right->shared.rb_subtree_last)
-				return BiscuitOS_BiscuitOS_vma_interval_tree_subtree_search(right, start, last);
+				return BiscuitOS_vma_interval_tree_subtree_search(right, start, last);
 		}
 
 		/* Move up the tree until we come from a node's left child */
