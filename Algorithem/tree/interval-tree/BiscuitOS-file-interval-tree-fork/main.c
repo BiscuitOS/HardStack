@@ -100,7 +100,7 @@ static int __init BiscuitOS_init(void)
 	}
 	printk("Proccess VMA: %#lx\n", (unsigned long)fvma0);
 	*fvma0 = *vma;
-	vma_interval_tree_insert_after(fvma0, vma, &mapping->i_mmap);
+	BiscuitOS_vma_interval_tree_insert_after(fvma0, vma, &mapping->i_mmap);
 
 	/* Emulate fork Child Child Process0 */
 	fvma1 = kzalloc(sizeof(*fvma1), GFP_KERNEL);
@@ -111,7 +111,7 @@ static int __init BiscuitOS_init(void)
 	}
 	printk("Proccess VMA: %#lx\n", (unsigned long)fvma1);
 	*fvma1 = *fvma0;
-	vma_interval_tree_insert_after(fvma1, vma, &mapping->i_mmap);
+	BiscuitOS_vma_interval_tree_insert_after(fvma1, vma, &mapping->i_mmap);
 
 	/* Traversal interal tree for special page */
 	page  = pages[2];
@@ -125,9 +125,10 @@ static int __init BiscuitOS_init(void)
 			((page->index - tvma->vm_pgoff) << PAGE_SHIFT) +
 							tvma->vm_start;
 
-		printk("Page %#lx with vaddr: %#lx and VMA [%#lx] %#lx - %#lx\n",
-				page_to_pfn(page), address,
-				(unsigned long)tvma, tvma->vm_start, tvma->vm_end);
+		printk("Page %#lx with vaddr: %#lx and "
+				"VMA [%#lx] %#lx - %#lx\n",
+			page_to_pfn(page), address,
+			(unsigned long)tvma, tvma->vm_start, tvma->vm_end);
 	}
 
 	/* remove */

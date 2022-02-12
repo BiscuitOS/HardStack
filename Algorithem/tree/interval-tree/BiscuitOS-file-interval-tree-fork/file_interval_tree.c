@@ -256,7 +256,7 @@ struct vm_area_struct * BiscuitOS_vma_interval_tree_iter_next(
 }
 
 /* Insert node immediately after prev in the interval tree */
-void vma_interval_tree_insert_after(struct vm_area_struct *node,
+void BiscuitOS_vma_interval_tree_insert_after(struct vm_area_struct *node,
                                     struct vm_area_struct *prev,
                                     struct rb_root_cached *root)
 {
