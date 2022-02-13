@@ -1,5 +1,5 @@
 /*
- * Hugetlb: POSIX SHMEM Client on Shared File Hugepage!
+ * Hugetlb: POSIX SHMEM Server on shared file hugepage
  *
  * (C) 2021.11.29 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -15,37 +15,38 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-#define HPAGE_SIZE	(2UL * 1024 * 1024)
+#define HPAGE_SIZE	(2 * 1024 * 1024)
 #define BISCUITOS_SIZE	(2 * HPAGE_SIZE)
+#define HUGETLBFS_FILE	"/mnt/BiscuitOS-Hugetlbfs/BiscuitOS"
 
 int main()
 {
 	char *base;
 	int fd;
 
-	fd = shm_open("BiscuitOS", O_RDWR, 0777);
+	fd = open(HUGETLBFS_FILE, O_CREAT | O_RDWR, 0777);
 	if (fd < 0) {
-		printf("Open /dev/shm/BiscuitOS failed.\n");
+		printf("POSIX open %s failed.\n", HUGETLBFS_FILE);
 		return -1;
 	}
 
+	/* MMAP */
 	base = mmap(NULL, BISCUITOS_SIZE,
-		    PROT_READ,
+		    PROT_READ | PROT_WRITE,
 		    MAP_SHARED,
 		    fd, 0);
 	if (base == MAP_FAILED) {
-		printf("MMAP POSIX failed.\n");
+		printf("POSIX mmap failed.\n");
 		return -1;
 	}
 
-	/* Read from poxis share memory area */
-	printf("POSIX-Client: %s\n", base);
+	/* Write to POSIX Share memory area */
+	sprintf(base, "Hello %s", "BiscuitOS");
+	printf("POSIX-Server: %s\n", base);
 
 	/* unmap */
 	munmap(base, BISCUITOS_SIZE);
-
-	/* remove link */
-	shm_unlink("BiscuitOS");
+	close(fd);
 
 	return 0;
 }
