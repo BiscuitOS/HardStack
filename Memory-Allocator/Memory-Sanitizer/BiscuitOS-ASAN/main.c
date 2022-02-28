@@ -1,5 +1,5 @@
 /*
- * ASAN: GUN GCC Address Sanitizer
+ * ASAN: GUN GCC Sanitizer (Google)
  *
  * (C) 2022.02.28 BuddyZhang1 <buddy.zhang@aliyun.com>
  *

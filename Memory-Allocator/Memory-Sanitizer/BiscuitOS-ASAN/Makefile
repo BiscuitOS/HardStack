@@ -22,7 +22,9 @@ LCFLAGS			+= -DCONFIG_BISCUITOS_APP
 ## Header
 LCFLAGS			+= -I./ -I$(PWD)/include
 ## ASAN Flags
-ASANCFLAGS		:= -fsanitize=leak -fsanitize=address
+ASANCFLAGS		:= -fsanitize=leak
+ASANCFLAGS		+= -fsanitize=address
+ASANCFLAGS		+= -fsanitize=memory
 ASANCFLAGS		+= -fno-omit-frame-pointer
 ASANCFLAGS		+= -fno-optimize-sibling-calls -O1
 ASANCFLAGS		+= -g
