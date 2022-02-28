@@ -1,5 +1,5 @@
 /*
- * ASAN: Out-of-bounds access to stack
+ * ASAN: GUN GCC Address Sanitizer
  *
  * (C) 2022.02.28 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
