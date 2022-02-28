@@ -22,12 +22,12 @@ LCFLAGS			+= -DCONFIG_BISCUITOS_APP
 ## Header
 LCFLAGS			+= -I./ -I$(PWD)/include
 ## ASAN Flags
-ASANCFLAGS		:= -fsanitize=leak
-ASANCFLAGS		+= -fsanitize=address
-#ASANCFLAGS		+= -fsanitize=memory
-ASANCFLAGS		+= -fno-omit-frame-pointer
-ASANCFLAGS		+= -fno-optimize-sibling-calls -O1
-ASANCFLAGS		+= -g
+ACFLAGS			:= -fsanitize=leak
+ACFLAGS			+= -fsanitize=address
+#ACFLAGS		+= -fsanitize=memory
+ACFLAGS			+= -fno-omit-frame-pointer
+ACFLAGS			+= -fno-optimize-sibling-calls -O1
+ACFLAGS			+= -g $(LCFLAGS)
 
 DOT			:= -
 ## X86/X64 Architecture
@@ -60,21 +60,23 @@ endif
 
 all:
 	# Preprocessing
-	$(B_CC) $(LCFLAGS) -E $(SRC) -o $(TARGET)-Prep.i
+	$(B_CC) $(LCFLAGS) -E $(SRC) -o $(TARGET)-Prep-NOASAN.i
+	$(B_CC) $(ACFLAGS) -E $(SRC) -o $(TARGET)-Prep.i
 	# Compilation
-	$(B_CC) -S $(TARGET)-Prep.i -o $(TARGET)-ASM.s
+	$(B_CC) $(LCFLAGS) -S $(SRC) -o $(TARGET)-ASM-NOASAN.s
+	$(B_CC) $(ACFLAGS) -S $(SRC) -o $(TARGET)-ASM.s
 	# Assemble
-	$(B_CC) -C $(TARGET)-ASM.s -o $(TARGET)-obj.o
+	$(B_CC) $(LCFLAGS) -C $(SRC) -o $(TARGET)-obj-NOASAN.o
+	$(B_CC) $(ACFLAGS) -C $(SRC) -o $(TARGET)-obj.o
 	# Linking
-	$(B_CC) $(TARGET)-obj.o -shared -o $(TARGET)-NOASAN
+	$(B_CC) $(LCFLAGS) $(SRC) -o $(TARGET)-NOASAN
+	$(B_CC) $(ACFLAGS) $(SRC) -o $(TARGET)
 	# Disassembling object file
+	$(B_OBJDUMP) -sSdhx $(TARGET)-obj-NOASAN.o > $(TARGET)-Object-NOASAN.obs
 	$(B_OBJDUMP) -sSdhx $(TARGET)-obj.o > $(TARGET)-Object.obs
-	# Target
-	$(B_CC) $(LCFLAGS) $(ASANCFLAGS) -o $(TARGET) $(SRC)
 	# Disassembling target file
+	$(B_OBJDUMP) -sSdhx $(TARGET)-NOASAN > $(TARGET)-target-NOASAN.obs
 	$(B_OBJDUMP) -sSdhx $(TARGET) > $(TARGET)-target.obs
-	# Disassembling ASAN target file
-	$(B_OBJDUMP) -sSdhx $(TARGET)-NOASAN > $(TARGET)-target-noasan.obs
 
 install:
 	@cp -rfa $(TARGET) $(INSTALL_PATH)
