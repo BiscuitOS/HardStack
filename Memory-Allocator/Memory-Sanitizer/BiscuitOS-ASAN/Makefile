@@ -24,7 +24,7 @@ LCFLAGS			+= -I./ -I$(PWD)/include
 ## ASAN Flags
 ASANCFLAGS		:= -fsanitize=leak
 ASANCFLAGS		+= -fsanitize=address
-ASANCFLAGS		+= -fsanitize=memory
+#ASANCFLAGS		+= -fsanitize=memory
 ASANCFLAGS		+= -fno-omit-frame-pointer
 ASANCFLAGS		+= -fno-optimize-sibling-calls -O1
 ASANCFLAGS		+= -g
