@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <string.h>
 
-int main()
+int func(void)
 {
 	int *p = NULL;
 
@@ -23,4 +23,11 @@ int main()
 
 	/* Use after free */
 	return *p;
+}
+
+int main()
+{
+	int p = func();
+
+	return 0;
 }
