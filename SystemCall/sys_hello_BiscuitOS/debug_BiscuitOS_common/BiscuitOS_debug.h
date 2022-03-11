@@ -21,5 +21,10 @@
         bs_debug_enable = 0;                                    \
 })
 
+#define bs_kdebug(...)                                           \
+({                                                               \
+	pr_info("[BiscuitOS-stub] " __VA_ARGS__);                \
+})
+
 
 #endif
