@@ -75,6 +75,11 @@ vi default-configs/i386-softmmu.mak
 
 # Add context
 CONFIG_BISCUITOS_PCI=y
+
+vi config-all-devices.mak
+
+# Add context
+CONFIG_BISCUITOS_PCI:=$(findstring y,$(CONFIG_BISCUITOS_PCI)y)
 ```
 
 6. Add QEMU command
