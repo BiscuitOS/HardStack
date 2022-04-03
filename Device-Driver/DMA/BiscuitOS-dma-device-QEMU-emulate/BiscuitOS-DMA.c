@@ -1,5 +1,5 @@
 /*
- * QEMU emulate PCI device for BiscuitOS
+ * QEMU emulate DMA device for BiscuitOS
  *
  * BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -33,7 +33,7 @@
 #include "qapi/visitor.h"
 
 #define BISCUITOS_PCI_VENDOR_ID	0x1016
-#define BISCUITOS_PCI_DEVICE_ID	0x1413
+#define BISCUITOS_PCI_DEVICE_ID	0x1314
 #define BISCUITOS_CFG_ID_ADDR	0x3000UL
 #define BISCUITOS_CFG_ID_VAL	0x911016
 
