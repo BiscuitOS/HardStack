@@ -1,0 +1,2 @@
+config BISCUITOS_DMA
+    bool
