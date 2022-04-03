@@ -14,7 +14,7 @@
     bs_debug_enable_qemu = 1;               \
 })
 
-#define bs_debug_enable()                   \
+#define bs_debug_disable()                  \
 ({                                          \
     extern int bs_debug_enable_qemu;        \
     bs_debug_enable_qemu = 0;               \
