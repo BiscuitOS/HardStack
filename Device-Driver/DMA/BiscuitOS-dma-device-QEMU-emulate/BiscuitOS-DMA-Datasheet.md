@@ -1,4 +1,4 @@
-BsicuitOS DMA module
+BiscuitOS DMA module
 ============================
 
 BiscuitOS DMA module is simple PCIe device with internal memory, which contains 2MiB RAM memory. The Vendor ID is **0x1014**, and Device ID is **0x1314**. The DMA contains an MMIO BAR, which mapping:
