@@ -75,11 +75,6 @@ vi default-configs/i386-softmmu.mak
 
 # Add context
 CONFIG_BISCUITOS_DMA=y
-
-vi config-all-devices.mak
-
-# Add context
-CONFIG_BISCUITOS_DMA:=$(findstring y,$(CONFIG_BISCUITOS_DMA)y)
 ```
 
 6. Add QEMU command
