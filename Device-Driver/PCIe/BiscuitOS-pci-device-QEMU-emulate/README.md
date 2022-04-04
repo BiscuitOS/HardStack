@@ -1,9 +1,9 @@
 BiscuitOS PCI QEMU Module Usage
 ======================================
 
-#### Deploy
+## Deploy
 
-1. Goto Qemu source code directory
+#### 1. Goto Qemu source code directory
 
 ```
 cd BiscuitOS/output/linux-${VERSION}-${ARCH}/qemu-system/qemu-system/
@@ -11,7 +11,7 @@ cd BiscuitOS/output/linux-${VERSION}-${ARCH}/qemu-system/qemu-system/
 
 **VERSION** is kernel version and **ARCH** is architecture of platformat. qemu-system is soft link from variable version qemu.
 
-2. Create BiscuitOS Device Module directory
+#### 2. Create BiscuitOS Device Module directory
 
 Create BiscuitOS directory on **hw/**  directory, then modify Makefile.objs and Kconfig, such as:
 
@@ -29,7 +29,7 @@ vi Kconfig
 source BiscuitOS/Kconfig
 ```
 
-3. Download module source code
+#### 3. Download module source code
 
 We need download and copy source code from BiscuitOS, sach as:
 
@@ -65,7 +65,7 @@ vi Kconfig
 source BiscuitOS-pci-device-QEMU-emulate-default/Kconfig
 ```
 
-5. Enable BiscuitOS Macro
+#### 4. Enable BiscuitOS Macro
 
 We need create some macro to enable BiscuitOS module, **CONFIG_BISCUITOS_PCI** macro is used to enable BiscuitOS PCI module, **CONFIG_BISCUITOS_DMA** macro is used to enable BiscuitOS DMA module. We need enable those on special file, such as on X86 Emulator:
 
@@ -82,7 +82,7 @@ vi config-all-devices.mak
 CONFIG_BISCUITOS_PCI:=$(findstring y,$(CONFIG_BISCUITOS_PCI)y)
 ```
 
-6. Add QEMU command
+#### 5. Add QEMU command
 
 The BiscuitOS PCI module is called from QEMU command, so we need add qemu options for module, such as:
 
@@ -98,7 +98,7 @@ vi RunBiscuitOS.sh
 
 The name of PCI module is **BiscuitOS-pci**, the options "-device" while invoke on QEMU.
 
-7. Compile QEMU
+#### 6. Compile QEMU
 
 BiscuitOS provides a auto scripts to compile QEMU, such as:
 
@@ -126,7 +126,7 @@ Please press Enter to activate this console.
 
 The ID 1016:1413 is BiscuitOS-pci device. CONFIG_BISCUITOS_PCI is enable.
 
-#### File
+## File
 
 ```
 cd BiscuitOS/output/linux-${VERSION}-${ARCH}/qemu-system/qemu-system/hw/BiscuitOS/BiscuitOS-pci-device-QEMU-emulate-default
@@ -140,7 +140,7 @@ tree
 
 **BiscuitOS-pci.c** is source code for BiscuitOS PCI module, and Kconfig create macro BISCUITOS_PCI, Makefile.objs add it to compiler. the usage of QEMU from README.md.
 
-#### Blog
+## Blog
 
 ```
 https://biscuitos.github.io/blog/BiscuitOS_Catalogue/
