@@ -19,4 +19,10 @@ extern int bs_debug_enable_qemu;
     bs_debug_enable_qemu = 0;               \
 })
 
+#define bs_debug_log(...)                   \
+({                                          \
+    if (bs_debug_enable_qemu)               \
+        qemu_log(__VA_ARGS__);              \
+})
+
 #endif
