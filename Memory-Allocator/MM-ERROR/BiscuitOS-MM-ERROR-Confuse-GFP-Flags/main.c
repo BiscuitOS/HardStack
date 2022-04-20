@@ -14,6 +14,10 @@
 #include <linux/module.h>
 #include <linux/mm.h>
 
+#ifndef CONFIG_DEBUG_VM
+#error "Kernel must enable CONFIG_DEBUG_VM"
+#endif
+
 /* Module initialize entry */
 static int __init BiscuitOS_init(void)
 {
