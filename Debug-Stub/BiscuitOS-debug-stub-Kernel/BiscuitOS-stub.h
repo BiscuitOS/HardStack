@@ -7,7 +7,7 @@ extern int bs_debug_kernel_enable;
 #define bs_debug(...)                                           \
 ({                                                              \
         if (bs_debug_kernel_enable)                             \
-                pr_info(__VA_ARGS__);                           \
+		pr_info("[BiscuitOS-stub] " __VA_ARGS__);       \
 })
 
 #define bs_debug_kernel_enable()                                \
