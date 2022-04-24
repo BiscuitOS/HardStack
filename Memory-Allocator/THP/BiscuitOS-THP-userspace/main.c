@@ -17,13 +17,14 @@
 
 #define BISCUITOS_MAP_SIZE	(4 * 2 * 1024 * 1024)
 #define VIRTUAL_ADDRESS		(0x6000000000)
+#define MAP_FIXED_NOREPLACE	0x100000
 
 int main()
 {
 	char *base;
 
 	/* mmap */
-	base = (char *)mmap(VIRTUAL_ADDRESS, 
+	base = (char *)mmap((void *)VIRTUAL_ADDRESS, 
 			    BISCUITOS_MAP_SIZE,
 			    PROT_READ | PROT_WRITE,
 			    MAP_SHARED | MAP_ANONYMOUS |
