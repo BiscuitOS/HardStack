@@ -40,10 +40,10 @@ int main()
 	printf("BiscuitOS Range: %#lx - %#lx\n", (unsigned long)base,
 				(unsigned long)base + BISCUITOS_MAP_SIZE);
 	/* access hugepage */
-	base[HPAGE_SIZE * 0] = HPAGE_SIZE; /* Trigger 1st SHMHUGE */
-	base[HPAGE_SIZE * 1] = HPAGE_SIZE; /* Trigger 2nd SHMHUGE */
-	base[HPAGE_SIZE * 2] = HPAGE_SIZE; /* Trigger 3rd SHMHUGE */
-	base[HPAGE_SIZE * 3] = HPAGE_SIZE; /* Trigger 4th SHMHUGE */
+	base[HPAGE_SIZE * 0] = 'A'; /* Trigger 1st SHMHUGE */
+	base[HPAGE_SIZE * 1] = 'B'; /* Trigger 2nd SHMHUGE */
+	base[HPAGE_SIZE * 2] = 'C'; /* Trigger 3rd SHMHUGE */
+	base[HPAGE_SIZE * 3] = 'D'; /* Trigger 4th SHMHUGE */
 
 	/* Just for debug */
 	sleep(-1);
