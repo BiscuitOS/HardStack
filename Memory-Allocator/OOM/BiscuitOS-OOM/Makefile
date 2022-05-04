@@ -1,63 +1,93 @@
 #
-# Application Project
+# Module Common
 #
-# (C) 2020.02.02 BuddyZhang1 <buddy.zhang@aliyun.com>
+# (C) 2020.03.14 BuddyZhang1 <buddy.zhang@aliyun.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 
+ifneq ($(KERNELRELEASE),)
+
 ## Target
-ifeq ("$(origin TARGETA)", "command line")
-TARGET			:= $(TARGETA)
+ifeq ("$(origin MODULE_NAME)", "command line")
+MODULE_NAME		:= $(MODULE_NAME)
 else
-TARGET			:= BiscuitOS_app
+MODULE_NAME		:= BiscuitOS_mod
 endif
+obj-m			:= $(MODULE_NAME).o
 
 ## Source Code
-SRC			+= main.c
+$(MODULE_NAME)-m	+= main.o
 
 ## CFlags
-LCFLAGS			+= -DCONFIG_BISCUITOS_APP
+ccflags-y		+= -DCONFIG_BISCUITOS_MODULE 
 ## Header
-LCFLAGS			+= -I./ -I$(PWD)/include
+ccflags-y		+= -I$(PWD)
 
-DOT			:= -
+else
+
+## Parse argument
+## Default support ARM32
+ifeq ("$(origin BSROOT)", "command line")
+BSROOT=$(BSROOT)
+else
+BSROOT=/xspace/OpenSource/BiscuitOS/BiscuitOS/output/linux-5.0-arm32
+endif
+
+ifeq ("$(origin ARCH)", "command line")
+ARCH=$(ARCH)
+else
+ARCH=arm
+endif
+
+ifeq ("$(origin CROSS_TOOLS)", "command line")
+CROSS_TOOLS=$(CROSS_TOOLS)
+else
+CROSS_TOOLS=arm-linux-gnueabi
+endif
+
+## Don't Edit
+KERNELDIR=$(BSROOT)/linux/linux
+CROSS_COMPILE_PATH=$(BSROOT)/$(CROSS_TOOLS)/$(CROSS_TOOLS)/bin
+CROSS_COMPILE=$(CROSS_COMPILE_PATH)/$(CROSS_TOOLS)-
+INCLUDEDIR=$(KERNELDIR)/include
+ARCHINCLUDEDIR=$(KERNELDIR)/arch/$(ARCH)/include
+INSTALLDIR=$(BSROOT)/rootfs/rootfs/
+
 ## X86/X64 Architecture
 ifeq ($(ARCH), i386)
-CROSS_COMPILE	=
-LCFLAGS		+= -m32
-DOT		:=
+CROSS_COMPILE	:=
 else ifeq ($(ARCH), x86_64)
-CROSS_COMPILE   :=
-DOT		:=
+CROSS_COMPILE	:=
 endif
 
-# Compile
-B_AS		= $(CROSS_COMPILE)$(DOT)as
-B_LD		= $(CROSS_COMPILE)$(DOT)ld
-B_CC		= $(CROSS_COMPILE)$(DOT)gcc
-B_CPP		= $(CC) -E
-B_AR		= $(CROSS_COMPILE)$(DOT)ar
-B_NM		= $(CROSS_COMPILE)$(DOT)nm
-B_STRIP		= $(CROSS_COMPILE)$(DOT)strip
-B_OBJCOPY	= $(CROSS_COMPILE)$(DOT)objcopy
-B_OBJDUMP	= $(CROSS_COMPILE)$(DOT)objdump
+## Compile
+AS		= $(CROSS_COMPILE)as
+LD		= $(CROSS_COMPILE)ld
+CC		= $(CROSS_COMPILE)gcc
+CPP		= $(CC) -E
+AR		= $(CROSS_COMPILE)ar
+NM		= $(CROSS_COMPILE)nm
+STRIP		= $(CROSS_COMPILE)strip
+OBJCOPY		= $(CROSS_COMPILE)objcopy
+OBJDUMP		= $(CROSS_COMPILE)objdump
 
-## Install PATH
-ifeq ("$(origin INSPATH)", "command line")
-INSTALL_PATH		:= $(INSPATH)
-else
-INSTALL_PATH		:= ./
-endif
+# FLAGS
+CFLAGS += -I$(INCLUDEDIR) -I$(ARCHINCLUDEDIR)
 
-all:
-	$(B_CC) $(LCFLAGS) -o $(TARGET) $(SRC)
+all: $(OBJS)
+	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
+                CROSS_COMPILE=$(CROSS_COMPILE) modules
 
 install:
-	@cp -rfa $(TARGET) $(INSTALL_PATH)
-	@chmod 755 RunBiscuitOS.sh
-	@cp -rfa RunBiscuitOS.sh $(INSTALL_PATH)
+	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
+		INSTALL_MOD_PATH=$(INSTALLDIR) modules_install
+	chmod 755 RunBiscuitOS.sh
+	sudo cp RunBiscuitOS.sh $(INSTALLDIR)/usr/bin/
 
 clean:
-	@rm -rf $(TARGET) *.o
+	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
+               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd
+
+endif
