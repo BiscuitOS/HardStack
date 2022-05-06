@@ -1,7 +1,8 @@
 /*
  * THP: ShmemHugePage on anonymous
  *
- * (C) 2022.04.22 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2022.05.07 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) BiscuitOS
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
