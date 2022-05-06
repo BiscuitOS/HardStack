@@ -1,5 +1,5 @@
 /*
- * OOM on BiscuitOS
+ * OOM on Kernel Space (BiscuitOS+)
  *
  * (C) 2022.05.05 BuddyZhang1 <buddy.zhang@aliyun.com>
  * (C) BiscuitOS
