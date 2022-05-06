@@ -1,4 +1,4 @@
 #!/bin/ash
-insmod /lib/modules/$(uname -r)/extra/BiscuitOS-OOM-default.ko 
+insmod /lib/modules/$(uname -r)/extra/BiscuitOS-OOM-kernel-default.ko 
 
 cat /proc/buddyinfo
