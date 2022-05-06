@@ -1,5 +1,5 @@
 /*
- * THP: ShmemHugePage
+ * THP: ShmemHugePage on Anonymous
  *
  * (C) 2022.05.07 BuddyZhang1 <buddy.zhang@aliyun.com>
  * (C) BiscuitOS
