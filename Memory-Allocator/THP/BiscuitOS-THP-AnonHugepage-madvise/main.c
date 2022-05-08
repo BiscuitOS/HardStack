@@ -42,12 +42,12 @@ int main()
 				(unsigned long)base + BISCUITOS_MAP_SIZE);
 
 	/* MADVICE: Merge MAP_POPULATE 4KiB pages to AnonHugepage */
-	madvise(VIRTUAL_ADDRESS, HPAGE_SIZE, MADV_HUGEPAGE);
+	madvise((void *)VIRTUAL_ADDRESS, HPAGE_SIZE, MADV_HUGEPAGE);
 	/* access hugepage */
 	base[HPAGE_SIZE * 0] = 'A'; /* Doesn't Trigger page fault */
-	base[HPAGE_SIZE * 1] = 'B'; /* Trigger 4KiB Pages */
-	base[HPAGE_SIZE * 2] = 'C'; /* Trigger 4KiB Pages */
-	base[HPAGE_SIZE * 3] = 'D'; /* Trigger 4KiB pages */
+	base[HPAGE_SIZE * 1] = 'B'; /* 4KiB Pages */
+	base[HPAGE_SIZE * 2] = 'C'; /* 4KiB Pages */
+	base[HPAGE_SIZE * 3] = 'D'; /* 4KiB pages */
 
 	/* Just for debug */
 	sleep(-1);
