@@ -1,4 +1,4 @@
 #!/bin/ash
 # 
 # Running program
-BiscuitOS-PAGE-userspace-default
+BiscuitOS-PAGE-userspace-default &
