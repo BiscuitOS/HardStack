@@ -20,7 +20,6 @@
 
 /* PATH for EPOLL Interface */
 #define DEV_PATH		"/dev/BiscuitOS"
-#define OPEN_MAX		1024
 
 int main()
 {
