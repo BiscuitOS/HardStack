@@ -1,2 +1,2 @@
 #/bin/ash
-insmod /lib/modules/$(uname -r)/extra/BiscuitOS-Broiler-pci-driver-default.ko
+insmod /lib/modules/$(uname -r)/extra/Broiler-pci-driver-default.ko
