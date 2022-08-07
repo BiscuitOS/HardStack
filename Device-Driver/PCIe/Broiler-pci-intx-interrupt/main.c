@@ -44,22 +44,22 @@ static int Broiler_pci_probe(struct pci_dev *pdev,
 
 	bpdev = kzalloc(sizeof(*bpdev), GFP_KERNEL);
 	if (!bpdev) {
-		ret = -ENOMEM;
+		r = -ENOMEM;
 		printk("%s ERROR: Broiler PCI allocate failed.\n", DEV_NAME);
 		goto err_alloc;
 	}
 	bpdev->pdev = pdev;
 
 	/* Enable PCI device */
-	ret = pci_enable_device(pdev);
-	if (ret < 0) {
+	r = pci_enable_device(pdev);
+	if (r < 0) {
 		printk("%s ERROR: PCI Device Enable failed.\n", DEV_NAME);
 		goto err_enable_pci;
 	}
 
 	/* Request IO BAR resource */
-	ret = pci_request_region(pdev, IO_BAR, "Broiler-PCIe-INTX-IO");
-	if (ret < 0) {
+	r = pci_request_region(pdev, IO_BAR, "Broiler-PCIe-INTX-IO");
+	if (r < 0) {
 		printk("%s ERROR: Request IO-BAR Failed.\n", DEV_NAME);
 		goto err_request_io;
 	}
@@ -67,17 +67,17 @@ static int Broiler_pci_probe(struct pci_dev *pdev,
 	/* Remapping IO-BAR */
 	bpdev->io = pci_iomap(pdev, IO_BAR, pci_resource_len(pdev, IO_BAR));
 	if (!bpdev->io) {
-		ret = -EBUSY;
+		r = -EBUSY;
 		printk("%s ERROR: Remapping IO Failed\n", DEV_NAME);
 		goto err_iomap;
 	}
 
 	/* Reqeust INTX IRQ */
 	pci_intx(pdev, 1);
-	ret = request_irq(pdev->irq, Broiler_pci_irq_handler,
+	r = request_irq(pdev->irq, Broiler_pci_irq_handler,
 				IRQF_SHARED | IRQF_TRIGGER_HIGH,
 						DEV_NAME, (void *)bpdev);
-	if (ret < 0) {
+	if (r < 0) {
 		printk("%s ERROR: Request IRQ failed.\n", DEV_NAME);
 		goto err_irq;
 	}
@@ -101,7 +101,7 @@ err_enable_pci:
 	kfree(bpdev);
 	bpdev = NULL;
 err_alloc:
-	return ret;
+	return r;
 }
 
 static void Broiler_pci_remove(struct pci_dev *pdev)
