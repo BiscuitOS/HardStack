@@ -122,7 +122,7 @@ static void Broiler_pci_remove(struct pci_dev *pdev)
 }
 
 static const struct pci_device_id Broiler_pci_ids[] = {
-	{ PCI_DEVICE(0x1023, 0x1991), },
+	{ PCI_DEVICE(0x1001, 0x1991), },
 };
 
 static struct pci_driver Broiler_PCIe_driver = {
