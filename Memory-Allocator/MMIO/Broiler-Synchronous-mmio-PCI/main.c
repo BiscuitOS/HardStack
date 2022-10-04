@@ -57,7 +57,7 @@ static int BiscuitOS_PCIe_probe(struct pci_dev *pdev,
 	}
 
 	/* Request MMIO BAR resource */
-	ret = pci_request_region(pdev, MMIO_BAR, "BiscuitOS-PCIe-MMIO");
+	ret = pci_request_region(pdev, MMIO_BAR, DEV_NAME);
 	if (ret < 0) {
 		printk("%s ERROR: Request MMIO BAR Failed.\n", DEV_NAME);
 		goto err_request_mmio;
