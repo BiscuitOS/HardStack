@@ -29,6 +29,7 @@ static int __init BiscuitOS_init(void)
 
 	printk("Broiler MMIO Read %#lx: %#x", addr, *(unsigned int *)addr);
 
+	clear_fixmap(BROILER_FIXMAP_IDX);
 	return 0;
 }
 
