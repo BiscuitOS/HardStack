@@ -12,7 +12,7 @@ ifneq ($(KERNELRELEASE),)
 ifeq ("$(origin MODULE_NAME)", "command line")
 MODULE_NAME		:= $(MODULE_NAME)
 else
-MODULE_NAME		:= BiscuitOS_mod
+MODULE_NAME		:= BiscuitOS-module
 endif
 obj-m			:= $(MODULE_NAME).o
 
