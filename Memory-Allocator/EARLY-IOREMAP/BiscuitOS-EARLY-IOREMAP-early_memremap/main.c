@@ -31,7 +31,7 @@ int __init BiscuitOS_Running(void)
 	printk("Reserved Memory: %#x\n", *(unsigned int *)mem);
 
 	/* unmapping */
-	early_iounmap(mem, RESERVED_MEMORY_SIZE);
+	early_memunmap(mem, RESERVED_MEMORY_SIZE);
 
 	return 0;
 }
