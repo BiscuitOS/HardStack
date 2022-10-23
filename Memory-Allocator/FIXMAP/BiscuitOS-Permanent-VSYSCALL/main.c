@@ -16,7 +16,7 @@
 /* VSYSCALL: 0xFFFFFFFFFF600000 */
 #define VSYSCALL_BASE		(-10UL << 20) 
 /* Vsyscall page: 1st 1KiB for gettimeofdata */
-#define VADDR_GETTIMEOFDATA	(VSYSCALL_BASE + 0x1000 * 0)
+#define VADDR_GETTIMEOFDAY	(VSYSCALL_BASE + 0x1000 * 0)
 
 typedef int (*TOD_t)(struct timeval *tv, struct timezone *tz);
 
@@ -25,8 +25,8 @@ int main()
 	struct timezone tz;
 	struct timeval tv;
 
-	TOD_t BiscuitOS_timeofdata = (TOD_t)VADDR_GETTIMEOFDATA;
-	BiscuitOS_timeofdata(&tv, &tz);
+	TOD_t BiscuitOS_timeofday = (TOD_t)VADDR_GETTIMEOFDAY;
+	BiscuitOS_timeofday(&tv, &tz);
 
 	printf("Time: %d sec %d usec\n", (unsigned int)tv.tv_sec, 
 					 (unsigned int)tv.tv_usec);
