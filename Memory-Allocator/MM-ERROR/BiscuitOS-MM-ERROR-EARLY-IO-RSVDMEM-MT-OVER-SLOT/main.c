@@ -23,10 +23,10 @@ int __init BiscuitOS_Running(void)
 
 	for (i = 0; i <= FIX_BTMAPS_SLOTS; i++) {
 		/* mapping */
-		mmio[i] = early_ioremap(BROILER_MMIO_BASE + i * BROILER_MMIO_SIZE, 
-							     BROILER_MMIO_SIZE);
+		mmio[i] = early_ioremap(BROILER_MMIO_BASE + 
+				i * BROILER_MMIO_SIZE, BROILER_MMIO_SIZE);
 		if (!mmio[i]) {
-			printk("EARLY-IOREMAP failed on %d\n\n\n\n\n", i);
+			printk("EARLY-IOREMAP failed on %d\n", i);
 			goto out;
 		}
 	}
