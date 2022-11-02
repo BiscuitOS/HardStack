@@ -1,6 +1,6 @@
 [File]
-arch/x86/kernel/setup.c
+init/main.c
 [Func]
-x86_init.oem.arch_setup()
+kgdb_free_init_mem()
 [Content]
 BiscuitOS_Running()
