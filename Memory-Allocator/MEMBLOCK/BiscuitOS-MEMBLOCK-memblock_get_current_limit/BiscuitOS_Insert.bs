@@ -1,0 +1,6 @@
+[File]
+arch/x86/kernel/setup.c
+[Func]
+init_mem_mapping()
+[Content]
+BiscuitOS_Running()
