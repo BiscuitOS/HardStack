@@ -36,7 +36,7 @@ int __init BiscuitOS_Running(void)
 	}
 
 	sprintf(mem, "==== Hello %s ====\n", "BiscuitOS");
-	printk("NODE RANGE %#lx - %#lx\n",
+	printk("NODE RANGE %#x - %#x\n",
 			MEMBLOCK_FAKE_BASE, MEMBLOCK_FAKE_END);
 	printk("[%#lx] %s", __pa(mem), (char *)mem);
 
