@@ -1,6 +1,6 @@
 [File]
-arch/x86/kernel/setup.c
+init/main.c
 [Func]
-setup_log_buf()
+build_all_zonelists()
 [Content]
 BiscuitOS_Running()
