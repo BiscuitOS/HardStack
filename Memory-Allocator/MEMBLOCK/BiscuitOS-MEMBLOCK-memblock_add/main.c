@@ -16,8 +16,16 @@
 
 int __init BiscuitOS_Running(void)
 {
+	phys_addr_t region_start, region_end;
+	u64 idx;
+
 	/* Add new range */
 	memblock_add(MEMBLOCK_FAKE_BASE, MEMBLOCK_FAKE_SIZE);
+
+	/* Iterate membloc.memory */
+	for_each_mem_region(idx, &region_start, &region_end)
+		printk("Region %#llx: %#llx - %#llx\n", idx,
+				region_start, region_end);
 
 	/* Only Test: Remove range */
 	memblock_remove(MEMBLOCK_FAKE_BASE, MEMBLOCK_FAKE_SIZE);
