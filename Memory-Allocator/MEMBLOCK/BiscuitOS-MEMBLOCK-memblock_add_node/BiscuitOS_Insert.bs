@@ -1,6 +1,6 @@
 [File]
-arch/x86/kernel/setup.c
+init/main.c
 [Func]
-init_mem_mapping()
+build_all_zonelists()
 [Content]
 BiscuitOS_Running()
