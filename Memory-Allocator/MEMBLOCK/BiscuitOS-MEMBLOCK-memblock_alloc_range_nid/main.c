@@ -33,7 +33,7 @@ int __init BiscuitOS_Running(void)
 	/* Alloc Memory */
 	addr = memblock_alloc_range_nid(MEMBLOCK_FAKE_SIZE, SMP_CACHE_BYTES,
 				MEMBLOCK_FAKE_BASE, MEMBLOCK_FAKE_END, 
-						MEMBLOCK_FAKE_NODE, false);
+						MEMBLOCK_FAKE_NODE, true);
 	if (!addr) {
 		printk("FATAL ERROR: No Free Memory on MEMBLOCK.\n");
 		return -ENOMEM;
