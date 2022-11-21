@@ -25,10 +25,8 @@ int __init BiscuitOS_Running(void)
 {
 	void *mem;
 
-	bs_debug_enable();
 	mem = memblock_alloc_try_nid(MEMBLOCK_FAKE_SIZE, SMP_CACHE_BYTES,
 			MEMBLOCK_FAKE_BASE, MEMBLOCK_FAKE_END, MEMBLOCK_NODE);
-	bs_debug_disable();
 	if (!mem) {
 		printk("%#x - %#x no free memory!\n",
 				MEMBLOCK_FAKE_BASE, MEMBLOCK_FAKE_END);
