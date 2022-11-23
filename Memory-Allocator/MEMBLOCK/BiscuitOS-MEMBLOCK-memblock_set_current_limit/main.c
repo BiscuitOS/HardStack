@@ -32,7 +32,7 @@ int __init BiscuitOS_Running(void)
 	}
 
 	sprintf(mem, "Hello %s", "BiscuitOS");
-	printk("==== %s ====\n", (char *)mem);
+	printk("[%#lx]==== %s ====\n", __pa(mem), (char *)mem);
 
 	/* Free Memory */
 	memblock_free(mem, MEMBLOCK_FAKE_SIZE);
