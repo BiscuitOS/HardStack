@@ -16,11 +16,22 @@
 
 int __init BiscuitOS_Running(void)
 {
+	phys_addr_t start, end;
+	u64 idx;
+
 	/* Add new range */
 	memblock_add(MEMBLOCK_FAKE_BASE, MEMBLOCK_FAKE_SIZE);
 
+	printk("==== Before Remove ==============\n");
+	for_each_mem_range(idx, &start, &end)
+		printk("Range %lld: %#llx - %#llx\n", idx, start, end);
+
 	/* Only Test: Remove range */
 	memblock_remove(MEMBLOCK_FAKE_BASE, MEMBLOCK_FAKE_SIZE);
+
+	printk("==== After Remove ==============\n");
+	for_each_mem_range(idx, &start, &end)
+		printk("Range %lld: %#llx - %#llx\n", idx, start, end);
 
 	return 0;
 }
