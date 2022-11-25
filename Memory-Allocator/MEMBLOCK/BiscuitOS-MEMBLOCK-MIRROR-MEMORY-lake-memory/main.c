@@ -27,14 +27,23 @@
 #define MEMBLOCK_MIRROR_SIZE	0x1000
 #define MEMBLOCK_MIRROR_END	(MEMBLOCK_MIRROR_BASE + MEMBLOCK_MIRROR_SIZE)
 #define MEMBLOCK_FAKE_SIZE	0x2000
-#define MEMBLOCK_FAKE_BASE	(MEMBLOCK_MIRROR_BASE - 2 * MEMBLOCK_MIRROR_SIZE)
-#define MEMBLOCK_FAKE_END	(MEMBLOCK_MIRROR_BASE + 2 * MEMBLOCK_MIRROR_SIZE)
+#define MEMBLOCK_FAKE_BASE	(MEMBLOCK_MIRROR_BASE)
+#define MEMBLOCK_FAKE_END	(MEMBLOCK_MIRROR_BASE + 3 * MEMBLOCK_MIRROR_SIZE)
 #define MEMBLOCK_FAKE_NODE	1
 
 int __init BiscuitOS_Running(void)
 {
-	phys_addr_t phys;
+	phys_addr_t phys, start, end;
 	void *mem;
+	int nid;
+	u64 idx;
+
+	/* Iterate free memory */
+	printk("==== MEMBLOCK NODE %d Free Area ====\n", MEMBLOCK_FAKE_NODE);
+	for_each_free_mem_range(idx, MEMBLOCK_FAKE_NODE, MEMBLOCK_NONE,
+							&start, &end, &nid)
+		printk("FreeRange: %#llx - %#llx - NID %d\n",
+							start, end, nid);
 
 	/* Mark Memory Mirrorable */
 	memblock_mark_mirror(MEMBLOCK_MIRROR_BASE, MEMBLOCK_MIRROR_SIZE);
