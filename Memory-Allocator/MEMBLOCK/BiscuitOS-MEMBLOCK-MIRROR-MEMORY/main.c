@@ -1,7 +1,7 @@
 /*
  * MEMBLOCK Memory Allocator: Memory Mirror on MEMBLOCK
  *
- * - must support 'kernelcore=mirror; on CMDLINE
+ * - must support 'kernelcore=mirror' on CMDLINE
  *
  * (C) 2022.10.16 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
