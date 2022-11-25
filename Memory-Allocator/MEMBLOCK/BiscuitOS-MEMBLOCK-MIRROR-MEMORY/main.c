@@ -1,7 +1,7 @@
 /*
  * MEMBLOCK Memory Allocator: Memory Mirror on MEMBLOCK
  *
- * - must support 'kernelcore=mirror; on CMDLINE
+ * - must support 'kernelcore=mirror' on CMDLINE
  *
  * (C) 2022.10.16 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -31,6 +31,7 @@
 
 int __init BiscuitOS_Running(void)
 {
+	struct memblock_region *region;
 	phys_addr_t phys, start, end;
 	void *mem;
 	u64 idx;
@@ -45,7 +46,6 @@ int __init BiscuitOS_Running(void)
 					MEMBLOCK_MIRROR, &start, &end, &nid)
 		printk("Mirror-Range %lld: %#llx - %#llx NID %d\n",
 							idx, start, end, nid);
-
 	/* Alloc Memory */
 	phys = memblock_alloc_range_nid(MEMBLOCK_FAKE_SIZE,
 				SMP_CACHE_BYTES, MEMBLOCK_MIRROR_BASE,
@@ -57,10 +57,10 @@ int __init BiscuitOS_Running(void)
 
 	/* Iterate Mirror memory on memblock.reserved */
 	printk("=== Iterate mirror on memblock.reserved ===\n");
-	__for_each_mem_range(idx, &memblock.reserved, NULL, MEMBLOCK_FAKE_NODE,
-					MEMBLOCK_MIRROR, &start, &end, &nid)
-		printk("Mirror-Range %lld: %#llx - %#llx NID %d\n",
-							idx, start, end, nid);
+	for_each_reserved_mem_region(region)
+		printk("Mirror-Range %#llx - %#llx NID %d Flags %d\n",
+			region->base, region->base + region->size,
+				region->nid, region->flags);
 
 	mem = phys_to_virt(phys);
 	sprintf(mem, "Hello %s", "BiscuitOS");
