@@ -17,7 +17,7 @@ static int __init BiscuitOS_init(void)
 	phys_addr_t start, end;
 	u64 idx;
 
-	printk("Iterate Available Memory\n");
+	printk("==== Iterate Available Memory ====\n");
 	for_each_mem_range(idx, &start, &end)
 		printk("Range %lld: %#llx - %#llx\n", idx, start, end);
 
