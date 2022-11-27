@@ -1,0 +1,2 @@
+config BISCUITOS_DEMO_PROJECT
+	tristate "Common Project on Module"

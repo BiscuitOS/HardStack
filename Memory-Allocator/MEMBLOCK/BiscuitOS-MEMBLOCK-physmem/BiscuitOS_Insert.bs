@@ -1,0 +1,6 @@
+[File]
+arch/x86/kernel/setup.c
+[Func]
+sev_setup_arch()
+[Content]
+BiscuitOS_Running()
