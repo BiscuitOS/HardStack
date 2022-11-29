@@ -1,8 +1,8 @@
 /*
  * MEMBLOCK DRIVER_MANAGED
  *
- * - Must add '${BISCUITOS_FAKE_SIZE}$${BISCUITOS_FAKE_BASE}'
- *   - '128M$0x10000000' on CMDLINE
+ * - Must add 'memmap=${BISCUITOS_FAKE_SIZE}$${BISCUITOS_FAKE_BASE}'
+ *   - 'memmap=128M$0x10000000' on CMDLINE
  * - Must enable CONFIG_ARCH_KEEP_MEMBLOCK
  *
  * (C) 2022.10.16 BuddyZhang1 <buddy.zhang@aliyun.com>
@@ -32,7 +32,6 @@ static struct resource BiscuitOS_resource = {
 static int __init BiscuitOS_init(void)
 {
 	struct memblock_region *region;
-	char *mem;
 
 	/* Add RAM as Drvier managed */
 	add_memory_resource(0, &BiscuitOS_resource, MHP_NONE);
