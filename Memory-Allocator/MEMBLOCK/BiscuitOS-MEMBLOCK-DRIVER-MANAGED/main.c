@@ -32,18 +32,25 @@ static struct resource BiscuitOS_resource = {
 static int __init BiscuitOS_init(void)
 {
 	struct memblock_region *region;
+	char *mem = NULL;
 
-	/* Add RAM as Drvier managed */
+	/* Add RAM as Driver managed */
 	add_memory_resource(0, &BiscuitOS_resource, MHP_NONE);
 
 	/* Iterate Driver Managed Memory */
 	printk("=== MEMBLOCK Driver Managed ===\n");
 	for_each_mem_region(region)
-		if (memblock_is_driver_managed(region))
+		if (memblock_is_driver_managed(region)) {
 			printk("RANGE: %#llx - %#llx - NID %d\n", region->base,
 				region->base + region->size, region->nid);
+			mem = (char *)phys_to_virt(region->base);
+		}
 
 	/* Driver Manage Memory..... Ignore details */
+	if (mem) {
+		sprintf(mem, "Hello %s", "BiscuitOS");
+		printk("== %s ==\n", mem);
+	}
 
 	return 0;
 }
