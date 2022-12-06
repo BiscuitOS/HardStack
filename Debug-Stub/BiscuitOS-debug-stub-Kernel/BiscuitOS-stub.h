@@ -2,6 +2,7 @@
 #define _BISCUITOS_DEBUG_H
 
 extern int bs_debug_kernel_enable;
+extern int bs_enable(void);
 
 /* BiscuitOS Debug stub */
 #define bs_debug(...)                                           \

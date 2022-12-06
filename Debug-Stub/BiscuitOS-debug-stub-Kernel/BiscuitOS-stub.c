@@ -26,6 +26,12 @@ SYSCALL_DEFINE1(debug_BiscuitOS, int, enable)
 	return 0;
 }
 
+int bs_enable(void)
+{
+        return bs_debug_kernel_enable;
+}
+EXPORT_SYMBOL(bs_enable);
+
 static int BiscuitOS_bs_debug_handler(struct ctl_table *table, int write,
 		void __user *buffer, size_t *length, loff_t *ppos)
 {
