@@ -17,7 +17,7 @@
 #include <sys/mman.h>
 
 #define DEV_PATH		"/dev/BiscuitOS"
-#define MMAP_SIZE		4096
+#define MMAP_SIZE		(2 * 1024 * 1024)
 
 int main()
 {
