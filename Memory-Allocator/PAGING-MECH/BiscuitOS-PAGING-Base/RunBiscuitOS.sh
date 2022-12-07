@@ -1,3 +1,3 @@
 #/bin/ash
-insmod /lib/modules/$(uname -r)/extra/BiscuitOS-MISC-default.ko
+insmod /lib/modules/$(uname -r)/extra/BiscuitOS-PAGING-Base-default.ko
 APP
