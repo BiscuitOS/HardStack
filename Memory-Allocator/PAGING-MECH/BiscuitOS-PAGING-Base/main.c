@@ -35,21 +35,21 @@ static vm_fault_t vm_fault(struct vm_fault *vmf)
 	}
 
 	/* Modify Page Table Bit */
-	printk("Default Pgport %#lx\n", pgprot_val(vma->vm_page_prot));
+	printk("Default Pgport     %#lx\n", pgprot_val(vma->vm_page_prot));
 	pgprot_val(vma->vm_page_prot) |= _PAGE_PWT | _PAGE_PCD | _PAGE_PAT;
-	printk("Modify Pgport %#lx\n", pgprot_val(vma->vm_page_prot));
+	printk("Modify Pgport      %#lx\n", pgprot_val(vma->vm_page_prot));
 
 	/* Modify VMA flags */
 	printk("Default VMA Flags: %#lx\n", vma->vm_flags);
 	vma->vm_flags &= ~VM_READ;
-	printk("Modify VMA Flags: %#lx\n", vma->vm_flags);
+	printk("Modify VMA Flags:  %#lx\n", vma->vm_flags);
 
 	/* Fill PTE and INC _mapcount for page */
 	vma->vm_flags |= VM_MIXEDMAP;
 	if (vm_insert_page(vma, address, fault_page))
 		return -EAGAIN;
 
-	printk("Correct Pgport %#lx\n", pgprot_val(vma->vm_page_prot));
+	printk("Correct Pgport     %#lx\n", pgprot_val(vma->vm_page_prot));
 	/* Add refcount for page */
 	atomic_inc(&fault_page->_refcount);
 	/* Bind fault page */
