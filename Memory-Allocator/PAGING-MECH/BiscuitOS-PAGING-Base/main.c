@@ -40,7 +40,7 @@ static vm_fault_t vm_fault(struct vm_fault *vmf)
 	printk("Modify Pgport %#lx\n", pgprot_val(vma->vm_page_prot));
 
 	/* Modify VMA flags */
-	printk("Default VMA Flags: %#lx\n", vma->vm_flgas);
+	printk("Default VMA Flags: %#lx\n", vma->vm_flags);
 	vma->vm_flags &= ~VM_READ;
 	printk("Modify VMA Flags: %#lx\n", vma->vm_flags);
 

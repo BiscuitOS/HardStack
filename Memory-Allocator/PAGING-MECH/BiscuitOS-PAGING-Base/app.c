@@ -21,7 +21,6 @@
 
 int main()
 {
-	struct BiscuitOS_pdata pdata;
 	void *base;
 	int fd;
 
