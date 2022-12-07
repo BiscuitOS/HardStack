@@ -1,3 +1,3 @@
 #/bin/ash
-insmod /lib/modules/$(uname -r)/extra/BiscuitOS-PAGING-TimeCost.ko
+insmod /lib/modules/$(uname -r)/extra/BiscuitOS-PAGING-TimeCost-default.ko
 APP
