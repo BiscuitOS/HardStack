@@ -1,6 +1,6 @@
 #!/bin/ash
 
-BiscuitOS-MCE-software-offline-poison-page &
+BiscuitOS-MCE-software-offline-poison-page-default &
 sleep 0.2
 
 # Obtain Poison page address
