@@ -32,6 +32,7 @@ int main()
 
 	/* Trigger page fault */
 	*(char *)base = 'B';
+	printf("Virtual-Address: %#lx\n", (unsigned long)base);
 
 	munmap(base, BISCUITOS_MAP_SIZE);
 	return 0;
