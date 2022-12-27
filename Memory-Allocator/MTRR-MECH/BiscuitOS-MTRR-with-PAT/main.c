@@ -98,7 +98,7 @@ static vm_fault_t vm_fault(struct vm_fault *vmf)
 	struct mtrr_var_range vr;
 	u64 size_or_mask, size_and_mask;
 	unsigned long size = PAGE_SIZE;
-	phys_addr_t phys;
+	unsigned long pfn;
 	int memory_type;
 	int index = 2;
 
@@ -172,9 +172,9 @@ static vm_fault_t vm_fault(struct vm_fault *vmf)
 	 * |                  | WP              | WP                    |
 	 * +------------------+-----------------+-----------------------+
 	 */
-	memory_type = MTRR_MEMTYPE_WB;
+	memory_type = MTRR_MEMTYPE_UC;
 	/* _PAGE_PAT: _PAGE_PCD: _PAGE_PWT */
-	pgprot_val(vma->vm_page_prot) |= _PAGE_PAT;
+	pgprot_val(vma->vm_page_prot) |= _PAGE_PWT | _PAGE_PAT ;
 
 	/* Allocate Physical Memory */
 	fault_page = alloc_page(GFP_KERNEL);
@@ -182,14 +182,14 @@ static vm_fault_t vm_fault(struct vm_fault *vmf)
 		return -ENOMEM;
 
 	/* Physical Address */
-	phys = page_to_pfn(fault_page) << PAGE_SHIFT;
+	pfn = page_to_pfn(fault_page);
 	size_and_mask = cpuid_eax(0x80000008) & 0xff;
 	size_or_mask = (~((1ULL << ((size_and_mask) - PAGE_SHIFT)) - 1));
 	size_and_mask = ~size_or_mask & 0xfffff00000ULL;
 	vr = (struct mtrr_var_range) {
-		.base_lo = PAGE_ALIGN(phys) << PAGE_SHIFT | memory_type,
-		.base_hi = (PAGE_ALIGN(phys) & size_and_mask) >> 20,
-		.mask_lo = -size << PAGE_SHIFT | 0x800,
+		.base_lo = (pfn << PAGE_SHIFT) | memory_type,
+		.base_hi = (pfn & size_and_mask) >> 20,
+		.mask_lo = -size | 0x800,
 		.mask_hi = (-size & size_and_mask) >> 20,
 	};
 
