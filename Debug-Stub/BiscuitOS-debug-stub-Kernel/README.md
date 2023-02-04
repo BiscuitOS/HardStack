@@ -142,12 +142,12 @@ we can use **strace** to trace system call information. If we want to debug scri
 ...
 
 /* Enable kernel Stub */
-echo 1 > /proc/sys/BiscuitOS/bs_debug_enable
+echo 1 > /proc/sys/BiscuitOS/bs_debug_kernel_enable
 
 ...
 
 /* Disable kernel Stub */
-echo 0 > /proc/sys/BiscuitOS/bs_debug_enable
+echo 0 > /proc/sys/BiscuitOS/bs_debug_kernel_enable
 
 ...
 

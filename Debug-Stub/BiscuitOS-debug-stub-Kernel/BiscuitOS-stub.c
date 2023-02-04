@@ -14,23 +14,22 @@
 #include <linux/sysctl.h>
 
 int bs_debug_kernel_enable;
+int bs_debug_kernel_enable_one;
 EXPORT_SYMBOL(bs_debug_kernel_enable);
+EXPORT_SYMBOL(bs_debug_kernel_enable_one);
 
 SYSCALL_DEFINE1(debug_BiscuitOS, int, enable)
 {
-	if (enable)
+	if (enable) {
 		bs_debug_kernel_enable = 1;
-	else
+		bs_debug_kernel_enable_one = 1;
+	} else {
 		bs_debug_kernel_enable = 0;
+		bs_debug_kernel_enable_one = 0;
+	}
 
 	return 0;
 }
-
-int bs_enable(void)
-{
-        return bs_debug_kernel_enable;
-}
-EXPORT_SYMBOL(bs_enable);
 
 static int BiscuitOS_bs_debug_handler(struct ctl_table *table, int write,
 		void __user *buffer, size_t *length, loff_t *ppos)
@@ -38,6 +37,11 @@ static int BiscuitOS_bs_debug_handler(struct ctl_table *table, int write,
 	int ret;
 
 	ret = proc_dointvec(table, write, buffer, length, ppos);
+	if (bs_debug_kernel_enable)
+		bs_debug_kernel_enable_one = 1;
+	else
+		bs_debug_kernel_enable_one = 0;
+
 	return ret;
 }
 
