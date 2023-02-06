@@ -1,5 +1,5 @@
 /*
- * MMIO with Uncache-
+ * Write-Combining with MMIO
  *
  * (C) 2023.01.06 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -34,8 +34,8 @@ static int __init BiscuitOS_init(void)
 	if (r < 0)
 		return r;
 
-	/* IOREMAP with NOCACHE */
-	mmio = ioremap(BROILER_MMIO_BASE, BROILER_MMIO_LEN);
+	/* IOREMAP with Write-Combining */
+	mmio = ioremap_wc(BROILER_MMIO_BASE, BROILER_MMIO_LEN);
 	if (!mmio) {
 		printk("IOREMAP MMIO failed.\n");
 		remove_resource(&Broiler_mmio_res);
@@ -64,4 +64,4 @@ module_exit(BiscuitOS_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("Broiler MMIO on BiscuitOS");
+MODULE_DESCRIPTION("WriteCombining with MMIO on BiscuitOS");

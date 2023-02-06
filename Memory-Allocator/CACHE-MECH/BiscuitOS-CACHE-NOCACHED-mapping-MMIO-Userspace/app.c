@@ -50,6 +50,9 @@ int main()
 	*val = 88520;
 	printf("%#lx => %ld\n", (unsigned long)val, *val);
 
+	/* for debug */
+	sleep(-1);
+
 	/* unmap */
 	munmap(base, MMIO_SIZE);
 	close(fd);
