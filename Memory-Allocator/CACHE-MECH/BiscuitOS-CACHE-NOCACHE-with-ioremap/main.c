@@ -1,5 +1,5 @@
 /*
- * Broiler MMIO on BiscuitOS
+ * MMIO with Uncache-
  *
  * (C) 2023.01.06 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -14,8 +14,8 @@
 #include <linux/ioport.h>
 #include <linux/io.h>
 
-#define BROILER_MMIO_BASE	0xF0000000
-#define BROILER_MMIO_LEN	0x1000
+#define BROILER_MMIO_BASE	0xF0000000UL
+#define BROILER_MMIO_LEN	0x1000UL
 
 static struct resource Broiler_mmio_res = {
 	.name	= "Broiler MMIO",
@@ -44,7 +44,11 @@ static int __init BiscuitOS_init(void)
 	/* MMIO Read and Write */
 	val = (unsigned long *)mmio;
 	*val = 0x88520;
-	printk("MMIO Value: %#lx\n", *val);
+	printk("MMIO: Phys %#lx - %#lx\n",
+			BROILER_MMIO_BASE, BROILER_MMIO_BASE + BROILER_MMIO_LEN);
+	printk("      Virt %#lx - %#lx\n", (unsigned long)mmio, 
+				(unsigned long)mmio + BROILER_MMIO_LEN);
+	printk("      Value: %#lx\n", *val);
 
 	return 0;
 }
