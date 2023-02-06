@@ -23,20 +23,35 @@ static struct resource Broiler_mmio_res = {
 	.end	= BROILER_MMIO_BASE + BROILER_MMIO_LEN,
 	.flags	= IORESOURCE_MEM,
 };
+static void __iomem *mmio;
 
 static int __init BiscuitOS_init(void)
 {
+	unsigned long *val;
 	int r;
 
 	r = request_resource(&iomem_resource, &Broiler_mmio_res);
 	if (r < 0)
 		return r;
 
+	/* IOREMAP with NOCACHE */
+	mmio = ioremap(BROILER_MMIO_BASE, BROILER_MMIO_LEN);
+	if (!mmio) {
+		printk("IOREMAP MMIO failed.\n");
+		remove_resource(&Broiler_mmio_res);
+	}
+	
+	/* MMIO Read and Write */
+	val = (unsigned long *)mmio;
+	*val = 0x88520;
+	printk("MMIO Value: %#lx\n", *val);
+
 	return 0;
 }
 
 static void __exit BiscuitOS_exit(void)
 {
+	iounmap(mmio);
 	remove_resource(&Broiler_mmio_res);
 }
 
