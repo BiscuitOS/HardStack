@@ -1,2 +1,0 @@
-config BISCUITOS_MOD_COMMON
-	tristate "Common Device Module on BiscuitOS"

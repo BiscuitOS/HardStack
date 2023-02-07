@@ -30,7 +30,7 @@ static int __init BiscuitOS_init(void)
 		return -EINVAL;
 	}
 	
-	/* MMIO Read and Write */
+	/* Memory Read and Write */
 	val = (unsigned long *)mem;
 	*val = 0x88520;
 	printk("MMIO: Phys %#lx - %#lx\n",
