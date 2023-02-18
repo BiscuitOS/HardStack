@@ -1,10 +1,6 @@
-HardStack
----------------------------------------------
+HardStack - Open Code Repository for BiscuitOS
+------------------------------------------------------
 
-git remote add Gitee https://gitee.com/BiscuitOS_team/HardStack.git
-
-git fetch Gitee Gitee
-
-git checkout Gitee
+![](https://s1.ax1x.com/2023/02/18/pSq5ApR.png)
 
 Reserved by @BiscuitOS
