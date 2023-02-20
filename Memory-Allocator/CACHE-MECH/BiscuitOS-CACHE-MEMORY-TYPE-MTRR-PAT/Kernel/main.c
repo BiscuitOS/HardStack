@@ -109,8 +109,8 @@ static int BiscuitOS_mmap(struct file *filp, struct vm_area_struct *vma)
 	pgprot_val(vma->vm_page_prot) |= cachemode2protval(pcm);
 
 	return remap_pfn_range(vma, vma->vm_start,
-			MTRR_MEM_BASE >> PAGE_SHIFT, PAGE_SIZE,
-					vma->vm_page_prot);
+			MTRR_MEM_BASE >> PAGE_SHIFT,
+			vma->vm_end - vma->start, vma->vm_page_prot);
 }
 
 static struct file_operations BiscuitOS_fops = {
