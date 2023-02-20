@@ -1,5 +1,6 @@
 /*
- * CACHE Mode for Userspace Page on BiscuitOS
+ * Memory Type from Userspace
+ *  - Must add 'memmap=2M$0x10000000' into cmdline
  *
  * (C) 2023.02.08 BuddyZhang1 <buddy.zhang@aliyun.com>
  * (C) 2022.10.16 BiscuitOS
@@ -13,120 +14,38 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/miscdevice.h>
-#include <linux/fs.h>
 #include <linux/mm.h>
-#include <asm/memtype.h>
+#include <asm/pgtable_types.h>
+#include <asm/mtrr.h>
 
 #define DEV_NAME			"BiscuitOS-CACHE"
-/* IOCTL */
-#define BISCUITOS_CACHE_IO		0xBD
-#define BSIO_CACHE_MODE_WB		_IO(BISCUITOS_CACHE_IO, 0x00)
-#define BSIO_CACHE_MODE_WC		_IO(BISCUITOS_CACHE_IO, 0x01)
-#define BSIO_CACHE_MODE_UC_MINUS	_IO(BISCUITOS_CACHE_IO, 0x02)
-#define BSIO_CACHE_MODE_UC		_IO(BISCUITOS_CACHE_IO, 0x03)
-#define BSIO_CACHE_MODE_WT		_IO(BISCUITOS_CACHE_IO, 0x04)
-#define BSIO_CACHE_MODE_WP		_IO(BISCUITOS_CACHE_IO, 0x05)
-/* page memory type */
-static enum page_cache_mode page_pcm;
-
-static vm_fault_t vm_fault(struct vm_fault *vmf)
-{
-	struct vm_area_struct *vma = vmf->vma;
-	unsigned long address = vmf->address;
-	enum page_cache_mode new_pcm;
-	struct page *fault_page;
-	resource_size_t phys;
-	int r;
-
-	/* Clear PAT */
-	pgprot_val(vma->vm_page_prot) &= ~(_PAGE_PWT | _PAGE_PCD | _PAGE_PAT);
-	/* Setup PAT */
-	pgprot_val(vma->vm_page_prot) |= cachemode2protval(page_pcm);
-
-	/* Allocate Physical Memory */
-	fault_page = alloc_page(GFP_KERNEL);
-	if (!fault_page) {
-		r = -ENOMEM;
-		goto alloc_err;
-	}
-	phys = page_to_pfn(fault_page) << PAGE_SHIFT;
-
-	/* Physical Memory Type */
-	r = memtype_reserve(phys, phys + PAGE_SIZE, page_pcm, &new_pcm);
-	if (r || page_pcm != new_pcm) {
-		r = -EINVAL;
-		printk("Incorrect memory type!\n");
-		goto type_err;
-	}
-
-	/* Fill PTE and INC _mapcount for page */
-	vma->vm_flags |= VM_MIXEDMAP;
-	if (vm_insert_page(vma, address, fault_page)) {
-		r = -EAGAIN;
-		goto map_err;
-	}
-
-	/* Add refcount for page */
-	atomic_inc(&fault_page->_refcount);
-	/* Bind fault page */
-	vmf->page = fault_page;
-	printk("Phys: %#llx - %#llx\n", phys, phys + PAGE_SIZE);
-
-	return 0;
-
-map_err:
-	memtype_free(phys, phys + PAGE_SIZE);
-type_err:
-	__free_page(fault_page);
-alloc_err:
-	return r;
-}
-
-static long BiscuitOS_ioctl(struct file *filp,
-				unsigned int ioctl, unsigned long arg)
-{
-	switch (ioctl) {
-	case BSIO_CACHE_MODE_WB:
-		page_pcm = _PAGE_CACHE_MODE_WB;
-		break;
-	case BSIO_CACHE_MODE_WC:
-		page_pcm = _PAGE_CACHE_MODE_WC;
-		break;
-	case BSIO_CACHE_MODE_UC_MINUS:
-		page_pcm = _PAGE_CACHE_MODE_UC_MINUS;
-		break;
-	case BSIO_CACHE_MODE_UC:
-		page_pcm = _PAGE_CACHE_MODE_UC;
-		break;
-	case BSIO_CACHE_MODE_WT:
-		page_pcm = _PAGE_CACHE_MODE_WT;
-		break;
-	case BSIO_CACHE_MODE_WP:
-		page_pcm = _PAGE_CACHE_MODE_WP;
-		break;
-	default:
-		printk("Unknown Page memory type!\n");
-		return -EINVAL;
-	}
-	return 0;
-}
-
-static const struct vm_operations_struct BiscuitOS_vm_ops = {
-	.fault	= vm_fault,
-};
+#define MTRR_MEM_BASE			0x10000000
+#define MTRR_MEM_SIZE			0x200000
+/* Memory Type and Mnemonic */
+#define MTRR_MEMTYPE_UC			0x00
+#define MTRR_MEMTYPE_WC			0x01
+#define MTRR_MEMTYPE_WT			0x04
+#define MTRR_MEMTYPE_WP			0x05
+#define MTRR_MEMTYPE_WB			0x06
 
 static int BiscuitOS_mmap(struct file *filp, struct vm_area_struct *vma)
 {
-	/* setup vm_ops */
-	vma->vm_ops = &BiscuitOS_vm_ops;
+	enum page_cache_mode pcm = vma->vm_pgoff; /* PAT from pgoff */
 
-	return 0;
+	/* Clear PCD/PAT/PWT */
+	pgprot_val(vma->vm_page_prot) &= ~(_PAGE_PCD | _PAGE_PWT | _PAGE_PAT);
+
+	/* _PAGE_PAT: _PAGE_PCD: _PAGE_PWT */
+	pgprot_val(vma->vm_page_prot) |= cachemode2protval(pcm);
+
+	return remap_pfn_range(vma, vma->vm_start,
+			MTRR_MEM_BASE >> PAGE_SHIFT, PAGE_SIZE,
+						vma->vm_page_prot);
 }
 
 static struct file_operations BiscuitOS_fops = {
 	.owner		= THIS_MODULE,
 	.mmap		= BiscuitOS_mmap,
-	.unlocked_ioctl = BiscuitOS_ioctl,
 };
 
 static struct miscdevice BiscuitOS_drv = {
@@ -137,8 +56,9 @@ static struct miscdevice BiscuitOS_drv = {
 
 static int __init BiscuitOS_init(void)
 {
+	/* MTRR */
+	mtrr_add(MTRR_MEM_BASE, MTRR_MEM_SIZE, MTRR_MEMTYPE_WB, true);
 	misc_register(&BiscuitOS_drv);
 	return 0;
 }
-
 device_initcall(BiscuitOS_init);

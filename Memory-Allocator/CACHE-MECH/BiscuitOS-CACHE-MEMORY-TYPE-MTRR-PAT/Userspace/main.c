@@ -1,5 +1,5 @@
 /*
- * Memory Type on Userspace
+ * CostTime for different memory type
  *
  * (C) 2023.02.19 <buddy.zhang@aliyun.com>
  * (C) 2022.10.16 BiscuitOS
@@ -19,21 +19,13 @@
 #define DEV_PATH		"/dev/BiscuitOS-CACHE"
 #define PAGE_SIZE		(4 * 1024)
 
-enum page_cache_mode {
-	_PAGE_CACHE_MODE_WB       = 0,
-	_PAGE_CACHE_MODE_WC       = 1,
-	_PAGE_CACHE_MODE_UC_MINUS = 2,
-	_PAGE_CACHE_MODE_UC       = 3,
-	_PAGE_CACHE_MODE_WT       = 4,
-	_PAGE_CACHE_MODE_WP       = 5,
-	_PAGE_CACHE_MODE_NUM      = 8
-};
-
 int main()
 {
-	enum page_cache_mode pcm = _PAGE_CACHE_MODE_UC;
+	unsigned long count = 100000; 
+	struct timeval tv, ntv;
 	void *base;
-	int fd;
+	char *val;
+	int fd, i;
 
 	/* open device */
 	fd = open(DEV_PATH, O_RDWR);
@@ -47,16 +39,26 @@ int main()
 			  PROT_READ | PROT_WRITE,
 			  MAP_PRIVATE,
 			  fd,
-			  pcm << 12);
+			  0);
 	if (base == MAP_FAILED) {
 		printf("ERROR: mmaping failed.\n");
 		close(fd);
 		return -1;
 	}
-
-	/* use */
-	sprintf((char *)base, "Hello BiscuitOS");
-	printf("%s: %#lx\n", (char *)base, (unsigned long)base);
+	/* CACHE Line Fill or Prefetch */
+	memset(base, 0x00, PAGE_SIZE);
+	val = (char *)base;
+	
+	/* Cost Time for Special Memory Type */
+	gettimeofday(&tv, NULL);
+	while (count--) {
+		for (i = 0; i < PAGE_SIZE; i++)
+			/* WRITE */
+			val[i] = i;
+	}
+	gettimeofday(&ntv, NULL);
+	printf("Cost Time: %ld nsec\n", ntv.tv_sec * 1000000 +
+			ntv.tv_usec - tv.tv_sec * 1000000 - tv.tv_usec);
 
 	munmap(base, PAGE_SIZE);
 	close(fd);
