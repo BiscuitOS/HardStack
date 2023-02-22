@@ -1,0 +1,73 @@
+diff -uprN old/arch/x86/include/asm/set_memory.h new/arch/x86/include/asm/set_memory.h
+--- old/arch/x86/include/asm/set_memory.h	2022-10-03 05:09:07.000000000 +0800
++++ new/arch/x86/include/asm/set_memory.h	2023-02-23 07:11:19.956891336 +0800
+@@ -37,9 +37,11 @@
+ 
+ int __set_memory_prot(unsigned long addr, int numpages, pgprot_t prot);
+ int _set_memory_uc(unsigned long addr, int numpages);
++int _set_memory_ucx(unsigned long addr, int numpages);
+ int _set_memory_wc(unsigned long addr, int numpages);
+ int _set_memory_wt(unsigned long addr, int numpages);
+ int _set_memory_wb(unsigned long addr, int numpages);
++int set_memory_ucx(unsigned long addr, int numpages);
+ int set_memory_uc(unsigned long addr, int numpages);
+ int set_memory_wc(unsigned long addr, int numpages);
+ int set_memory_wb(unsigned long addr, int numpages);
+diff -uprN old/arch/x86/mm/pat/memtype.c new/arch/x86/mm/pat/memtype.c
+--- old/arch/x86/mm/pat/memtype.c	2022-10-03 05:09:07.000000000 +0800
++++ new/arch/x86/mm/pat/memtype.c	2023-02-23 07:14:20.335439583 +0800
+@@ -510,12 +510,6 @@ static int reserve_ram_pages_type(u64 st
+ 		return -EINVAL;
+ 	}
+ 
+-	if (req_type == _PAGE_CACHE_MODE_UC) {
+-		/* We do not support strong UC */
+-		WARN_ON_ONCE(1);
+-		req_type = _PAGE_CACHE_MODE_UC_MINUS;
+-	}
+-
+ 	for (pfn = (start >> PAGE_SHIFT); pfn < (end >> PAGE_SHIFT); ++pfn) {
+ 		enum page_cache_mode type;
+ 
+diff -uprN old/arch/x86/mm/pat/set_memory.c new/arch/x86/mm/pat/set_memory.c
+--- old/arch/x86/mm/pat/set_memory.c	2022-10-03 05:09:07.000000000 +0800
++++ new/arch/x86/mm/pat/set_memory.c	2023-02-23 07:14:01.323597334 +0800
+@@ -1830,6 +1830,38 @@ int _set_memory_uc(unsigned long addr, i
+ 				    0);
+ }
+ 
++int _set_memory_ucx(unsigned long addr, int numpages)
++{
++	return change_page_attr_set(&addr, numpages,
++				    cachemode2pgprot(_PAGE_CACHE_MODE_UC),
++				    0);
++}
++
++int set_memory_ucx(unsigned long addr, int numpages)
++{
++	int ret;
++
++	/*
++	 * for now UC MINUS. see comments in ioremap()
++	 */
++	ret = memtype_reserve(__pa(addr), __pa(addr) + numpages * PAGE_SIZE,
++			      _PAGE_CACHE_MODE_UC, NULL);
++	if (ret)
++		goto out_err;
++
++	ret = _set_memory_ucx(addr, numpages);
++	if (ret)
++		goto out_free;
++
++	return 0;
++
++out_free:
++	memtype_free(__pa(addr), __pa(addr) + numpages * PAGE_SIZE);
++out_err:
++	return ret;
++}
++EXPORT_SYMBOL(set_memory_ucx);
++
+ int set_memory_uc(unsigned long addr, int numpages)
+ {
+ 	int ret;

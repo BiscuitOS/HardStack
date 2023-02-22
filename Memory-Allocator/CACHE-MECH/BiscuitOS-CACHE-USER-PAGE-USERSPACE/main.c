@@ -1,5 +1,5 @@
 /*
- * Memory Type on Userspace
+ * Mapping Various Memory Type Memory into Userspace
  *
  * (C) 2023.02.19 <buddy.zhang@aliyun.com>
  * (C) 2022.10.16 BiscuitOS
@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-#define DEV_PATH		"/dev/BiscuitOS-CACHE"
+#define DEV_PATH		"/dev/BiscuitOS-CACHE-MEM"
 #define PAGE_SIZE		(4 * 1024)
 
 enum page_cache_mode {
@@ -50,12 +50,11 @@ int main()
 			  pcm << 12);
 	if (base == MAP_FAILED) {
 		printf("ERROR: mmaping failed.\n");
-		close(fd);
-		return -1;
+		exit(-1); /* Force exit */
 	}
 
-	/* use */
-	sprintf((char *)base, "Hello BiscuitOS");
+	/* Use, don't trigger page fault */
+	sprintf((char *)base, "Hello BiscuitOS!");
 	printf("%s: %#lx\n", (char *)base, (unsigned long)base);
 
 	munmap(base, PAGE_SIZE);

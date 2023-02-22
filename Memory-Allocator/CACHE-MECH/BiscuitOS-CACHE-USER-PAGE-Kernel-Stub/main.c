@@ -1,5 +1,5 @@
 /*
- * Memory Type from Userspace
+ * Memory Type Kernel Stub for Userspace
  *  - Must add 'memmap=2M$0x10000000' into cmdline
  *
  * (C) 2023.02.08 BuddyZhang1 <buddy.zhang@aliyun.com>
@@ -18,7 +18,7 @@
 #include <asm/pgtable_types.h>
 #include <asm/mtrr.h>
 
-#define DEV_NAME			"BiscuitOS-CACHE"
+#define DEV_NAME			"BiscuitOS-CACHE-MEM"
 #define MTRR_MEM_BASE			0x10000000
 #define MTRR_MEM_SIZE			0x200000
 /* Memory Type and Mnemonic */
@@ -39,7 +39,7 @@ static int BiscuitOS_mmap(struct file *filp, struct vm_area_struct *vma)
 	pgprot_val(vma->vm_page_prot) |= cachemode2protval(pcm);
 
 	return remap_pfn_range(vma, vma->vm_start,
-			MTRR_MEM_BASE >> PAGE_SHIFT,
+			(MTRR_MEM_BASE + vma->vm_pgoff) >> PAGE_SHIFT,
 			vma->vm_end - vma->vm_start, vma->vm_page_prot);
 }
 
