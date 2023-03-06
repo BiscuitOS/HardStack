@@ -42,7 +42,6 @@ static struct timer_list BiscuitOS_scanner;
 static struct vm_area_struct *BiscuitOS_vma;
 unsigned long BiscuitOS_address;
 unsigned long BiscuitOS_cr3;
-
 /* kallsyms unexport symbol */
 typedef int (*__p4d_alloc_t)(struct mm_struct *, pgd_t *, unsigned long);
 typedef int (*__pud_alloc_t)(struct mm_struct *, p4d_t *, unsigned long);

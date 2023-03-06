@@ -33,6 +33,7 @@ static int __init BiscuitOS_init(void)
 			(unsigned long)addr + PAGE_SIZE, (char *)addr);
 
 	/* Reclaim */
+	set_memory_wb((unsigned long)addr, PAGE_SIZE);
 	free_page((unsigned long)addr);
 	return 0;
 }
