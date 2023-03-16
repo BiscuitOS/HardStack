@@ -1,5 +1,5 @@
 /*
- * Mapping Various Memory Type Memory into Userspace
+ * Mapping Various DEVMEM Memory Type into Userspace
  *
  * (C) 2023.02.19 <buddy.zhang@aliyun.com>
  * (C) 2022.10.16 BiscuitOS

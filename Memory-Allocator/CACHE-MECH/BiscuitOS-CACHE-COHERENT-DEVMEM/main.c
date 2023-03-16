@@ -1,5 +1,5 @@
 /*
- * Mmapping Normal Memory with variable memory type into Userspace
+ * Mmapping DEVMEM with variable memory type into Userspace
  *  - Must add 'memmap=2M$0x10000000' into cmdline
  *
  * (C) 2023.02.08 BuddyZhang1 <buddy.zhang@aliyun.com>
@@ -70,4 +70,4 @@ module_exit(BiscuitOS_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("RAM Memory Type on Userspace");
+MODULE_DESCRIPTION("DEVMEM Type on Userspace");

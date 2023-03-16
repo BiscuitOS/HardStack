@@ -13,7 +13,7 @@ ifneq ($(KERNELRELEASE),)
 ifeq ("$(origin MODULE_NAME)", "command line")
 MODULE_NAME		:= $(MODULE_NAME)
 else
-MODULE_NAME		:= BiscuitOS_mod
+MODULE_NAME		:= BiscuitOS-module
 endif
 obj-m			:= $(MODULE_NAME).o
 
@@ -88,10 +88,10 @@ install:
 	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
 		INSTALL_MOD_PATH=$(INSTALLDIR) modules_install
 	chmod 755 RunBiscuitOS.sh
-	sudo cp -rfa RunBiscuitOS.sh APP $(INSTALLDIR)/usr/bin/
+	sudo cp RunBiscuitOS.sh APP $(INSTALLDIR)/usr/bin/
 
 clean:
 	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
-               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd APP *.mod
+               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd *.mod APP
 
 endif
