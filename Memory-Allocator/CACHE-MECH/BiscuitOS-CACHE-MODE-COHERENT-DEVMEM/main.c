@@ -1,6 +1,5 @@
 /*
- * RSVDMEM with variable Memory Type
- *  CMDLINE: 'memmap=2M$0x10000000'
+ * CACHE Mode Coherent with DEVMEM
  *
  * (C) 2023.02.14 BuddyZhang1 <buddy.zhang@aliyun.com>
  *
@@ -16,22 +15,29 @@
 #include <asm/io.h>
 
 #define SPECIAL_DEV_NAME	"BiscuitOS-MEM"
-#define RSVD_MEM_BASE		0x10000000
-#define RSVD_MEM_SIZE		0x200000
 
 static int BiscuitOS_mmap(struct file *filp, struct vm_area_struct *vma)
 {
-	enum page_cache_mode pcm = vma->vm_pgoff; /* PAT from pgoff */
+	unsigned long pfn;
+	struct page *page;
 
-	/* Clear PCD/PAT/PWT */
+	/* Allocate Physical Memory */
+	page = alloc_page(GFP_KERNEL);
+	if (!page) {
+		printk("System Error: No free Memory.\n");
+		return -ENOMEM;
+	}
+	pfn = page_to_pfn(page);
+
+	/* Clear PAT Attribute */
 	pgprot_val(vma->vm_page_prot) &= ~(_PAGE_PCD | _PAGE_PWT | _PAGE_PAT);
 
-	/* _PAGE_PAT: _PAGE_PCD: _PAGE_PWT */
-	pgprot_val(vma->vm_page_prot) |= cachemode2protval(pcm);
+	/* Change Memory Type for Direct-Mapping Area */
+	arch_io_reserve_memtype_wc(PFN_PHYS(pfn), PAGE_SIZE);
+	pgprot_val(vma->vm_page_prot) |= cachemode2protval(_PAGE_CACHE_MODE_WC);
 
-	return remap_pfn_range(vma, vma->vm_start,
-		(RSVD_MEM_BASE + vma->vm_pgoff) >> PAGE_SHIFT,
-		vma->vm_end - vma->vm_start, vma->vm_page_prot);
+	return remap_pfn_range(vma, vma->vm_start, pfn,
+					PAGE_SIZE, vma->vm_page_prot);
 }
 
 /* file operations */
@@ -63,4 +69,4 @@ module_exit(BiscuitOS_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("RSVDMEM with CACHE MODE");
+MODULE_DESCRIPTION("DEVMEM with CACHE MODE");

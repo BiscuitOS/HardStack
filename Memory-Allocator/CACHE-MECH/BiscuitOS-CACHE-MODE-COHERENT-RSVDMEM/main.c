@@ -1,5 +1,5 @@
 /*
- * Mmapping DEVMEM with variable memory type into Userspace
+ * Mmapping RSVDMEM with variable memory type into Userspace
  *  - Must add 'memmap=2M$0x10000000' into cmdline
  *
  * (C) 2023.02.08 BuddyZhang1 <buddy.zhang@aliyun.com>
