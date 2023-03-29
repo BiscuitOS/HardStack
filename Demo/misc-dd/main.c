@@ -1,14 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * BiscuitOS MISC DD
  *
  * (C) 2020.10.06 BuddyZhang1 <buddy.zhang@aliyun.com>
  * (C) 2022.10.16 BiscuitOS
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
  */
-
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>

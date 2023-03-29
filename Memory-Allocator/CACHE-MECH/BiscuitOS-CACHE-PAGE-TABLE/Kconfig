@@ -1,0 +1,2 @@
+config BISCUITOS_MMAP
+	tristate "MMAP mechanism"
