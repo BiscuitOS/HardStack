@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * RSVDMEM 2MiB with variable Memory Type to Userspace
- *  CMDLINE: 'memmap=2M$0x10000000'
- * Enable Kernel Macro: CONFIG_TRANSPARENT_HUGEPAGE
+ * RSVDMEM 1Gig with variable Memory Type to Userspace
+ *  CMDLINE: 'memmap=1G$0x100000000'
+ *  Enable Kernel Macro: CONFIG_TRANSPARENT_HUGEPAGE
+ *  System Ram must big than 4Gig
  *
  * (C) 2023.02.14 BuddyZhang1 <buddy.zhang@aliyun.com>
  */
@@ -14,24 +15,24 @@
 #include <linux/pagewalk.h>
 #include <asm/pgalloc.h>
 
-#define SPECIAL_DEV_NAME	"BiscuitOS-MEM-2M"
-#define RSVDMEM_PFN		0x10000
+#define SPECIAL_DEV_NAME	"BiscuitOS-MEM-1G"
+#define RSVDMEM_PFN		0x100000
 
-static int BiscuitOS_pud_entry(pud_t *pud, unsigned long addr,
+static int BiscuitOS_p4d_entry(p4d_t *p4d, unsigned long addr,
 				unsigned long next, struct mm_walk *walk)
 {
 	struct vm_area_struct *vma = walk->vma;
 	enum page_cache_mode pcm = vma->vm_pgoff; /* PAT from pgoff */
 	spinlock_t *ptl;
 	pgprot_t prot;
-	pmd_t *pmd;
+	pud_t *pud;
 
-	/* Check PMD Entry is empty, Address must aligned 2MiB  */
-	pmd = pmd_offset(pud, addr);
-	if (!pmd_none(*pmd))
+	/* Check PUD Entry is empty, Address must aligned 1Gig */
+	pud = pud_offset(p4d, addr);
+	if (!pud_none(*pud))
 		return -EINVAL;
 
-	ptl = pmd_lock(walk->vma->vm_mm, pmd);
+	ptl = pud_lock(walk->vma->vm_mm, pud);
 	/* Clear PAT Attribute */
 	pgprot_val(vma->vm_page_prot) &= ~(_PAGE_PAT | _PAGE_PCD | _PAGE_PWT);
 	pgprot_val(vma->vm_page_prot) |= cachemode2protval(pcm);
@@ -42,21 +43,21 @@ static int BiscuitOS_pud_entry(pud_t *pud, unsigned long addr,
 	/* Setup PageTable Attribute */
 	pgprot_val(prot) |= _PAGE_RW | _PAGE_DEVMAP;
 	/* Check Memory Type */
-	if (track_pfn_remap(vma, &prot, RSVDMEM_PFN, addr, HPAGE_SIZE)) {
+	if (track_pfn_remap(vma, &prot, RSVDMEM_PFN, addr, PUD_PAGE_SIZE)) {
 		spin_unlock(ptl);
 		return -EINVAL;
 	}
 
-	/* Setup Pagetable for 2MiB */
-	set_pmd_at(vma->vm_mm, addr, pmd,
-			pmd_mkhuge(pfn_pmd(RSVDMEM_PFN, prot)));
+	/* Setup Pagetable for 1Gig */
+	set_pud_at(vma->vm_mm, addr, pud,
+			pud_mkhuge(pfn_pud(RSVDMEM_PFN, prot)));
 	spin_unlock(ptl);
 
 	return 1; /* Stop walk */
 }
 
 static const struct mm_walk_ops BiscuitOS_walk_ops = {
-	.pud_entry = BiscuitOS_pud_entry,
+	.p4d_entry = BiscuitOS_p4d_entry,
 };
 
 static int BiscuitOS_mmap(struct file *filp, struct vm_area_struct *vma)
@@ -72,9 +73,9 @@ static unsigned long BiscuitOS_get_unmapped_area(struct file *filp,
 	unsigned long align_addr;
 
 	align_addr = current->mm->get_unmapped_area(NULL, 0,
-					len + HPAGE_SIZE, 0, flags);
-	/* Aligned on 2MiB */
-	align_addr = round_up(align_addr, HPAGE_SIZE); 
+					len + PUD_PAGE_SIZE, 0, flags);
+	/* Aligned on 1Gig */
+	align_addr = round_up(align_addr, PUD_PAGE_SIZE); 
 
 	return align_addr;
 }
