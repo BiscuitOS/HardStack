@@ -1,12 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Broiler PCI DMA with MSIX Interrupt
- *
+ * FLUSH CACHE on Streaming DMA
+
  * (C) 2022.08.09 BuddyZhang1 <buddy.zhang@aliyun.com>
  * (C) 2022.07.22 BiscuitOS <https://biscuitos.github.io/>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
  */
 
 #include <linux/init.h>
@@ -253,4 +250,4 @@ module_exit(Broiler_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("BiscuitOS <buddy.zhang@aliyun.com>");
-MODULE_DESCRIPTION("Broiler PCI DMA with MSIX Interrupt");
+MODULE_DESCRIPTION("FLUSH CACHE on Streaming DMA");
