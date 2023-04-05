@@ -12,7 +12,7 @@
 /* LDD Platform Name */
 #define DEV_NAME	"BiscuitOS"
 
-static struct platform_device *pdev;
+static struct platform_device *bpdev;
 
 /* Probe: (LDD) Initialize Device */
 static int BiscuitOS_probe(struct platform_device *pdev)
@@ -53,10 +53,10 @@ static int __init BiscuitOS_init(void)
 		return -EBUSY;
 	}
 
-	pdev = platform_device_register_simple(DEV_NAME, 1, NULL, 0);
-	if (IS_ERR(pdev)) {
+	bpdev = platform_device_register_simple(DEV_NAME, 1, NULL, 0);
+	if (IS_ERR(bpdev)) {
 		printk("Error: Platform device register\n");
-		return PTR_ERR(pdev);
+		return PTR_ERR(bpdev);
 	}
 	return 0;
 }
@@ -64,7 +64,7 @@ static int __init BiscuitOS_init(void)
 /* Module exit entry */
 static void __exit BiscuitOS_exit(void)
 {
-	platform_device_unregister(pdev);
+	platform_device_unregister(bpdev);
 	platform_driver_unregister(&BiscuitOS_driver);
 }
 
