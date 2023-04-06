@@ -5,7 +5,6 @@
  * (C) 2022.08.09 BuddyZhang1 <buddy.zhang@aliyun.com>
  * (C) 2022.07.22 BiscuitOS <https://biscuitos.github.io/>
  */
-
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -64,10 +63,6 @@ static void dma_ops(u64 src, u64 dst, u64 len, u64 direct)
 static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
                         size_t len, loff_t *offset)
 {
-	bpdev->dma_buffer = (char *)__get_free_page(GFP_KERNEL);
-	if (!bpdev->dma_buffer)
-		return -ENOMEM;
-
 	if (copy_from_user(bpdev->dma_buffer, buf, len) != 0) {
 		printk("WRITE ERROR!\n");
 		return -EINVAL;
@@ -92,10 +87,6 @@ static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
 static ssize_t BiscuitOS_read(struct file *filp,
 				char __user *buf, size_t len, loff_t *off)
 {
-	bpdev->dma_buffer = (char *)__get_free_page(GFP_KERNEL);
-	if (!bpdev->dma_buffer)
-		return -ENOMEM;
-
 	/* Mapping */
 	bpdev->dma_addr = dma_map_single(&bpdev->pdev->dev,
 			bpdev->dma_buffer, len, DMA_FROM_DEVICE);
@@ -112,7 +103,7 @@ static ssize_t BiscuitOS_read(struct file *filp,
 		free_page((unsigned long)bpdev->dma_buffer);
 		return -EINVAL;
 	}
-	free_page((unsigned long)bpdev->dma_buffer);
+
 	return len;
 }
 
@@ -191,10 +182,19 @@ static int Broiler_pci_probe(struct pci_dev *pdev,
 		goto err_misc;
 	}
 
+	/* DMA Buffer */
+	bpdev->dma_buffer = (char *)__get_free_page(GFP_KERNEL);
+	if (!bpdev->dma_buffer) {
+		r = -ENOMEM;
+		goto err_buffer;
+	}
+
 	printk("%s Success Register PCIe Device.\n", DEV_NAME);
 
 	return 0;
 
+err_buffer:
+	misc_deregister(&bpdev->miscdev);
 err_misc:
 	free_irq(msix.vector, NULL);
 err_irq:
@@ -214,6 +214,7 @@ err_alloc:
 
 static void Broiler_pci_remove(struct pci_dev *pdev)
 {
+	free_page((unsigned long)bpdev->dma_buffer);
 	misc_deregister(&bpdev->miscdev);
 	free_irq(pdev->irq, NULL);
 	pci_disable_msix(pdev);
