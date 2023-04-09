@@ -1,0 +1,2 @@
+config BISCUITOS_PCI_DMA_INTX
+    bool

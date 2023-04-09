@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PCI DMA with MSI Interrupt
+ * PCI DMA with INTX Interrupt
  *
  * BuddyZhang1 <buddy.zhang@aliyun.com>
  * BiscuitOS <http://biscuitos.cn/blog/BiscuitOS_Catalogue/>
@@ -16,13 +16,13 @@
 #include "qapi/visitor.h"
 
 /* BiscuitOS PCI QOM */
-#define TYPE_PCI_BISCUITOS_DEVICE 	"BiscuitOS-PCI-DMA-MSI"
+#define TYPE_PCI_BISCUITOS_DEVICE 	"BiscuitOS-PCI-DMA-INTX"
 #define BISCUITOS(obj)  		\
 	OBJECT_CHECK(BiscuitOS_PCI_State, obj, TYPE_PCI_BISCUITOS_DEVICE)
 
 /* PCI VENDOR:DEVICE ID */
-#define BISCUITOS_PCI_VENDOR_ID		0x1024
-#define BISCUITOS_PCI_DEVICE_ID		0x1991
+#define BISCUITOS_PCI_VENDOR_ID		0x0309
+#define BISCUITOS_PCI_DEVICE_ID		0x1989
 /* PCI BAR Layout */
 #define BAR_IO				0x00
 #define BAR_SIZE			0x20
@@ -52,6 +52,7 @@ typedef struct {
 	/* Status */
 	uint32_t	status;
 	bool		stopping;
+	uint32_t	irq_status;
 
 	/* DMA */
 	char		*dma_buffer;
@@ -64,12 +65,14 @@ typedef struct {
 	QEMUTimer	dma_timer;
 } BiscuitOS_PCI_State;
 
-static void BiscuitOS_raise_irq(BiscuitOS_PCI_State *bps)
+static void BiscuitOS_raise_irq(BiscuitOS_PCI_State *bps, uint32_t val)
 {
-	if (msi_enabled(&bps->pdev))
-		msi_notify(&bps->pdev, 0);
-	else
+	bps->irq_status |= val;
+	if (bps->irq_status) {
 		pci_set_irq(&bps->pdev, 1);
+		pci_set_irq(&bps->pdev, 0);
+		bps->irq_status = 0;
+	}
 }
 
 static void BiscuitOS_bar_write(void *opaque, hwaddr addr, 
@@ -146,7 +149,7 @@ static void BiscuitOS_dma_timer(void *opaque)
 		pci_dma_write(&bps->pdev, bps->dma.dst,
 				bps->dma_buffer + bps->dma.src, bps->dma.len);
 		/* Raise MSIX Interrupt */
-		BiscuitOS_raise_irq(bps);
+		BiscuitOS_raise_irq(bps, 1);
 	} else { /* TLP Memory Write */
 		pci_dma_read(&bps->pdev, bps->dma.src,
 				bps->dma_buffer + bps->dma.dst, bps->dma.len);
@@ -157,6 +160,7 @@ static void BiscuitOS_dma_timer(void *opaque)
 static void BiscuitOS_pci_realize(PCIDevice *pdev, Error **errp)
 {
 	BiscuitOS_PCI_State *bps = BISCUITOS(pdev);
+	uint8_t *pci_conf = pdev->config;
 
 	/* PCI IO BAR */
 	memory_region_init_io(&bps->io, OBJECT(bps), &BiscuitOS_io_ops, bps,
@@ -168,11 +172,8 @@ static void BiscuitOS_pci_realize(PCIDevice *pdev, Error **errp)
 	qemu_thread_create(&bps->thread, "BiscuitOS-PCI-DMA-MSIX",
 			BiscuitOS_Interrupt_Thread, bps, QEMU_THREAD_JOINABLE);
 
-	/* MSI Interrupt */
-	if (msi_init(pdev, 0, 1, true, false, errp)) {
-		qemu_log("MSI Interrupt init failed.");
-		return;
-	}
+	/* INTX */
+	pci_config_set_interrupt_pin(pci_conf, 1); /* INTB */
 
 	/* DMA */
 	bps->dma_buffer = malloc(DMA_FW_LEN);
