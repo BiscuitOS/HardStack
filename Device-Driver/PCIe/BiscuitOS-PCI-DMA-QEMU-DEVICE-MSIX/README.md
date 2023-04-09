@@ -38,10 +38,12 @@ cd BiscuitOS/
 make linux-6.0-x86_64_defconfig
 make menuconfig 
 
+  [*] DIY BiscuitOS/Broiler Hardware  --->
+      [*]   BiscuitOS PCI/PCIe DMA with MSIX Interrupt
   [*] Package --->
       [*] PCI: Peripheral Component Interconnect --->
-          [*] Broiler DMA with MSIX Interrupt --->
-          [*] QEMU PCI DEVICE: PCI DMA MSIX (BiscuitOS-PCI-DMA-MSIX) --->
+          -*- Broiler DMA with MSIX Interrupt --->
+          -*- QEMU PCI DEVICE: PCI DMA MSIX (BiscuitOS-PCI-DMA-MSIX) --->
 
 make
 cd BiscuitOS/output/linux-${VERSION}-${ARCH}/package/BiscuitOS-PCI-DMA-QEMU-DEVICE-MSIX-default/
@@ -90,7 +92,7 @@ The BiscuitOS PCI module is called from QEMU command, so we need add qemu option
 cd BiscuitOS/output/linux-${VERSION}-${ARCH}/
 vi RunBiscuitOS.sh
 
-# Add context
+# Check and if doesn't exist, then add context
         -hda ${ROOT}/BiscuitOS.img \
 +       -device BiscuitOS-PCI-DMA-MSIX \
         -drive file=${ROOT}/Freeze.img,if=virtio \

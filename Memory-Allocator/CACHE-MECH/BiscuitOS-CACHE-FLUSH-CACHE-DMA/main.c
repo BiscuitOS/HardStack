@@ -79,7 +79,6 @@ static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
 	/* Unmapping */
 	dma_unmap_single(&bpdev->pdev->dev,
 				bpdev->dma_addr, len, DMA_TO_DEVICE);
-	free_page((unsigned long)bpdev->dma_buffer);
 
 	return len;
 }
