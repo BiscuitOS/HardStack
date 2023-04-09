@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PCI with MSI Interrupt
+ * PCI DMA with MSIX Interrupt
  *
  * BuddyZhang1 <buddy.zhang@aliyun.com>
  * BiscuitOS <http://biscuitos.cn/blog/BiscuitOS_Catalogue/>
@@ -10,29 +10,42 @@
 #include "qemu/osdep.h"
 #include "qemu/units.h"
 #include "hw/pci/pci.h"
-#include "hw/pci/msi.h"
+#include "hw/pci/msix.h"
 #include "qemu/timer.h"
 #include "qemu/main-loop.h" /* iothread mutex */
 #include "qapi/visitor.h"
 
+/* BiscuitOS PCI QOM */
+#define TYPE_PCI_BISCUITOS_DEVICE 	"BiscuitOS-PCI-DMA-MSIX"
+#define BISCUITOS(obj)  		\
+	OBJECT_CHECK(BiscuitOS_PCI_State, obj, TYPE_PCI_BISCUITOS_DEVICE)
+
 /* PCI VENDOR:DEVICE ID */
-#define BISCUITOS_PCI_VENDOR_ID		0x1001
+#define BISCUITOS_PCI_VENDOR_ID		0x1026
 #define BISCUITOS_PCI_DEVICE_ID		0x1991
 /* PCI BAR Layout */
 #define BAR_IO				0x00
+#define BAR_MSIX			0x01
+#define MSIX_SIZE			0x1000
 #define BAR_SIZE			0x20
 #define DOORBALL_REG			0x10
 /* PCI Status */
 #define BSTATUS_COMPUTING		0x01
+/* DMA Register Layout */
+#define DMA_SRC_REG			0x00
+#define DMA_DST_REG			0x04
+#define DMA_DIR_REG			0x08
+#define DMA_LEN_REG			0x0C
+#define PCI_TO_DDR			0x00
+#define DDR_TO_PCI			0x01
+#define DMA_FW_LEN			0x100
 
-/* BiscuitOS PCI QOM */
-#define TYPE_PCI_BISCUITOS_DEVICE 	"BiscuitOS-PCI-MSI"
-#define BISCUITOS(obj)  		\
-	OBJECT_CHECK(BiscuitOS_PCI_State, obj, TYPE_PCI_BISCUITOS_DEVICE)
-
+static const char *DMA_FW = "Weclome to BiscuitOS/Broiler  :) "
+			    "The Home of BiscuitOS: http://www.biscuitOS.cn";
 typedef struct {
 	PCIDevice	pdev;
 	MemoryRegion	io;	/* IO-BAR */
+	MemoryRegion	mmio;	/* MSIX-BAR */
 
 	/* Interrupt Thread */
 	QemuThread	thread;
@@ -42,14 +55,24 @@ typedef struct {
 	/* Status */
 	uint32_t	status;
 	bool		stopping;
+
+	/* DMA */
+	char		*dma_buffer;
+	struct {
+		dma_addr_t src;
+		dma_addr_t dst;
+		dma_addr_t dir;
+		dma_addr_t len;
+	} dma;
+	QEMUTimer	dma_timer;
 } BiscuitOS_PCI_State;
 
 static void BiscuitOS_raise_irq(BiscuitOS_PCI_State *bps)
 {
-	if (msi_enabled(&bps->pdev))
-		msi_notify(&bps->pdev, 0);
+	if (msix_enabled(&bps->pdev))
+		msix_notify(&bps->pdev, 0);
 	else
-		pci_set_irq(&bps->pdev, 1);
+		pci_irq_assert(&bps->pdev);
 }
 
 static void BiscuitOS_bar_write(void *opaque, hwaddr addr, 
@@ -58,6 +81,18 @@ static void BiscuitOS_bar_write(void *opaque, hwaddr addr,
 	BiscuitOS_PCI_State *bps = opaque;
 
 	switch (addr) {
+	case DMA_SRC_REG:
+		bps->dma.src = val;
+		break;
+	case DMA_DST_REG:
+		bps->dma.dst = val;
+		break;
+	case DMA_DIR_REG:
+		bps->dma.dir = val;
+		break;
+	case DMA_LEN_REG:
+		bps->dma.len = val;
+		break;
 	case DOORBALL_REG: /* Kick off */
 		if (atomic_read(&bps->status) & BSTATUS_COMPUTING)
 			break;
@@ -81,6 +116,15 @@ static const MemoryRegionOps BiscuitOS_io_ops = {
 	},
 };
 
+/* MMIO MR OPS */
+static const MemoryRegionOps BiscuitOS_mmio_ops = {
+	.endianness = DEVICE_NATIVE_ENDIAN,
+	.impl = {
+		.min_access_size = 8, /* MOV min 64bit */
+		.max_access_size = 8, /* MOV max 64bit */
+	},
+};
+
 /* Interrupt Thread */
 static void *BiscuitOS_Interrupt_Thread(void *opaque)
 {
@@ -97,35 +141,66 @@ static void *BiscuitOS_Interrupt_Thread(void *opaque)
 			break;
 		}
 
+		/* DMA */
+		timer_mod(&bps->dma_timer,
+			qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL));
 		qemu_mutex_unlock(&bps->thr_mutex);
 		atomic_and(&bps->status, ~BSTATUS_COMPUTING);
-
-		/* Raise Interrupt */
-		qemu_mutex_lock_iothread();
-		BiscuitOS_raise_irq(bps);
-		qemu_mutex_unlock_iothread();
 	}
 	return NULL;
+}
+
+static void BiscuitOS_dma_timer(void *opaque)
+{
+	BiscuitOS_PCI_State *bps = opaque;
+
+	if (bps->dma.dir == PCI_TO_DDR) { /* TLP Memory Read */
+		pci_dma_write(&bps->pdev, bps->dma.dst,
+				bps->dma_buffer + bps->dma.src, bps->dma.len);
+		/* Raise MSIX Interrupt */
+		BiscuitOS_raise_irq(bps);
+	} else { /* TLP Memory Write */
+		pci_dma_read(&bps->pdev, bps->dma.src,
+				bps->dma_buffer + bps->dma.dst, bps->dma.len);
+	}
+	atomic_and(&bps->status, ~BSTATUS_COMPUTING);
 }
 
 static void BiscuitOS_pci_realize(PCIDevice *pdev, Error **errp)
 {
 	BiscuitOS_PCI_State *bps = BISCUITOS(pdev);
 
-	/* MSI Interrupt and thread */
-	if (msi_init(pdev, 0, 1, true, false, errp)) {
-		qemu_log("MSI Interrupt init failed.\n");
-		return;
-	}
-	qemu_mutex_init(&bps->thr_mutex);
-	qemu_cond_init(&bps->thr_cond);
-	qemu_thread_create(&bps->thread, "BiscuitOS-PCI-MSI",
-			BiscuitOS_Interrupt_Thread, bps, QEMU_THREAD_JOINABLE);
-
 	/* PCI IO BAR */
 	memory_region_init_io(&bps->io, OBJECT(bps), &BiscuitOS_io_ops, bps,
 				"BiscuitOS-BAR-IO", BAR_SIZE);
+	/* PCI MMIO BAR */
+	memory_region_init_io(&bps->mmio, OBJECT(bps), &BiscuitOS_mmio_ops, bps,
+				"BiscuitOS-MSIX-BAR", MSIX_SIZE);
 	pci_register_bar(pdev, BAR_IO, PCI_BASE_ADDRESS_SPACE_IO, &bps->io);
+	pci_register_bar(pdev, BAR_MSIX,
+				PCI_BASE_ADDRESS_SPACE_MEMORY, &bps->mmio);
+
+	qemu_mutex_init(&bps->thr_mutex);
+	qemu_cond_init(&bps->thr_cond);
+	qemu_thread_create(&bps->thread, "BiscuitOS-PCI-DMA-MSIX",
+			BiscuitOS_Interrupt_Thread, bps, QEMU_THREAD_JOINABLE);
+
+	/* MSIX TABLE */
+	if (msix_init_exclusive_bar(pdev, 8, BAR_MSIX, errp)) {
+		qemu_log("MSXI Table init error.\n");
+		return;
+	}
+	msix_vector_use(pdev, 0);
+
+	/* DMA */
+	bps->dma_buffer = malloc(DMA_FW_LEN);
+	if (!bps->dma_buffer) {
+		qemu_log("DMA BUFFER ALLOC Failed.");
+		return;
+	}
+	sprintf(bps->dma_buffer, "%s", DMA_FW);
+	timer_init_ms(&bps->dma_timer, QEMU_CLOCK_VIRTUAL,
+					BiscuitOS_dma_timer, bps);
 }
 
 static void BiscuitOS_pci_uninit(PCIDevice *pdev)
@@ -138,6 +213,7 @@ static void BiscuitOS_pci_uninit(PCIDevice *pdev)
 	qemu_cond_signal(&bps->thr_cond);
 	qemu_thread_join(&bps->thread);
 
+	free(bps->dma_buffer);
 	qemu_cond_destroy(&bps->thr_cond);
 	qemu_mutex_destroy(&bps->thr_mutex);
 }
