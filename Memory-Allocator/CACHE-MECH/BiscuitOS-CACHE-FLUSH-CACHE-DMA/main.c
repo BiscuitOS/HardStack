@@ -45,7 +45,7 @@ static struct Broiler_pci_device *bpdev;
 
 static irqreturn_t Broiler_msix_handler(int irq, void *dev)
 {
-	/* TODO */
+	/* TODO: Forbide CPU READ/WRITE on DMA */
 	complete(&bpdev->irq_raised);
 	return IRQ_HANDLED;
 }
@@ -63,6 +63,7 @@ static void dma_ops(u64 src, u64 dst, u64 len, u64 direct)
 static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
                         size_t len, loff_t *offset)
 {
+	/* DATA on CACHE */
 	if (copy_from_user(bpdev->dma_buffer, buf, len) != 0) {
 		printk("WRITE ERROR!\n");
 		return -EINVAL;
@@ -71,9 +72,13 @@ static ssize_t BiscuitOS_write(struct file *filp, const char __user *buf,
 	/* Mapping */
 	bpdev->dma_addr = dma_map_single(&bpdev->pdev->dev,
 			bpdev->dma_buffer, len, DMA_TO_DEVICE);
+	/* CLEAN CACHE: WriteBack CACHE into DMA BUFFER */
+	dma_sync_single_for_device(&bpdev->pdev->dev,
+			bpdev->dma_addr, len, DMA_TO_DEVICE);
 	/* dma_ops */
 	dma_ops(bpdev->dma_addr, 0x00, len, DDR_TO_PCI);
 
+	/* Forbid CPU Access BUFFER on DMA */
 	wait_for_completion(&bpdev->irq_raised);
 
 	/* Unmapping */
@@ -89,14 +94,20 @@ static ssize_t BiscuitOS_read(struct file *filp,
 	/* Mapping */
 	bpdev->dma_addr = dma_map_single(&bpdev->pdev->dev,
 			bpdev->dma_buffer, len, DMA_FROM_DEVICE);
+
+	/* Invalid CACHE and Read From Memory */
+	dma_sync_single_for_cpu(&bpdev->pdev->dev,
+			bpdev->dma_addr, len, DMA_FROM_DEVICE);
 	/* dma_ops */
 	dma_ops(0x1E, bpdev->dma_addr, len, PCI_TO_DDR);
 
+	/* Forbid CPU Access BUFFER on DMA */
 	wait_for_completion(&bpdev->irq_raised);
 
 	/* Unmapping */
 	dma_unmap_single(&bpdev->pdev->dev,
 				bpdev->dma_addr, len, DMA_FROM_DEVICE);
+	/* Read From Memory */
 	if (copy_to_user(buf, bpdev->dma_buffer, len) != 0) {
 		printk("READ ERROR\n");
 		free_page((unsigned long)bpdev->dma_buffer);
