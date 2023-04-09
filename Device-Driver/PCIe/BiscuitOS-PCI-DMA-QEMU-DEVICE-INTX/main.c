@@ -36,7 +36,7 @@
 #define DMA_LEN_REG			0x0C
 #define PCI_TO_DDR			0x00
 #define DDR_TO_PCI			0x01
-#define DMA_FW_LEN			0x100
+#define DMA_FW_LEN			0x2000
 
 static const char *DMA_FW = "Weclome to BiscuitOS/Broiler  :) "
 			    "The Home of BiscuitOS: http://www.biscuitOS.cn";
