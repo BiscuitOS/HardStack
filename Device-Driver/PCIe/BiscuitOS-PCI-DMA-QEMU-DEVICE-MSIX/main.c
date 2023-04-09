@@ -157,12 +157,12 @@ static void BiscuitOS_dma_timer(void *opaque)
 	if (bps->dma.dir == PCI_TO_DDR) { /* TLP Memory Read */
 		pci_dma_write(&bps->pdev, bps->dma.dst,
 				bps->dma_buffer + bps->dma.src, bps->dma.len);
-		/* Raise MSIX Interrupt */
-		BiscuitOS_raise_irq(bps);
 	} else { /* TLP Memory Write */
 		pci_dma_read(&bps->pdev, bps->dma.src,
 				bps->dma_buffer + bps->dma.dst, bps->dma.len);
 	}
+	/* Raise MSIX Interrupt */
+	BiscuitOS_raise_irq(bps);
 	atomic_and(&bps->status, ~BSTATUS_COMPUTING);
 }
 
