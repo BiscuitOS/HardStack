@@ -170,7 +170,7 @@ static int Broiler_pci_probe(struct pci_dev *pdev,
 		goto err_attach;
 	}
 	
-	/* Alloc Disconnect Physical Memory */
+	/* Alloc Discontinuous Physical Memory */
 	for (i = 0; i < PAGE_NR; i++) {
 		bpdev.pages[i] = alloc_page(GFP_KERNEL);
 		if (!bpdev.pages[i]) {
@@ -181,7 +181,7 @@ static int Broiler_pci_probe(struct pci_dev *pdev,
 	}
 
 	/* IOMMU Mapping: IOVA to PFN */
-	bpdev.iova_base = IOMMU_VBASE; /* Star for IOVA */
+	bpdev.iova_base = IOMMU_VBASE; /* Start for IOVA */
 	for (i = 0; i < PAGE_NR; i++) {
 		unsigned long pfn = page_to_pfn(bpdev.pages[i]);
 
@@ -196,7 +196,7 @@ static int Broiler_pci_probe(struct pci_dev *pdev,
 	}
 
 	/* DAM With IOMMU */
-	/* 1. DMA Fron PCI Device, and IOVA=0 */
+	/* 1. DMA From PCI Device, and IOVA=0 */
 	dma_ops(bpdev.iova_base, 0x00, 0x20, PCI_TO_DDR);
 	mdelay(100);
 	/* 2. DMA To PCI Device, and IOVA=PAGE_SIZE */
