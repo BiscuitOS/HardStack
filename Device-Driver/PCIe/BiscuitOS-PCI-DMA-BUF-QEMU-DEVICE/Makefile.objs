@@ -1,0 +1,3 @@
+common-obj-$(CONFIG_BISCUITOS_PCI_DMA_BUF) += DMABUF-Export-Capture.o
+common-obj-$(CONFIG_BISCUITOS_PCI_DMA_BUF) += DMABUF-Import-GPUA.o
+common-obj-$(CONFIG_BISCUITOS_PCI_DMA_BUF) += DMABUF-Import-GPUB.o
