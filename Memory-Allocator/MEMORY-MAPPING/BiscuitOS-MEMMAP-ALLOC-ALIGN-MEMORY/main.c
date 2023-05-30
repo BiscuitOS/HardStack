@@ -47,7 +47,7 @@ int main()
 	void *addr;
 
 	addr = alignment_vaddr(
-		    ALIGN_SIZE_1M, 
+		    ALIGN_SIZE_2M, 
 		    MEMORY_SIZE,
 		    PROT_READ | PROT_WRITE,
 		    MAP_SHARED | MAP_ANONYMOUS,
