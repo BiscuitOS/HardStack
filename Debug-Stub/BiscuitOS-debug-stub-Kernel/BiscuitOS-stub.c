@@ -15,18 +15,21 @@
 
 int bs_debug_kernel_enable;
 int bs_debug_kernel_enable_one;
-EXPORT_SYMBOL(bs_debug_kernel_enable);
-EXPORT_SYMBOL(bs_debug_kernel_enable_one);
+unsigned long bs_debug_async_data;
+EXPORT_SYMBOL_GPL(bs_debug_async_data);
+EXPORT_SYMBOL_GPL(bs_debug_kernel_enable);
+EXPORT_SYMBOL_GPL(bs_debug_kernel_enable_one);
 
-SYSCALL_DEFINE1(debug_BiscuitOS, int, enable)
+SYSCALL_DEFINE1(debug_BiscuitOS, unsigned long, enable)
 {
-	if (enable) {
+	if (enable == 1) {
 		bs_debug_kernel_enable = 1;
 		bs_debug_kernel_enable_one = 1;
-	} else {
+	} else if (enable == 0) {
 		bs_debug_kernel_enable = 0;
 		bs_debug_kernel_enable_one = 0;
-	}
+	} else
+		bs_debug_async_data = enable;
 
 	return 0;
 }
@@ -49,7 +52,7 @@ static struct ctl_table BiscuitOS_table[] = {
 	{
 		.procname	= "bs_debug_kernel_enable",
 		.data		= &bs_debug_kernel_enable,
-		.maxlen		= sizeof(int),
+		.maxlen		= sizeof(unsigned long),
 		.mode		= 0644,
 		.proc_handler	= BiscuitOS_bs_debug_handler,
 	},
