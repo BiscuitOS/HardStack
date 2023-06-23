@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-#define DEV_PATH		"/dev/BiscuitOS-CACHE"
+#define DEV_PATH		"/dev/BiscuitOS-CACHE-MEM"
 #define PAGE_SIZE		(4 * 1024)
 
 enum page_cache_mode {
