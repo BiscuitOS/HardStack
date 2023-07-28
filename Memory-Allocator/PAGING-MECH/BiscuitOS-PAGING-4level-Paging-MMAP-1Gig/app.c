@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PTE(Page Table) APP
+ * 4 level Paging Mapping 1Gig Page
  *
  * (C) 2023.07.25 <buddy.zhang@aliyun.com>
  */
@@ -9,13 +9,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <malloc.h>
-#include <sys/ioctl.h>
+#include <sys/mman.h>
 
 #define DEV_PATH		"/dev/BiscuitOS-PageTable"
-#define PAGE_SIZE		4096
-#define BISCUITOS_IO		0xBD
-#define BS_WALK_PT		_IO(BISCUITOS_IO, 0x00)
+#define PAGE_SIZE		(1 * 1024 * 1024 * 1024)
 
 int main()
 {
@@ -29,8 +26,12 @@ int main()
 		return -1;
 	}
 
-	base = malloc(PAGE_SIZE);
-	if (!base) {
+	base = mmap(NULL, PAGE_SIZE,
+			PROT_READ | PROT_WRITE,
+			MAP_SHARED,
+			fd,
+			0);
+	if (base == MAP_FAILED) {
 		printf("ERROR: No free Memory\n");
 		close(fd);
 		return -1;
@@ -42,9 +43,7 @@ int main()
 	printf("%#lx => %c\n", (unsigned long)base, *(char *)base);
 
 	sleep(1);
-	ioctl(fd, BS_WALK_PT, (unsigned long)base);
-
-	free(base);
+	munmap(base, PAGE_SIZE);
 	close(fd);
 
 	return 0;
