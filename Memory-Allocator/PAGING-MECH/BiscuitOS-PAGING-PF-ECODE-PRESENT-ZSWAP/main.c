@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PageFault ERROR CODE: PF_PROT
+ * PageFault ERROR CODE: PF_PRESENT with ZSWAP
  *
- * (C) 2023.09.08 BuddyZhang1 <buddy.zhang@aliyun.com>
+ *   CMDLINE="zswap.enabled=1" and Enable CONFIG_ZSWAP
+ *
+ * (C) 2023.09.09 BuddyZhang1 <buddy.zhang@aliyun.com>
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,14 +29,18 @@ int main()
 		printf("ERROR: mmap failed.\n");
 		return -1;
 	}
-	/* Write Ops, Trigger #PF with PF_WRITE */
+
+	/* Write Ops, Trigger #PF Forbidden ZERO Page */
 	*base = 'B';
+
+	/* Compress ZSWAP */
+	madvise(base, MAP_SIZE, MADV_PAGEOUT);
+	sleep(1);
+
+	/* Decompress, Trigger #PF with PF_PRESENT */
+	*base = 'C';
 	/* Read Ops, Don't Trigger #PF */
 	printf("Anonymous %#lx => %c\n", (unsigned long)base, *base);
-
-	mprotect(base, MAP_SIZE, PROT_READ);
-	/* Write Ops, Trigger #PF with PF_PROT */
-	*base = 'C';
 
 	munmap(base, MAP_SIZE);
 

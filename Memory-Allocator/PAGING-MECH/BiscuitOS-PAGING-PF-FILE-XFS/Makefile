@@ -55,7 +55,7 @@ all:
 	$(B_CC) $(LCFLAGS) -o $(TARGET) $(SRC)
 
 install:
-	@cp -rfa $(TARGET) BIN.bin $(INSTALL_PATH)
+	@cp -rfa $(TARGET) $(INSTALL_PATH)
 	@chmod 755 RunBiscuitOS.sh
 	@cp -rfa RunBiscuitOS.sh $(INSTALL_PATH)
 

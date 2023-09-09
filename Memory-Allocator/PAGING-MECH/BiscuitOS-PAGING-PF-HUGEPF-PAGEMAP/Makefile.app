@@ -11,11 +11,11 @@
 ifeq ("$(origin TARGETA)", "command line")
 TARGET			:= $(TARGETA)
 else
-TARGET			:= BiscuitOS_app
+TARGET			:= APP
 endif
 
 ## Source Code
-SRC			+= main.c
+SRC			+= app.c
 
 ## CFlags
 LCFLAGS			+= -DCONFIG_BISCUITOS_APP
@@ -55,9 +55,7 @@ all:
 	$(B_CC) $(LCFLAGS) -o $(TARGET) $(SRC)
 
 install:
-	@cp -rfa $(TARGET) BIN.bin $(INSTALL_PATH)
-	@chmod 755 RunBiscuitOS.sh
-	@cp -rfa RunBiscuitOS.sh $(INSTALL_PATH)
+	@cp -rfa $(TARGET) $(INSTALL_PATH)
 
 clean:
 	@rm -rf $(TARGET) *.o
