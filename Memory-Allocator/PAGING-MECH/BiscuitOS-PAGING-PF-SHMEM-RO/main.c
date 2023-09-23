@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PageFault with Read-Only Shmem
+ * PageFault with Shmem on Read-Only
  *
  * (C) 2023.09.01 BuddyZhang1 <buddy.zhang@aliyun.com>
  */
@@ -11,15 +11,15 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#define PAGE_SIZE	(4096)
+#define MAP_SIZE	(4096)
 #define MAP_VADDR	(0x6000000000)
 
 int main()
 {
 	char *base, ch;
 
-	base = mmap((void *)MAP_VADDR, PAGE_SIZE,
-		    PROT_READ | PROT_WRITE,
+	base = mmap((void *)MAP_VADDR, MAP_SIZE,
+		    PROT_READ,
 		    MAP_SHARED | MAP_ANONYMOUS,
 		    -1,
 		    0);
@@ -33,7 +33,11 @@ int main()
 	/* Read Ops, Don't Trigger #PF */
 	printf("%#lx => %c\n", (unsigned long)base, ch);
 
-	munmap(base, PAGE_SIZE);
+	sleep(0.5); /* Just for debug */
+	/* Write Ops, Trigger #PF and SegmentFault */
+	*base = 'D';
+
+	munmap(base, MAP_SIZE);
 
 	return 0;
 }

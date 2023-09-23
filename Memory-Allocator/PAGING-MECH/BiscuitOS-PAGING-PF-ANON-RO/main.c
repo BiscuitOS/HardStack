@@ -33,6 +33,10 @@ int main()
 	/* Read Ops, Don't Trigger #PF */
 	printf("ANON-RO %#lx => %d\n", (unsigned long)base, *base);
 
+	sleep(1); /* Just for Debug */
+	/* Write Ops, Trigger #PF and SIG_BUS */
+	*base = 'D';
+
 	munmap(base, MAP_SIZE);
 
 	return 0;

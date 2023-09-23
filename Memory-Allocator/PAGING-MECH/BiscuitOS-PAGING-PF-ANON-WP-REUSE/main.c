@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PageFault with Shmem
+ * PageFault with Anonymous on WP REUSE
  *
- * (C) 2023.09.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2023.09.18 BuddyZhang1 <buddy.zhang@aliyun.com>
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +20,7 @@ int main()
 
 	base = mmap((void *)MAP_VADDR, MAP_SIZE,
 		    PROT_READ | PROT_WRITE,
-		    MAP_SHARED | MAP_ANONYMOUS,
+		    MAP_PRIVATE | MAP_ANONYMOUS,
 		    -1,
 		    0);
 	if (base == MAP_FAILED) {
@@ -28,10 +28,21 @@ int main()
 		return -1;
 	}
 
-	/* Write Ops, Trigger #PF */
+	/* Write Ops, Trigger #PF, Alloc Normal Page */
 	*base = 'B';
 	/* Read Ops, Don't Trigger #PF */
-	printf("SHMEM %#lx => %c\n", (unsigned long)base, *base);
+	printf("ANON-WP-REUSE %#lx => %c\n", (unsigned long)base, *base);
+
+	if (fork() == 0) {
+		/* Write Ops, Trigger #PF and MAPCOUNT==2 COPY PAGE */
+		*base = 'C';
+	} else {
+		sleep(0.5);
+		/* Write Ops, Trigger #PF and MAPCOUNT==1 REUSE PAGE */
+		*base = 'D';
+	}
+
+	sleep(-1); /* Just for Debug */
 
 	munmap(base, MAP_SIZE);
 

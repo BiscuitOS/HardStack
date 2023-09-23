@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PageFault with Shmem
+ * PageFault with Shmem on MCE
  *
- * (C) 2023.09.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2023.09.22 BuddyZhang1 <buddy.zhang@aliyun.com>
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +31,13 @@ int main()
 	/* Write Ops, Trigger #PF */
 	*base = 'B';
 	/* Read Ops, Don't Trigger #PF */
-	printf("SHMEM %#lx => %c\n", (unsigned long)base, *base);
+	printf("SHMEM-MCE %#lx => %c\n", (unsigned long)base, *base);
+
+	/* MCE: UE */
+	madvise(base, MAP_SIZE, MADV_HWPOISON);
+
+	/* Write Ops, Trigger #PF with UE */
+	*base = 'D';
 
 	munmap(base, MAP_SIZE);
 

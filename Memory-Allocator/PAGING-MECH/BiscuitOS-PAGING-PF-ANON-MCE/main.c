@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PageFault with Shmem
+ * PageFault with Anonymous Memory on MCE
  *
- * (C) 2023.09.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2023.09.20 BuddyZhang1 <buddy.zhang@aliyun.com>
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +20,7 @@ int main()
 
 	base = mmap((void *)MAP_VADDR, MAP_SIZE,
 		    PROT_READ | PROT_WRITE,
-		    MAP_SHARED | MAP_ANONYMOUS,
+		    MAP_PRIVATE | MAP_ANONYMOUS,
 		    -1,
 		    0);
 	if (base == MAP_FAILED) {
@@ -31,7 +31,13 @@ int main()
 	/* Write Ops, Trigger #PF */
 	*base = 'B';
 	/* Read Ops, Don't Trigger #PF */
-	printf("SHMEM %#lx => %c\n", (unsigned long)base, *base);
+	printf("Anonymous %#lx => %c\n", (unsigned long)base, *base);
+
+	/* Emulate MCE and Inject UE */
+	madvise(base, MAP_SIZE, MADV_HWPOISON);
+
+	/* Write Ops, Trigger #PF with HWPoison */
+	*base = 'D';
 
 	munmap(base, MAP_SIZE);
 

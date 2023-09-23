@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PageFault with Shmem
+ * PageFault with Shmem on ZSWAP
  *
- * (C) 2023.09.01 BuddyZhang1 <buddy.zhang@aliyun.com>
+ *   CMDLINE="zswap.enabled=1" and Enable CONFIG_ZSWAP
+ *
+ * (C) 2023.09.22 BuddyZhang1 <buddy.zhang@aliyun.com>
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +33,13 @@ int main()
 	/* Write Ops, Trigger #PF */
 	*base = 'B';
 	/* Read Ops, Don't Trigger #PF */
-	printf("SHMEM %#lx => %c\n", (unsigned long)base, *base);
+	printf("SHMEM-ZSWAP %#lx => %c\n", (unsigned long)base, *base);
+
+	/* Memory Compress */
+	madvise(base, MAP_SIZE, MADV_PAGEOUT);
+
+	/* Write Ops, Trigger #PF with Memory Decompress */
+	*base = 'D';
 
 	munmap(base, MAP_SIZE);
 

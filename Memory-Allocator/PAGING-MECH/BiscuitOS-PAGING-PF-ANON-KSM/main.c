@@ -51,8 +51,10 @@ int main()
 	printf("ANON-KSM: %#lx Wait KSM.\n", (unsigned long)baseA);
 	sleep(1); /* Wakeup KSM-Thread on RunBiscuitOS.sh */
 
-	/* Write Ops, Trigger #PF with KSM */
+	/* Write Ops, Trigger #PF with KSM - COPY PAGE */
 	*baseA = 'B';
+	/* Write Ops, Trigger #PF with KSM - COPY PAGE */
+	*baseB = 'D';
 
 	sleep(-1); /* Just for Debug */
 	munmap(baseA, MAP_SIZE);

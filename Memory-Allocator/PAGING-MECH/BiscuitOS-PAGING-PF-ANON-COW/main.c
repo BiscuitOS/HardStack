@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#define MAP_SIZE	(4096 * 8)
+#define MAP_SIZE	(4096)
 #define MAP_VADDR	(0x6000000000)
 
 int main()
@@ -29,18 +29,17 @@ int main()
 	}
 
 	/* Write Ops, Trigger #PF */
-	base[0 * 4096] = 'B';
-	base[1 * 4096] = 'B';
+	*base = 'B';
 	/* Read Ops, Don't Trigger #PF */
 	printf("Anon-COW %#lx => %c\n", (unsigned long)base, *base);
 
 	/* COW */
-	if (fork() == 0) {
-		/* Write Ops, MAPCOUNT=2 Trigger #PF with COW */
+	if (fork() == 0) { /* Write-Protection */
+		/* Write Ops, MAPCOUNT==2 Trigger #PF COPY PAGE */
 		*base = 'C';
 	} else {
-		sleep(1);
-		/* Write Ops, MAPCOUNT=1 Trigger #PF with WP */
+		sleep(0.5);
+		/* Write Ops, MAPCOUNT==1 Trigger #PF REUSE PAGE */
 		*base = 'D';
 	}
 
