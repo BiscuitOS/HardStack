@@ -10,7 +10,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <emmintrin.h>
 
 #define MAP_SIZE	(4096 * 6)
 #define MAP_VADDR	(0x6000000000)
