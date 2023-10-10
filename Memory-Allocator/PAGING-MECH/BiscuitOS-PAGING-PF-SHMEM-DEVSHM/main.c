@@ -46,6 +46,7 @@ int main()
 	/* Read Ops, Don't Trigger #PF */
 	printf("DEV-SHM %#lx => %s\n", (unsigned long)base, base);
 	
+	sleep(-1); /* Just for Debug */
 	/* unmap */
 	munmap(base, MAP_SIZE);
 	close(fd);

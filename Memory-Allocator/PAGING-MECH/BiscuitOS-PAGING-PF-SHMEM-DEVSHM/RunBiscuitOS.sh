@@ -2,7 +2,8 @@
 # 
 # Running program
 echo "Bello BiscuitOS" > /dev/shm/BiscuitOS.mem
-BiscuitOS-PAGING-PF-SHMEM-DEVSHM-default
+BiscuitOS-PAGING-PF-SHMEM-DEVSHM-default &
+sleep 0.5
 
 # SHMEM Information
 echo ""

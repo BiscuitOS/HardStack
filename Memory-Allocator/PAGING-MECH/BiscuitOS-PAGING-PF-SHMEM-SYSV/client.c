@@ -43,7 +43,7 @@ int main()
 	*base = 'H';
 
 	/* Read data from SHMEM */
-	printf("Anonymous: %s\n", base);
+	printf("SYSV-SHMEM: %s\n", base);
 
 	/* Separate from current processor */
 	if (shmdt(base) < 0 ) {
