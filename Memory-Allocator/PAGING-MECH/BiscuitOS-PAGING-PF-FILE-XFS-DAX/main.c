@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#define MAP_SIZE	(2 * 1024 * 1024)
+#define MAP_SIZE	(4 * 1024)
 #define MAP_VADDR	(0x6000000000)
 #define FILE_PATH	"/mnt/xfs-dax/BiscuitOS.bin"
 

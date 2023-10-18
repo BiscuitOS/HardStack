@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * PageFault with File-Mapped XFS FS
+ * PageFault with File-Mapped XFS
  *
- * (C) 2023.09.04 BuddyZhang1 <buddy.zhang@aliyun.com>
+ * (C) 2023.09.01 BuddyZhang1 <buddy.zhang@aliyun.com>
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +39,7 @@ int main()
 	/* Write Ops, Trigger #PF */
 	*base = 'B';
 	/* Read Ops, Don't Trigger #PF */
-	printf("XFS %#lx => %c\n", (unsigned long)base, *base);
+	printf("XFS-FS %#lx => %c\n", (unsigned long)base, *base);
 
 	munmap(base, PAGE_SIZE);
 	close(fd);
