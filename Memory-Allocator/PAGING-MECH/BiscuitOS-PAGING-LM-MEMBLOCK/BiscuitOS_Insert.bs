@@ -1,0 +1,6 @@
+[File]
+arch/x86/kernel/setup.c
+[Func]
+setup_log_buf()
+[Content]
+BiscuitOS_Running()

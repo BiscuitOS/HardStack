@@ -1,0 +1,6 @@
+[File]
+arch/x86/kernel/setup.c
+[Func]
+x86_init.oem.arch_setup()
+[Content]
+BiscuitOS_Running()
