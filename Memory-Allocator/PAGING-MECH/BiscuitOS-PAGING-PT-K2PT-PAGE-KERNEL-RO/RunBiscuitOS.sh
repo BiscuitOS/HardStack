@@ -1,0 +1,2 @@
+#/bin/ash
+insmod /lib/modules/$(uname -r)/extra/BiscuitOS-PAGING-PT-K2PT-PAGE-KERNEL-RO-default.ko
