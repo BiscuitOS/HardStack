@@ -40,10 +40,13 @@ static int BiscuitOS_bs_debug_handler(struct ctl_table *table, int write,
 	int ret;
 
 	ret = proc_dointvec(table, write, buffer, length, ppos);
-	if (bs_debug_kernel_enable)
+	if (bs_debug_kernel_enable) {
 		bs_debug_kernel_enable_one = 1;
-	else
+		bs_debug_kernel_enable = 1;
+	} else {
 		bs_debug_kernel_enable_one = 0;
+		bs_debug_kernel_enable = 0;
+	}
 
 	return ret;
 }
