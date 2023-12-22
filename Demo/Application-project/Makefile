@@ -20,6 +20,11 @@ SRC			+= main.c
 
 ## CFlags
 LCFLAGS			+= -DCONFIG_BISCUITOS_APP
+# MEMORY
+MEMORY_FLUID            := $(PWD)/../../../rootfs/rootfs/usr/share/BiscuitOS_memory_fluid.h
+ifneq ($(wildcard $(MEMORY_FLUID)),)
+LCFLAGS                 += -include $(MEMORY_FLUID)
+endif
 ## Header
 LCFLAGS			+= -I./ -I$(PWD)/include
 
