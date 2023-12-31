@@ -62,16 +62,6 @@ else ifeq ($(ARCH), x86_64)
 CROSS_COMPILE	:=
 endif
 
-# Userspace
-APP_SRC		= app.c
-
-# MEMORY
-MEMORY_FLUID    := $(PWD)/../../../rootfs/rootfs/usr/share/BiscuitOS_memory_fluid.h
-$(warning "SDFASDFASDF")
-ifneq ($(wildcard $(MEMORY_FLUID)),)
-BLCFLAGS        += -include $(MEMORY_FLUID)
-endif
-
 ## Compile
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
@@ -89,16 +79,15 @@ CFLAGS += -I$(INCLUDEDIR) -I$(ARCHINCLUDEDIR)
 all: $(OBJS)
 	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
                 CROSS_COMPILE=$(CROSS_COMPILE) modules
-	$(CC)  $(BLCFLAGS) $(APP_SRC) -o APP
 
 install:
 	make -C $(KERNELDIR) M=$(PWD) ARCH=$(ARCH) \
 		INSTALL_MOD_PATH=$(INSTALLDIR) modules_install
 	chmod 755 RunBiscuitOS.sh
-	sudo cp RunBiscuitOS.sh APP $(INSTALLDIR)/usr/bin/
+	sudo cp RunBiscuitOS.sh $(INSTALLDIR)/usr/bin/
 
 clean:
 	@rm -rf *.ko *.o *.mod.o *.mod.c *.symvers *.order \
-               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd *.mod APP
+               .*.o.cmd .tmp_versions *.ko.cmd .*.ko.cmd *.mod
 
 endif
