@@ -1,0 +1,2 @@
+config BISCUITOS_PCI_INTX
+    bool
